@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- **Council accountability 500**: Jinja2 choked on `{{` in a JS comment in `campaign_finance.html`; safe member directory sort; canonical URL **`/council-accountability`** (`/campaign-finance` redirects); Docker image includes **`images/`** for headshots.
+
 ### Added
 
 - **App portal** (`GET /`): DALCIV logo + enterprise-style app grid; Legistar scraper moved to **`/council-meetings`**.
@@ -11,6 +15,8 @@
 - **Fix agenda-item grouping**: roll calls group by `agenda_id` + item + date (not per-member `vote_id`).
 - **docs/DEPLOYING_UPDATES.md**: Non-technical guide for testing locally, publishing via GitHub or SSH, versioning, landing vs VPS app, and post-deploy checklist.
 - **Manifest meeting metadata**: `meeting_title`, `meeting_detail_url`, `source`, `legistar_id`; unique PDF filenames (Legistar ID/GUID suffix).
+- **Manifest provenance**: `legistar_event_id`, `matter_id`, `calendar_row_context`, `http_status`, `content_type`, `bytes_written`, `scraped_at`, `sha256`; council-meetings file table shows Meeting / Source / Legistar ID.
+- **Council headshots**: member browse cards and profiles use `images/` via `/council-images`; photo click opens Dallas City Hall `district{N}` page.
 - **`dashboard/content.py`**: PDF text extraction (`pypdf`) + extractive `build_summary()`.
 - **`dashboard/summaries.py`**: `summaries.json` store, background batch job, meeting-grouped joins.
 - **Summary APIs**: `GET /api/summaries`, `POST /api/summarize`, `POST /api/summarize/one`, `GET /api/summarize/status`; overview bundle includes `summaries` + `summarize_job`.

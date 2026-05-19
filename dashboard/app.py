@@ -12,7 +12,7 @@ from urllib.parse import unquote
 
 import requests
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -54,6 +54,14 @@ _static_dir = Path(__file__).parent / "static"
 if _static_dir.is_dir():
     app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 
+_council_images = PROJECT_ROOT / "images"
+if _council_images.is_dir():
+    app.mount(
+        "/council-images",
+        StaticFiles(directory=str(_council_images)),
+        name="council-images",
+    )
+
 
 @app.middleware("http")
 async def api_usage_middleware(request: Request, call_next):
@@ -63,14 +71,20 @@ async def api_usage_middleware(request: Request, call_next):
     return response
 
 
-@app.get("/campaign-finance", response_class=HTMLResponse)
-async def campaign_finance_page(request: Request) -> HTMLResponse:
+@app.get("/council-accountability", response_class=HTMLResponse)
+async def council_accountability_page(request: Request) -> HTMLResponse:
     """Council Accountability: campaign finance + city council voting (Socrata)."""
     return templates.TemplateResponse(
         request=request,
         name="campaign_finance.html",
         context={},
     )
+
+
+@app.get("/campaign-finance", include_in_schema=False)
+async def campaign_finance_redirect() -> RedirectResponse:
+    """Legacy path → canonical Council Accountability URL."""
+    return RedirectResponse(url="/council-accountability", status_code=308)
 
 
 @app.get("/api/campaign-finance/summary")

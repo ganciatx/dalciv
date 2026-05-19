@@ -38,7 +38,7 @@ Add a minimal local UI to **start/stop** the Dallas Legistar scraper, persist an
 
 - [x] 🟩 **Step 4: File summary & status**
   - [x] 🟩 `/api/files` + `/api/overview` hydrate manifest rows, resolve relative paths from the project root, and mark `file_exists`.
-  - [ ] 🟨 **Optional v1.1:** enrich manifest rows with explicit `http_status` / `error` fields inside `dallas_legistar_scraper.py` (deferred to keep v1 lean).
+  - [x] 🟩 **Manifest provenance:** `http_status`, `content_type`, `bytes_written`, `scraped_at`, `sha256`, Legistar IDs (`MANIFEST_METADATA_PLAN.md`).
 
 - [x] 🟩 **Step 5: Minimal UI**
   - [x] 🟩 FastAPI + Jinja template at `dashboard/templates/index.html`, bound to `127.0.0.1:8765` via `python -m dashboard`.

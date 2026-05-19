@@ -35,6 +35,8 @@
             <button type="button" class="btn sm pri-btn" data-pri="3"><span class="sdot" style="background:var(--p3)"></span><span class="t-mono">P3</span></button>
             <button type="button" class="btn sm pri-btn" data-pri="4"><span class="sdot" style="background:var(--p4)"></span><span class="t-mono">P4</span></button>
           </div>
+          <button type="button" class="btn sm map-toggle on" id="toggle-clusters" title="Show division cluster boxes">Clusters</button>
+          <button type="button" class="btn sm map-toggle on" id="toggle-legend" title="Show map legend">Legend</button>
           <select id="filter-division" class="btn sm" style="font-family:var(--font-ui);max-width:140px"></select>
           <button type="button" class="btn sm on" id="hide-routine">✓ Hide routine</button>
         </div>
@@ -60,14 +62,18 @@
         </div>
 
         <div id="map-stats" class="surface"></div>
+        <button type="button" class="btn sm show-rail-fab surface" id="show-rail-fab" hidden title="Show feed panel">Show panel</button>
       </div>
 
       <aside id="right-rail">
+        <div class="rail-top">
         <div class="tabs" role="tablist">
           <button type="button" class="tab on" data-tab="feed">Feed <span class="count" id="tab-count-feed">0</span></button>
           <button type="button" class="tab" data-tab="watch">Watch <span class="count" id="tab-count-watch">0</span></button>
           <button type="button" class="tab" data-tab="notes">Notes <span class="count" id="tab-count-notes">0</span></button>
           <button type="button" class="tab" data-tab="patt">Patterns <span class="count" id="tab-count-patt">0</span></button>
+        </div>
+        <button type="button" class="btn sm ghost" id="toggle-rail" aria-expanded="true">Hide panel</button>
         </div>
         <div id="rail-body"></div>
         <div class="rail-footer t-mono" style="padding:8px 14px;border-top:1px solid var(--br-2);color:var(--fg-3);font-size:10px">

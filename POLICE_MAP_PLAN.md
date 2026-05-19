@@ -86,6 +86,15 @@ Rebuilt **`/police`** to match the hi-fi **DPD Desk Ops** mockup (`DPD Desk Ops 
 - [x] 🟩 `app.py` static mount
 - [x] 🟩 Docs: README + CHANGELOG
 
+### Map UI toggles (done) — **Overall Progress:** `100%`
+
+- [x] 🟩 Cluster polygons stroke-only + `L.layerGroup()` cleanup (no fill stacking on click)
+- [x] 🟩 Filter bar: **Clusters**, **Legend** toggles
+- [x] 🟩 Right rail collapse + **Show panel** FAB; `.main-grid.map-only`
+- [x] 🟩 `localStorage` prefs: `dpd_show_clusters`, `dpd_show_legend`, `dpd_show_rail`
+
+See `issues/ISSUE-police-map-ui-toggles.md`.
+
 ### Out of scope (Desk Ops v1)
 
 - Full mockup watchlist rules engine / pattern detection

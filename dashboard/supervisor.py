@@ -38,7 +38,24 @@ MANIFEST_OPTIONAL_COLUMNS = (
     "meeting_detail_url",
     "source",
     "legistar_id",
+    "legistar_event_id",
+    "matter_id",
+    "calendar_row_context",
+    "http_status",
+    "content_type",
+    "bytes_written",
+    "scraped_at",
+    "sha256",
 )
+
+
+def primary_legistar_id(row: dict[str, Any]) -> str:
+    """Best display id: event (meeting) > file > matter."""
+    for key in ("legistar_event_id", "legistar_id", "matter_id"):
+        val = str(row.get(key, "") or "").strip()
+        if val:
+            return val
+    return ""
 
 
 def normalize_manifest_row(row: dict[str, Any]) -> dict[str, Any]:
@@ -449,6 +466,7 @@ def summarize_files(project_root: Path) -> tuple[list[dict[str, Any]], dict[str,
                 "saved_to_display": saved,
                 "file_exists": exists,
                 "basename": path.name if path.name else "",
+                "legistar_id_display": primary_legistar_id(row),
             }
         )
 

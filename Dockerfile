@@ -21,7 +21,9 @@ RUN pip install --no-cache-dir -r requirements.txt \
     && playwright install --with-deps chromium
 
 COPY dallas_legistar_scraper.py .
+COPY legistar_url_parsing.py .
 COPY dashboard ./dashboard
+COPY images ./images
 
 RUN mkdir -p scraper_dashboard_data dallas_legistar_downloads
 

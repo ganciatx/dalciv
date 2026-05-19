@@ -477,7 +477,7 @@
       <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;">
         <a href="/" style="text-decoration:none;color:var(--accent);font-size:.875rem;border:1px solid var(--border);padding:.35rem .65rem;border-radius:.35rem;">Apps</a>
         <a href="/police" style="text-decoration:none;color:var(--accent);font-size:.875rem;border:1px solid var(--border);padding:.35rem .65rem;border-radius:.35rem;">Police map</a>
-        <a href="/campaign-finance" style="text-decoration:none;color:var(--accent);font-size:.875rem;border:1px solid var(--border);padding:.35rem .65rem;border-radius:.35rem;">Council accountability</a>
+        <a href="/council-accountability" style="text-decoration:none;color:var(--accent);font-size:.875rem;border:1px solid var(--border);padding:.35rem .65rem;border-radius:.35rem;">Council accountability</a>
         <span class="pill" id="pulse">
           <span class="dot" id="pulse-dot"></span>
           <span id="pulse-text">Loading…</span>
@@ -574,13 +574,16 @@
             <tr>
               <th scope="col">Type</th>
               <th scope="col">Label</th>
+              <th scope="col">Meeting</th>
+              <th scope="col">Source</th>
+              <th scope="col">Legistar ID</th>
               <th scope="col">Exists</th>
               <th scope="col">Path</th>
             </tr>
           </thead>
           <tbody id="files-body">
             <tr>
-              <td colspan="4" style="color:var(--muted);">Polling…</td>
+              <td colspan="7" style="color:var(--muted);">Polling…</td>
             </tr>
           </tbody>
         </table>
@@ -903,13 +906,31 @@
       }
     }
 
+    function manifestMeetingLabel(row) {
+      const title = (row.meeting_title || "").trim();
+      if (title) return title;
+      const ctx = (row.calendar_row_context || "").trim();
+      if (ctx) return ctx.length > 80 ? ctx.slice(0, 77) + "…" : ctx;
+      return "—";
+    }
+
+    function manifestLegistarId(row) {
+      return (
+        row.legistar_id_display ||
+        row.legistar_event_id ||
+        row.legistar_id ||
+        row.matter_id ||
+        ""
+      );
+    }
+
     function renderFiles(rows) {
       const tbody = qs("#files-body");
       tbody.innerHTML = "";
       if (!rows?.length) {
         const tr = document.createElement("tr");
         const td = document.createElement("td");
-        td.colSpan = 4;
+        td.colSpan = 7;
         td.style.color = "var(--muted)";
         td.textContent = "No manifest rows.";
         tr.appendChild(td);
@@ -918,22 +939,47 @@
       }
       for (const row of rows) {
         const tr = document.createElement("tr");
+        const tip = [
+          row.url ? `URL: ${row.url}` : "",
+          row.meeting_detail_url ? `Meeting: ${row.meeting_detail_url}` : "",
+          row.scraped_at ? `Scraped: ${row.scraped_at}` : "",
+          row.bytes_written ? `Bytes: ${row.bytes_written}` : "",
+          row.sha256 ? `SHA-256: ${row.sha256}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n");
 
-        let tdType = document.createElement("td");
+        const tdType = document.createElement("td");
         tdType.textContent = row.type || "";
         tr.appendChild(tdType);
 
-        let tdLabel = document.createElement("td");
+        const tdLabel = document.createElement("td");
         tdLabel.textContent = row.label || "";
         tr.appendChild(tdLabel);
 
-        let tdExists = document.createElement("td");
+        const tdMeeting = document.createElement("td");
+        tdMeeting.textContent = manifestMeetingLabel(row);
+        tdMeeting.title = row.meeting_title || row.calendar_row_context || "";
+        tr.appendChild(tdMeeting);
+
+        const tdSource = document.createElement("td");
+        tdSource.className = "mono";
+        tdSource.textContent = row.source || "—";
+        tr.appendChild(tdSource);
+
+        const tdId = document.createElement("td");
+        tdId.className = "mono";
+        tdId.textContent = manifestLegistarId(row) || "—";
+        tr.appendChild(tdId);
+
+        const tdExists = document.createElement("td");
         tdExists.textContent = row.file_exists ? "yes" : "no";
         tr.appendChild(tdExists);
 
-        let tdPath = document.createElement("td");
+        const tdPath = document.createElement("td");
         tdPath.className = "mono";
         tdPath.textContent = row.saved_to_display || row.saved_to || "";
+        if (tip) tdPath.title = tip;
         tr.appendChild(tdPath);
 
         tbody.appendChild(tr);

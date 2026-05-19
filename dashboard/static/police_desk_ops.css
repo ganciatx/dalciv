@@ -263,12 +263,44 @@ html, body { margin: 0; padding: 0; background: var(--bg-0); color: var(--fg-1);
   pointer-events: none;
 }
 
-/* cluster lasso */
+/* cluster lasso — stroke only (no fill; avoids stacking on re-render) */
 .cluster-lasso {
-  fill: rgba(240, 212, 82, 0.07);
+  fill: none;
   stroke: var(--warn);
   stroke-width: 1.4;
   stroke-dasharray: 5 5;
+}
+
+.map-toggle.on {
+  background: var(--warn-soft);
+  color: var(--warn);
+  border-color: rgba(240, 212, 82, 0.4);
+}
+
+.rail-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--br-1);
+  flex-shrink: 0;
+}
+
+.rail-top .tabs {
+  flex: 1;
+  min-width: 0;
+}
+
+#toggle-rail {
+  flex-shrink: 0;
+  margin: 4px 8px 4px 0;
+  font-size: 11px;
+}
+
+.show-rail-fab {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 550;
 }
 
 /* incident row hover */
@@ -405,6 +437,10 @@ html, body { margin: 0; padding: 0; background: var(--bg-0); color: var(--fg-1);
   display: grid;
   grid-template-columns: 1fr 440px;
   min-height: 0;
+}
+
+.main-grid.map-only {
+  grid-template-columns: 1fr;
 }
 
 .map-col {
@@ -582,5 +618,9 @@ html, body { margin: 0; padding: 0; background: var(--bg-0); color: var(--fg-1);
   .main-grid {
     grid-template-columns: 1fr;
     grid-template-rows: 240px 1fr;
+  }
+
+  .main-grid.map-only {
+    grid-template-rows: 1fr;
   }
 }

@@ -744,6 +744,101 @@
       color: var(--muted);
       margin-left: 0.35rem;
     }
+
+    .member-cards {
+      max-height: none;
+      grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+    }
+
+    .member-card {
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .member-card .member-card-body {
+      padding: 0.5rem 0.55rem 0.55rem;
+    }
+
+    .member-headshot-link {
+      display: block;
+      line-height: 0;
+      flex-shrink: 0;
+    }
+
+    .member-headshot-link:hover {
+      opacity: 0.92;
+    }
+
+    .member-headshot {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+      background: var(--border);
+    }
+
+    .member-headshot.placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .profile-header {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+    }
+
+    .profile-header .member-headshot-link .member-headshot.profile-size,
+    .profile-header .member-headshot.placeholder.profile-size {
+      width: 120px;
+      height: 120px;
+      aspect-ratio: auto;
+      border-radius: 0.45rem;
+      flex-shrink: 0;
+    }
+
+    .profile-header-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .profile-header-text h2 {
+      margin: 0 0 0.25rem;
+      font-size: 1.05rem;
+    }
+
+    .council-status {
+      display: inline-block;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      padding: 0.18rem 0.45rem;
+      border-radius: 4px;
+      margin-bottom: 0.3rem;
+    }
+
+    .council-status.active {
+      background: rgba(74, 222, 128, 0.18);
+      color: var(--good);
+    }
+
+    .council-status.former {
+      background: var(--border);
+      color: var(--muted);
+    }
+
+    .member-card.active-member {
+      border-color: rgba(74, 222, 128, 0.35);
+    }
   </style>
 </head>
 
@@ -757,7 +852,7 @@
       <span class="status-pill"><span class="spinner" id="refresh-spin" hidden></span> <span
           id="refresh-text">—</span></span>
       <a class="btn-link" href="/">Apps</a>
-      <a class="btn-link" href="/council-meetings">Council meetings</a>
+      <a class="btn-link" href="https://cityofdallas.legistar.com/Calendar.aspx" target="_blank" rel="noopener noreferrer">Council meetings</a>
       <a class="btn-link" href="/police">Police map</a>
       <button type="button" id="btn-refresh-finance" class="btn-link">Refresh finance</button>
       <button type="button" id="btn-refresh-voting" class="btn-link primary">Refresh voting</button>
@@ -818,12 +913,17 @@
     <div id="tab-overview" class="tab-panel on">
     <section class="insight-section" id="member-index-section">
       <h2>Browse council members</h2>
-      <p class="hint">Members with campaign finance and/or voting data. Select one for a combined profile.</p>
+      <p class="hint">Active councilmembers (with photos) are listed first by district. Click a card or photo for an in-app profile; on the profile, the photo links to the district City Hall page.</p>
       <div class="candidate-cards member-cards" id="member-cards"></div>
     </section>
     <section class="insight-section" id="combined-overview" hidden>
-      <h2>Member profile — <span id="profile-name"></span></h2>
-      <p class="hint" id="profile-meta"></p>
+      <div class="profile-header" id="profile-header">
+        <div id="profile-headshot-slot"></div>
+        <div class="profile-header-text">
+          <h2>Member profile — <span id="profile-name"></span></h2>
+          <p class="hint" id="profile-meta"></p>
+        </div>
+      </div>
       <div class="overview-kpis" id="profile-kpis"></div>
       <div class="insight-grid" id="profile-voting-block" hidden>
         <div>
@@ -1452,6 +1552,37 @@
       }
     }
 
+    function memberInitials(name) {
+      return (name || "?")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase();
+    }
+
+    function councilStatusHtml(m) {
+      const active = m.council_status === "active";
+      const cls = active ? "active" : "former";
+      const label = active ? "Active Councilmember" : "Former Councilmember";
+      return `<span class="council-status ${cls}">${label}</span>`;
+    }
+
+    /** @param opts - districtLink: when true, wrap photo in City Hall district URL (profile view only). */
+    function memberHeadshotHtml(m, sizeClass, opts = {}) {
+      const cls = sizeClass ? ` ${sizeClass}` : "";
+      const alt = escapeHtml(m.display_name || "Councilmember");
+      const inner = m.headshot_url
+        ? `<img class="member-headshot${cls}" src="${escapeHtml(m.headshot_url)}" alt="${alt}" loading="lazy" />`
+        : `<div class="member-headshot placeholder${cls}" aria-hidden="true">${escapeHtml(memberInitials(m.display_name))}</div>`;
+      if (opts.districtLink && m.district_page_url) {
+        const distLabel = m.district_num || m.district || "";
+        return `<a class="member-headshot-link" href="${escapeHtml(m.district_page_url)}" target="_blank" rel="noopener noreferrer" title="District ${escapeHtml(String(distLabel))} — Dallas City Hall">${inner}</a>`;
+      }
+      return inner;
+    }
+
     function syncMemberToCandidate(memberId) {
       selectedMemberId = memberId || "";
       const entry = memberDirectory.find((m) => m.id === selectedMemberId);
@@ -1491,11 +1622,18 @@
         const voteLine = vs
           ? `Yes ${pctRate(vs.yes_rate)} · ${vs.records || 0} votes`
           : "No voting data";
-        const dist = m.district ? `Dist ${escapeHtml(m.district)}` : "";
-        return `<button type="button" class="candidate-card" data-member="${escapeHtml(m.id)}">
-          <strong>${escapeHtml(m.display_name)}</strong>${dist ? `<span class="badge">${dist}</span>` : ""}
-          <span class="line">${moneyLine}</span>
-          <span class="line">${voteLine}</span>
+        const distNum = m.district_num || m.district;
+        const dist = distNum ? `Dist ${escapeHtml(String(distNum))}` : "";
+        const photo = memberHeadshotHtml(m, "");
+        const activeCls = m.council_status === "active" ? " active-member" : "";
+        return `<button type="button" class="candidate-card member-card${activeCls}" data-member="${escapeHtml(m.id)}">
+          ${photo}
+          <div class="member-card-body">
+            ${councilStatusHtml(m)}
+            <strong>${escapeHtml(m.display_name)}</strong>${dist ? `<span class="badge">${dist}</span>` : ""}
+            <span class="line">${moneyLine}</span>
+            <span class="line">${voteLine}</span>
+          </div>
         </button>`;
       }).join("");
       wrap.querySelectorAll(".candidate-card").forEach((btn) => {
@@ -1597,11 +1735,17 @@
       idx.hidden = true;
       const m = body.member || {};
       document.getElementById("profile-name").textContent = m.display_name || m.id;
+      const headSlot = document.getElementById("profile-headshot-slot");
+      if (headSlot) headSlot.innerHTML = memberHeadshotHtml(m, "profile-size", { districtLink: true });
       const tags = [];
+      tags.push(m.council_status === "active" ? "Active Councilmember" : "Former Councilmember");
       if (m.has_finance) tags.push("campaign finance");
       if (m.has_voting) tags.push("voting record");
-      if (m.district) tags.push(`district ${m.district}`);
-      document.getElementById("profile-meta").textContent = tags.join(" · ") || "—";
+      const distNum = m.district_num || m.district;
+      if (distNum) tags.push(`district ${distNum}`);
+      if (m.district_page_url) tags.push("photo → city hall district page");
+      document.getElementById("profile-meta").innerHTML =
+        `${councilStatusHtml(m)} <span class="hint" style="margin-left:0.35rem">${escapeHtml(tags.slice(1).join(" · ") || "")}</span>`;
 
       const fin = body.finance_overview;
       const vote = body.voting_stats;

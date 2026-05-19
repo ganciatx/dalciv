@@ -71,6 +71,8 @@ MEMBER_ALIASES: dict[str, str] = {
     "adam mcgough": "B. Adam McGough",
     "jaynie shultz": "Jaynie Schultz",
     "eric johnson": "Eric Johnson",
+    # Socrata / filings typo vs council roster (headshot: Jesse Moreno, D2).
+    "jesus moreno": "Jesse Moreno",
 }
 
 

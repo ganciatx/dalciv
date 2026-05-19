@@ -47,7 +47,7 @@ python dallas_legistar_scraper.py
 - Playwright headless, **`networkidle`**, **120s** navigation timeout.
 - Collects **`MeetingDetail.aspx`** and **`View.ashx`** links; global URL dedupe.
 - **Unique filenames**: `{label}_{legistar_id}.pdf` (calendar) or `{meeting_title}_{label}_{id}.pdf` (detail) — avoids overwriting `Agenda.pdf`.
-- **Manifest columns** (rewritten each run): `type`, `label`, `url`, `saved_to`, `meeting_title`, `meeting_detail_url`, `source` (`calendar` \| `meeting_detail`), `legistar_id`.
+- **Manifest columns** (rewritten each run): `type`, `label`, `url`, `saved_to`, `meeting_title`, `meeting_detail_url`, `source` (`calendar` \| `meeting_detail`), `legistar_id`, `legistar_event_id`, `matter_id`, `calendar_row_context`, `http_status`, `content_type`, `bytes_written`, `scraped_at`, `sha256`.
 
 ---
 
@@ -170,7 +170,7 @@ Unified dashboard for **campaign finance** and **city council voting**:
 
 - **Cwd**: run CLI and dashboard from repo root.
 - **Playwright**: if Chromium fails to launch, try `env -u PLAYWRIGHT_BROWSERS_PATH python -m dashboard`.
-- **Legacy manifest** (4 columns only): dashboard backfills empty meeting fields; re-scrape for full metadata.
+- **Legacy manifest** (older column sets): dashboard backfills empty fields; re-scrape for full provenance + IDs.
 - **Security**: local dev binds `127.0.0.1` only; production uses `SCRAPER_ENABLED=0` by default (see **Hostinger** below).
 
 ---

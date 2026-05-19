@@ -13,6 +13,7 @@ from .campaign_finance import (
     build_candidate_overview,
     get_cached_rows as get_finance_cache,
 )
+from .council_headshots import enrich_directory, enrich_member_portrait
 from .council_voting import (
     build_member_voting_stats,
     canonical_display_name,
@@ -131,7 +132,7 @@ def build_member_directory(
         directory.append(
             {
                 "id": mid,
-                "display_name": display,
+                "display_name": str(display or mid or "Unknown"),
                 "district": (vote_meta.get("districts") or [""])[0] if vote_meta else "",
                 "districts": vote_meta.get("districts") or [],
                 "has_finance": bool(fin_name),
@@ -141,7 +142,8 @@ def build_member_directory(
             }
         )
 
-    directory.sort(key=lambda m: (not (m["has_finance"] and m["has_voting"]), m["display_name"]))
+    # Order applied after portrait enrich (active by district, then former).
+    directory.sort(key=lambda m: str(m.get("display_name") or "").lower())
     return directory
 
 
@@ -170,6 +172,8 @@ def get_directory_payload(
     vote_index = {m["member_id"]: m for m in council_voting.member_index(voting_rows)}
     for entry in directory:
         entry["voting_summary"] = vote_index.get(entry["id"])
+
+    enrich_directory(directory, project_root=project_root)
 
     return {
         "meta": {
@@ -205,6 +209,8 @@ def get_member_profile_payload(
     entry = next((m for m in directory if m["id"] == member_id.strip().lower()), None)
     if not entry:
         return {"found": False, "member_id": member_id}
+
+    enrich_member_portrait(entry, project_root=project_root)
 
     finance_overview = None
     fc = entry.get("finance_candidate_name")

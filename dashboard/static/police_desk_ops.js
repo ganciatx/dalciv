@@ -10,6 +10,9 @@
   const PIN_KEY = "dpd_desk_pins";
   const NOTES_KEY = "dpd_desk_notes";
   const WATCH_KEY = "dpd_desk_watch";
+  const PREF_CLUSTERS = "dpd_show_clusters";
+  const PREF_LEGEND = "dpd_show_legend";
+  const PREF_RAIL = "dpd_show_rail";
 
   const state = {
     calls: [],
@@ -27,11 +30,14 @@
     pins: loadJson(PIN_KEY, []),
     notes: loadJson(NOTES_KEY, []),
     watchlist: loadJson(WATCH_KEY, []),
+    showClusters: loadBoolPref(PREF_CLUSTERS, true),
+    showLegend: loadBoolPref(PREF_LEGEND, true),
+    showRail: loadBoolPref(PREF_RAIL, true),
   };
 
   let map;
   let markers = {};
-  let lassoLayer = null;
+  let clusterLayerGroup = null;
   let pollTimer = null;
   let clockTimer = null;
 
@@ -47,6 +53,24 @@
 
   function saveJson(key, val) {
     localStorage.setItem(key, JSON.stringify(val));
+  }
+
+  function loadBoolPref(key, defaultVal) {
+    try {
+      const v = localStorage.getItem(key);
+      if (v === null) return defaultVal;
+      return v !== "0" && v !== "false";
+    } catch {
+      return defaultVal;
+    }
+  }
+
+  function saveBoolPref(key, val) {
+    try {
+      localStorage.setItem(key, val ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
   }
 
   function esc(s) {
@@ -265,6 +289,25 @@
       maxZoom: 19,
       pane: "shadowPane",
     }).addTo(map);
+    clusterLayerGroup = L.layerGroup().addTo(map);
+  }
+
+  /** Sync cluster/legend/rail toggles to DOM (persists in localStorage). */
+  function applyMapChrome() {
+    document.getElementById("toggle-clusters")?.classList.toggle("on", state.showClusters);
+    document.getElementById("toggle-legend")?.classList.toggle("on", state.showLegend);
+    const legend = document.getElementById("map-legend");
+    if (legend) legend.hidden = !state.showLegend;
+    document.querySelector(".main-grid")?.classList.toggle("map-only", !state.showRail);
+    const rail = document.getElementById("right-rail");
+    if (rail) rail.hidden = !state.showRail;
+    const railBtn = document.getElementById("toggle-rail");
+    if (railBtn) {
+      railBtn.textContent = state.showRail ? "Hide panel" : "Show panel";
+      railBtn.setAttribute("aria-expanded", String(state.showRail));
+    }
+    const showRailFab = document.getElementById("show-rail-fab");
+    if (showRailFab) showRailFab.hidden = state.showRail;
   }
 
   function markerHtml(inc, selected) {
@@ -283,10 +326,7 @@
   function renderMarkers(list) {
     Object.values(markers).forEach((m) => map.removeLayer(m));
     markers = {};
-    if (lassoLayer) {
-      map.removeLayer(lassoLayer);
-      lassoLayer = null;
-    }
+    if (clusterLayerGroup) clusterLayerGroup.clearLayers();
 
     const mapped = list.filter((i) => i.mapped);
     mapped.forEach((inc) => {
@@ -301,32 +341,33 @@
       markers[inc.id] = marker;
     });
 
-    // Cluster hint: division with 2+ P1/P2 mapped calls
-    const groups = {};
-    mapped
-      .filter((i) => i.pri <= 2)
-      .forEach((i) => {
-        groups[i.div] = groups[i.div] || [];
-        groups[i.div].push([i.lat, i.lng]);
+    // Cluster hint: division with 2+ P1/P2 mapped calls (stroke only; one LayerGroup)
+    if (state.showClusters && clusterLayerGroup) {
+      const groups = {};
+      mapped
+        .filter((i) => i.pri <= 2)
+        .forEach((i) => {
+          groups[i.div] = groups[i.div] || [];
+          groups[i.div].push([i.lat, i.lng]);
+        });
+      Object.values(groups).forEach((pts) => {
+        if (pts.length < 2) return;
+        const lats = pts.map((p) => p[0]);
+        const lngs = pts.map((p) => p[1]);
+        const ring = [
+          [Math.min(...lats) - 0.006, Math.min(...lngs) - 0.006],
+          [Math.min(...lats) - 0.006, Math.max(...lngs) + 0.006],
+          [Math.max(...lats) + 0.006, Math.max(...lngs) + 0.006],
+          [Math.max(...lats) + 0.006, Math.min(...lngs) - 0.006],
+        ];
+        L.polygon(ring, {
+          color: "#f0d452",
+          weight: 1.4,
+          dashArray: "5 5",
+          fill: false,
+        }).addTo(clusterLayerGroup);
       });
-    Object.values(groups).forEach((pts) => {
-      if (pts.length < 2) return;
-      const lats = pts.map((p) => p[0]);
-      const lngs = pts.map((p) => p[1]);
-      const ring = [
-        [Math.min(...lats) - 0.006, Math.min(...lngs) - 0.006],
-        [Math.min(...lats) - 0.006, Math.max(...lngs) + 0.006],
-        [Math.max(...lats) + 0.006, Math.max(...lngs) + 0.006],
-        [Math.max(...lats) + 0.006, Math.min(...lngs) - 0.006],
-      ];
-      lassoLayer = L.polygon(ring, {
-        color: "#f0d452",
-        weight: 1.4,
-        dashArray: "5 5",
-        fillColor: "#f0d452",
-        fillOpacity: 0.07,
-      }).addTo(map);
-    });
+    }
   }
 
   function fitMap(list) {
@@ -368,8 +409,8 @@
       <span style="width:1px;height:16px;background:var(--br-2)"></span>
       <button type="button" class="btn ghost sm" id="btn-refresh" title="Refresh">${Ic.refresh()}</button>
       <a class="btn ghost sm" href="/">Apps</a>
-      <a class="btn ghost sm" href="/council-meetings">Meetings</a>
-      <a class="btn ghost sm" href="/campaign-finance">Council</a>
+      <a class="btn ghost sm" href="https://cityofdallas.legistar.com/Calendar.aspx" target="_blank" rel="noopener noreferrer">Meetings</a>
+      <a class="btn ghost sm" href="/council-accountability">Council</a>
       <button type="button" class="btn ghost sm" id="btn-fit">${Ic.scope()} Fit</button>
     `;
     document.getElementById("btn-refresh")?.addEventListener("click", () => loadCalls());
@@ -731,6 +772,25 @@
       document.getElementById("hide-routine").classList.toggle("on", state.hideRoutine);
       renderAll();
     });
+    document.getElementById("toggle-clusters")?.addEventListener("click", () => {
+      state.showClusters = !state.showClusters;
+      saveBoolPref(PREF_CLUSTERS, state.showClusters);
+      applyMapChrome();
+      renderMarkers(visibleIncidents());
+    });
+    document.getElementById("toggle-legend")?.addEventListener("click", () => {
+      state.showLegend = !state.showLegend;
+      saveBoolPref(PREF_LEGEND, state.showLegend);
+      applyMapChrome();
+    });
+    const toggleRail = () => {
+      state.showRail = !state.showRail;
+      saveBoolPref(PREF_RAIL, state.showRail);
+      applyMapChrome();
+      if (state.showRail) map.invalidateSize();
+    };
+    document.getElementById("toggle-rail")?.addEventListener("click", toggleRail);
+    document.getElementById("show-rail-fab")?.addEventListener("click", toggleRail);
     document.querySelectorAll(".pri-btn").forEach((btn) => {
       btn.addEventListener("click", () => togglePriority(parseInt(btn.dataset.pri, 10)));
     });
@@ -753,6 +813,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     initMap();
     bindUi();
+    applyMapChrome();
     loadCalls();
     pollTimer = setInterval(loadCalls, POLL_MS);
     clockTimer = setInterval(() => {

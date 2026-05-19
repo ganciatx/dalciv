@@ -297,7 +297,7 @@ def build_page_api_catalog(
         {
             "id": PAGE_COUNCIL,
             "title": "Council accountability",
-            "ui_path": "/campaign-finance",
+            "ui_path": "/council-accountability",
             "dashboard_endpoints": [
                 ep(
                     "GET",
