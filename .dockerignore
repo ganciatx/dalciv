@@ -1,0 +1,15 @@
+.venv
+.git
+.gitignore
+__pycache__
+*.pyc
+.pytest_cache
+.cursor
+agent-tools
+*.md
+!README.md
+issues
+dallas_legistar_downloads/*.pdf
+scraper_dashboard_data/*.json
+scraper_dashboard_data/logs
+deploy/archives

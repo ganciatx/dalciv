@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Legistar Scraper Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0f172a;
+      --panel: #111827;
+      --border: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #38bdf8;
+      --accent-dim: rgba(56, 189, 248, 0.15);
+      --danger: #f87171;
+      --good: #4ade80;
+      --warn: #fbbf24;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f9fafb;
+        --panel: #ffffff;
+        --border: #e5e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --accent: #0284c7;
+        --accent-dim: rgba(2, 132, 199, 0.12);
+        --danger: #dc2626;
+        --good: #16a34a;
+        --warn: #d97706;
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+        Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    header p {
+      margin: 0.25rem 0 0;
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 0.375rem;
+      padding: 0.45rem 0.95rem;
+      font-size: 0.9375rem;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0b1220;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .pill {
+      display: inline-flex;
+      gap: 0.35rem;
+      align-items: center;
+      font-size: 0.8125rem;
+      padding: 0.35rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: var(--panel);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--muted);
+      display: inline-block;
+    }
+
+    .dot.on {
+      background: var(--good);
+      box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55);
+      animation: dot-pulse 1.4s ease-out infinite;
+    }
+
+    @keyframes dot-pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5);
+      }
+
+      70% {
+        box-shadow: 0 0 0 8px rgba(74, 222, 128, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+      }
+    }
+
+    .pill.active-scrape {
+      border-color: var(--good);
+      color: var(--good);
+    }
+
+    .pill.active-summarize {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .spinner {
+      width: 1.1rem;
+      height: 1.1rem;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      flex-shrink: 0;
+    }
+
+    .spinner.green {
+      border-top-color: var(--good);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .activity-banner {
+      margin-bottom: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      overflow: hidden;
+      animation: banner-in 0.35s ease-out;
+    }
+
+    .activity-banner.hidden {
+      display: none;
+    }
+
+    .activity-banner.scrape {
+      border-color: var(--good);
+      background: linear-gradient(90deg, var(--accent-dim), var(--panel) 40%);
+    }
+
+    .activity-banner.summarize {
+      border-color: var(--accent);
+      background: linear-gradient(90deg, var(--accent-dim), var(--panel) 40%);
+    }
+
+    @keyframes banner-in {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .activity-banner-inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.65rem 1rem;
+      padding: 0.75rem 1rem;
+    }
+
+    .activity-copy {
+      flex: 1 1 12rem;
+      min-width: 0;
+    }
+
+    .activity-copy strong {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 0.15rem;
+    }
+
+    .activity-copy span {
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+
+    .activity-elapsed {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .progress-track {
+      height: 3px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 35%;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .activity-banner.scrape .progress-bar {
+      background: var(--good);
+    }
+
+    .progress-bar.indeterminate {
+      animation: progress-slide 1.35s ease-in-out infinite;
+    }
+
+    @keyframes progress-slide {
+      0% {
+        transform: translateX(-100%);
+      }
+
+      100% {
+        transform: translateX(320%);
+      }
+    }
+
+    body.scrape-active .card:not(.activity-banner) {
+      transition: opacity 0.25s;
+    }
+
+    body.scrape-active main>.grid .card {
+      position: relative;
+    }
+
+    body.scrape-active #manifest-card.stats-live td {
+      animation: stat-flash 2s ease-in-out infinite;
+    }
+
+    @keyframes stat-flash {
+
+      0%,
+      100% {
+        color: inherit;
+      }
+
+      50% {
+        color: var(--good);
+      }
+    }
+
+    .poll-status.refreshing::before {
+      content: "";
+      display: inline-block;
+      width: 0.65rem;
+      height: 0.65rem;
+      margin-right: 0.35rem;
+      border: 2px solid var(--muted);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      vertical-align: -0.1em;
+      animation: spin 0.7s linear infinite;
+    }
+
+    .summaries-busy {
+      opacity: 0.65;
+      pointer-events: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+
+    .card h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--border);
+      padding: 0.45rem 0.25rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.78rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      box-sizing: border-box;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0.45rem;
+      color: var(--text);
+      font-family: ui-monospace, Menlo, monospace;
+      padding: 0.6rem;
+      font-size: 0.8125rem;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.65rem;
+    }
+
+    select {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.4rem;
+      border-radius: 0.35rem;
+    }
+
+    label {
+      font-size: 0.875rem;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    details {
+      border: 1px solid var(--border);
+      border-radius: 0.45rem;
+      padding: 0.65rem;
+      margin: 0.35rem 0;
+      background: var(--panel);
+      font-size: 0.85rem;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      list-style-position: outside;
+      padding-left: 0.25rem;
+    }
+
+    .status-completed {
+      color: var(--good);
+      font-weight: 600;
+    }
+
+    .status-stopped {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .status-failed {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    footer {
+      margin-top: 2rem;
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+
+    caption {
+      caption-side: top;
+      text-align: left;
+      font-weight: 600;
+      margin-bottom: 0.65rem;
+    }
+
+    .meeting-block {
+      border: 1px solid var(--border);
+      border-radius: 0.45rem;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+      background: var(--bg);
+    }
+
+    .meeting-block h3 {
+      margin: 0 0 0.35rem;
+      font-size: 0.95rem;
+    }
+
+    .meeting-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+
+    .file-card {
+      border-left: 3px solid var(--accent);
+      padding: 0.5rem 0 0.5rem 0.65rem;
+      margin: 0.5rem 0;
+      font-size: 0.85rem;
+    }
+
+    .file-card ul {
+      margin: 0.35rem 0 0 1rem;
+      padding: 0;
+    }
+
+    .file-card li {
+      margin: 0.2rem 0;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.25rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      margin-right: 0.35rem;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Dallas Legistar scrape control</h1>
+        <p>Starts <span class="mono">dallas_legistar_scraper.py</span> locally. Poll refreshes audit + manifests.</p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;">
+        <a href="/police" style="text-decoration:none;color:var(--accent);font-size:.875rem;border:1px solid var(--border);padding:.35rem .65rem;border-radius:.35rem;">Police map</a>
+        <a href="/campaign-finance" style="text-decoration:none;color:var(--accent);font-size:.875rem;border:1px solid var(--border);padding:.35rem .65rem;border-radius:.35rem;">Council accountability</a>
+        <span class="pill" id="pulse">
+          <span class="dot" id="pulse-dot"></span>
+          <span id="pulse-text">Loading…</span>
+        </span>
+        <button class="primary" id="btn-start" type="button">Start scrape</button>
+        <button id="btn-stop" type="button" disabled>Stop scrape</button>
+      </div>
+    </header>
+
+    <div id="activity-banner" class="activity-banner hidden" role="status" aria-live="polite" aria-atomic="true">
+      <div class="activity-banner-inner">
+        <span class="spinner" id="activity-spinner" aria-hidden="true"></span>
+        <div class="activity-copy">
+          <strong id="activity-title">Working…</strong>
+          <span id="activity-detail">Please wait.</span>
+        </div>
+        <span class="activity-elapsed mono" id="activity-elapsed"></span>
+      </div>
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-bar indeterminate"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Run telemetry</h2>
+        <p class="mono" style="margin:0 0 .6rem;line-height:1.5;color:var(--muted);" id="state-panel">
+          ---
+        </p>
+        <p style="margin:0;font-size:.8125rem;color:var(--muted);">
+          Outputs land in <span class="mono">dallas_legistar_downloads/</span>; per-run stderr/stdout joins the log referenced in audit rows.
+        </p>
+      </div>
+      <div class="card" id="manifest-card">
+        <h2>Manifest summary</h2>
+        <table>
+          <tbody>
+            <tr>
+              <th scope="row">Rows</th>
+              <td id="m-rows">—</td>
+            </tr>
+            <tr>
+              <th scope="row">On disk</th>
+              <td id="m-present">—</td>
+            </tr>
+            <tr>
+              <th scope="row">Missing</th>
+              <td id="m-missing">—</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="muted" id="trunc-note" style="margin:.6rem 0 0;font-size:.8125rem;color:var(--muted);"></p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem;">
+      <h2 style="margin-bottom:.5rem;">Audit log (<span style="font-weight:400;color:var(--muted);">finished runs</span>)</h2>
+      <div class="toolbar">
+        <label>Filter status
+          <select id="audit-filter">
+            <option value="">all</option>
+            <option value="completed">completed</option>
+            <option value="stopped">stopped</option>
+            <option value="failed">failed</option>
+          </select>
+        </label>
+      </div>
+      <div id="audit-mount"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.65rem;">
+        <h2 style="margin:0;">Agenda summaries (<span style="font-weight:400;color:var(--muted);">by meeting</span>)</h2>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          <button class="primary" id="btn-summarize" type="button">Generate summaries</button>
+          <button id="btn-summarize-force" type="button" title="Re-summarize all PDFs on disk">Regenerate all</button>
+          <span class="pill mono" id="summarize-progress">—</span>
+        </div>
+      </div>
+      <p id="summaries-hint" style="margin:0 0 .75rem;font-size:.8125rem;color:var(--muted);">
+        Extractive summary from PDF text (no API key). Scanned/image PDFs may show <span class="mono">empty</span>.
+      </p>
+      <div id="summaries-mount">
+        <p style="color:var(--muted);margin:0;font-size:.9rem;">Polling…</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Files from manifest (<span style="font-weight:400;color:var(--muted);">presence on disk</span>)</h2>
+      <div style="max-height:480px;overflow:auto;">
+        <table>
+          <caption class="muted" style="color:var(--muted);">Sorted by saved path • presence checked against project-root relative paths.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Type</th>
+              <th scope="col">Label</th>
+              <th scope="col">Exists</th>
+              <th scope="col">Path</th>
+            </tr>
+          </thead>
+          <tbody id="files-body">
+            <tr>
+              <td colspan="4" style="color:var(--muted);">Polling…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer>
+      <span id="poll-status" class="poll-status">Waiting for poll…</span>
+    </footer>
+  </main>
+
+  <script>
+    const qs = sel => document.querySelector(sel);
+
+    const SCRAPE_MESSAGES = [
+      "Loading Dallas Legistar calendar…",
+      "Collecting agenda and meeting links…",
+      "Downloading PDFs from the calendar…",
+      "Visiting meeting detail pages…",
+      "Saving files and updating the manifest…",
+    ];
+    const SUMMARIZE_MESSAGES = [
+      "Extracting text from PDFs…",
+      "Building extractive summaries…",
+      "Writing key points…",
+    ];
+
+    let pollIntervalMs = 3200;
+    let pollTimer = null;
+    let activityClockTimer = null;
+    let lastActivity = { scrape: false, summarize: false };
+
+    function formatElapsed(isoStart) {
+      if (!isoStart) return "";
+      const start = Date.parse(isoStart);
+      if (Number.isNaN(start)) return "";
+      const sec = Math.max(0, Math.floor((Date.now() - start) / 1000));
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return m > 0 ? `${m}m ${s}s elapsed` : `${s}s elapsed`;
+    }
+
+    function rotatingMessage(messages, isoStart, stepSec = 4) {
+      if (!messages.length) return "";
+      if (!isoStart) return messages[0];
+      const start = Date.parse(isoStart);
+      if (Number.isNaN(start)) return messages[0];
+      const sec = Math.max(0, Math.floor((Date.now() - start) / 1000));
+      return messages[Math.floor(sec / stepSec) % messages.length];
+    }
+
+    function setPollInterval(ms) {
+      pollIntervalMs = ms;
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(poll, pollIntervalMs);
+    }
+
+    function updateActivityBanner(state, summarizeJob) {
+      const banner = qs("#activity-banner");
+      const scrape = Boolean(state?.running);
+      const summarize = Boolean(summarizeJob?.running);
+      const busy = scrape || summarize;
+
+      document.body.classList.toggle("scrape-active", scrape);
+      document.body.classList.toggle("summarize-active", summarize);
+
+      const pulse = qs("#pulse");
+      const pulseText = qs("#pulse-text");
+      const pulseDot = qs("#pulse-dot");
+      pulse.classList.remove("active-scrape", "active-summarize");
+      pulseDot.classList.remove("on");
+
+      if (scrape) {
+        pulse.classList.add("active-scrape");
+        pulseDot.classList.add("on");
+        pulseText.textContent = "Scraping…";
+      } else if (summarize) {
+        pulse.classList.add("active-summarize");
+        pulseDot.classList.add("on");
+        pulseText.textContent = "Summarizing…";
+      } else {
+        pulseText.textContent = "Idle";
+      }
+
+      const manifestCard = qs("#manifest-card");
+      manifestCard?.classList.toggle("stats-live", scrape);
+
+      const summariesMount = qs("#summaries-mount");
+      summariesMount?.classList.toggle("summaries-busy", summarize);
+
+      if (!busy) {
+        banner.classList.add("hidden");
+        banner.classList.remove("scrape", "summarize");
+        qs("#activity-elapsed").textContent = "";
+        if (activityClockTimer) {
+          clearInterval(activityClockTimer);
+          activityClockTimer = null;
+        }
+        if (lastActivity.scrape || lastActivity.summarize) {
+          setPollInterval(3200);
+        }
+        lastActivity = { scrape: false, summarize: false };
+        return;
+      }
+
+      banner.classList.remove("hidden");
+      const spinner = qs("#activity-spinner");
+      const title = qs("#activity-title");
+      const detail = qs("#activity-detail");
+      const elapsed = qs("#activity-elapsed");
+
+      const tickElapsed = () => {
+        if (scrape) {
+          let line = rotatingMessage(SCRAPE_MESSAGES, state.started_at);
+          if (state.pid) line += ` (PID ${state.pid})`;
+          detail.textContent = line;
+          elapsed.textContent = formatElapsed(state.started_at);
+        } else if (summarize) {
+          const idx = Math.floor(Date.now() / 4000) % SUMMARIZE_MESSAGES.length;
+          let line = SUMMARIZE_MESSAGES[idx];
+          if (summarizeJob.current) {
+            line += ` — ${summarizeJob.current.split("/").pop()}`;
+          }
+          detail.textContent = line;
+          elapsed.textContent = summarizeJob.total
+            ? `${summarizeJob.done ?? 0} of ${summarizeJob.total} files`
+            : "Processing…";
+        }
+      };
+
+      if (scrape) {
+        banner.classList.add("scrape");
+        banner.classList.remove("summarize");
+        spinner.classList.add("green");
+        title.textContent = "Scrape in progress";
+      } else {
+        banner.classList.add("summarize");
+        banner.classList.remove("scrape");
+        spinner.classList.remove("green");
+        title.textContent = "Generating summaries";
+      }
+
+      tickElapsed();
+      if (activityClockTimer) clearInterval(activityClockTimer);
+      activityClockTimer = setInterval(tickElapsed, 1000);
+
+      if (!lastActivity.scrape && scrape || !lastActivity.summarize && summarize) {
+        setPollInterval(1500);
+      }
+      lastActivity = { scrape, summarize };
+    }
+
+    async function poll() {
+      const pollEl = qs("#poll-status");
+      pollEl.textContent = "Refreshing…";
+      pollEl.classList.add("refreshing");
+
+      try {
+        const auditFilter = qs("#audit-filter").value;
+        const res = await fetch("/api/overview?limit_audit=150&file_limit=800");
+        const body = await res.json();
+        const state = body.state ?? {};
+        let audits = Array.isArray(body.audit) ? body.audit : [];
+        if (auditFilter) {
+          audits = audits.filter((entry) => entry.status === auditFilter);
+        }
+
+        const summarizeJob = body.summarize_job || {};
+        updateActivityBanner(state, summarizeJob);
+
+        qs("#btn-start").disabled = Boolean(state.running);
+        qs("#btn-stop").disabled = !state.running;
+
+        const started = state.started_at ? `Started: ${state.started_at}` : "No active run";
+        qs("#state-panel").textContent = [
+          `Running: ${state.running ? "yes" : "no"}`,
+          state.run_id ? `Run id: ${state.run_id}` : null,
+          state.pid ? `PID: ${state.pid}` : null,
+          started,
+        ].filter(Boolean).join("\n");
+
+        const stats = body.manifest.stats || {};
+        qs("#m-rows").textContent = stats.rows ?? 0;
+        qs("#m-present").textContent = stats.present ?? 0;
+        qs("#m-missing").textContent = stats.missing ?? 0;
+        qs("#trunc-note").textContent = body.manifest.truncated
+          ? `Showing first ${body.manifest.rows.length} of ${stats.rows} manifest rows.`
+          : "";
+
+        renderAudit(audits);
+        renderSummaries(body.summaries || {}, summarizeJob);
+        renderFiles(body.manifest.rows || []);
+        pollEl.textContent = `Last refresh ${new Date().toLocaleTimeString()}`;
+      } catch (err) {
+        console.error(err);
+        pollEl.textContent = "Polling failed — check dashboard server.";
+      } finally {
+        pollEl.classList.remove("refreshing");
+      }
+    }
+
+    function statusClass(code) {
+      if (code === "completed") return "status-completed";
+      if (code === "stopped") return "status-stopped";
+      if (code === "failed") return "status-failed";
+      return "";
+    }
+
+    function renderAudit(rows) {
+      const mount = qs("#audit-mount");
+      mount.innerHTML = "";
+      if (!rows?.length) {
+        mount.innerHTML = "<p style='color:var(--muted);margin:0;font-size:.9rem'>No finished entries yet.</p>";
+        return;
+      }
+      for (const row of rows) {
+        const wrapper = document.createElement("details");
+        const summary = document.createElement("summary");
+        const statusSpan = `<span class="${statusClass(row.status)}">${row.status}</span>`;
+        summary.innerHTML = `${statusSpan} • ${row.duration_seconds ?? "?"} s • manifest rows ${row.files_recorded_manifest ?? "?"} • ${row.ended_at ?? ""}`;
+        wrapper.appendChild(summary);
+
+        const body = document.createElement("div");
+        body.style.marginTop = ".45rem";
+
+        body.innerHTML = `
+          <p class='mono' style='margin:.25rem 0;color:var(--muted);'>
+            Run id ${row.run_id}<br/>
+            Exit code ${row.exit_code}<br/>
+            Log ${row.log_rel ?? "(none)"}<br/>
+            Started ${row.started_at ?? ""}
+          </p>
+        `;
+        if (row.log_tail && row.status !== "completed") {
+          const ta = document.createElement("textarea");
+          ta.readOnly = true;
+          ta.textContent = row.log_tail.trim();
+          body.appendChild(ta);
+        }
+        wrapper.appendChild(body);
+        mount.appendChild(wrapper);
+      }
+    }
+
+
+    function renderSummaries(payload, job) {
+      const mount = qs("#summaries-mount");
+      const prog = qs("#summarize-progress");
+      const btn = qs("#btn-summarize");
+      const jobRunning = Boolean(job.running);
+      btn.disabled = jobRunning;
+      prog.classList.toggle("active-summarize", jobRunning);
+      const btnForce = qs("#btn-summarize-force");
+      if (btnForce) btnForce.disabled = jobRunning;
+      if (jobRunning) {
+        prog.innerHTML = `<span class="spinner" style="width:.75rem;height:.75rem;border-width:2px;vertical-align:-0.15em"></span> ${job.done ?? 0}/${job.total ?? "?"}`;
+      } else {
+        prog.classList.remove("active-summarize");
+        const s = payload.stats || {};
+        const onDisk = s.summarizable_on_disk ?? 0;
+        const pending = s.pending ?? 0;
+        prog.textContent = `${onDisk} on disk • ${pending} pending • ${s.with_summary ?? 0} done`;
+      }
+      const hint = qs("#summaries-hint");
+      const s = payload.stats || {};
+      const onDisk = s.summarizable_on_disk ?? 0;
+      const pending = s.pending ?? 0;
+      if (hint) {
+        if (!onDisk) {
+          hint.textContent = "No PDFs found under dallas_legistar_downloads/. Run a scrape first.";
+        } else if (pending > 0) {
+          hint.textContent = `${pending} file(s) ready — click Generate summaries. (${onDisk} PDF(s) on disk)`;
+        } else {
+          hint.textContent = `All ${onDisk} on-disk PDF(s) already have summary records. Use Regenerate all to refresh.`;
+        }
+      }
+      mount.innerHTML = "";
+      const groups = payload.groups || [];
+      if (!groups.length) {
+        if (onDisk > 0) {
+          mount.innerHTML = `<p style='color:var(--muted);margin:0;font-size:.9rem'>${onDisk} PDF(s) on disk — click <strong>Generate summaries</strong> to process them.</p>`;
+        } else {
+          mount.innerHTML = "<p style='color:var(--muted);margin:0;font-size:.9rem'>No PDFs on disk yet. Run a scrape first.</p>";
+        }
+        return;
+      }
+      for (const group of groups) {
+        const block = document.createElement("div");
+        block.className = "meeting-block";
+        const title = document.createElement("h3");
+        title.textContent = group.meeting_title || "Unknown meeting";
+        block.appendChild(title);
+        if (group.meeting_detail_url) {
+          const meta = document.createElement("p");
+          meta.className = "meeting-meta mono";
+          meta.innerHTML = `<a href="${group.meeting_detail_url}" target="_blank" rel="noopener">${group.meeting_detail_url}</a>`;
+          block.appendChild(meta);
+        }
+        for (const file of group.files || []) {
+          const card = document.createElement("div");
+          card.className = "file-card";
+          const tags = `<span class="tag">${file.label || "file"}</span><span class="tag">${file.summary_status || "pending"}</span>`;
+          let html = `<strong>${tags}</strong><br/><span class="mono">${file.saved_to_display || file.saved_to || ""}</span>`;
+          if (file.summary_status === "ok" && file.summary) {
+            html += `<p style="margin:.45rem 0 .25rem;">${file.summary}</p>`;
+            if (file.key_points?.length) {
+              html += "<ul>" + file.key_points.map((k) => `<li>${k}</li>`).join("") + "</ul>";
+            }
+          } else if (file.summary_status === "empty") {
+            html += `<p style="color:var(--muted);margin:.35rem 0;">No extractable text (likely scanned PDF).</p>`;
+          } else if (file.summary_status === "error") {
+            html += `<p style="color:var(--danger);margin:.35rem 0;">${file.summary_error || "error"}</p>`;
+          } else {
+            html += `<p style="color:var(--muted);margin:.35rem 0;">Summary pending — click Generate summaries.</p>`;
+          }
+          card.innerHTML = html;
+          block.appendChild(card);
+        }
+        mount.appendChild(block);
+      }
+    }
+
+    function renderFiles(rows) {
+      const tbody = qs("#files-body");
+      tbody.innerHTML = "";
+      if (!rows?.length) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 4;
+        td.style.color = "var(--muted)";
+        td.textContent = "No manifest rows.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+      for (const row of rows) {
+        const tr = document.createElement("tr");
+
+        let tdType = document.createElement("td");
+        tdType.textContent = row.type || "";
+        tr.appendChild(tdType);
+
+        let tdLabel = document.createElement("td");
+        tdLabel.textContent = row.label || "";
+        tr.appendChild(tdLabel);
+
+        let tdExists = document.createElement("td");
+        tdExists.textContent = row.file_exists ? "yes" : "no";
+        tr.appendChild(tdExists);
+
+        let tdPath = document.createElement("td");
+        tdPath.className = "mono";
+        tdPath.textContent = row.saved_to_display || row.saved_to || "";
+        tr.appendChild(tdPath);
+
+        tbody.appendChild(tr);
+      }
+    }
+
+    qs("#audit-filter").addEventListener("change", poll);
+
+    qs("#btn-start").addEventListener("click", async () => {
+      try {
+        qs("#poll-status").textContent = "Starting…";
+        const res = await fetch("/api/start", { method: "POST" });
+        if (!res.ok) {
+          const detail = await res.json().catch(() => ({}));
+          alert(detail.detail || res.statusText);
+        }
+      } catch (err) {
+        alert(String(err));
+      } finally {
+        await poll();
+      }
+    });
+
+    qs("#btn-stop").addEventListener("click", async () => {
+      try {
+        qs("#poll-status").textContent = "Stopping…";
+        const res = await fetch("/api/stop", { method: "POST" });
+        if (!res.ok) {
+          const detail = await res.json().catch(() => ({}));
+          alert(detail.detail || res.statusText);
+        }
+      } catch (err) {
+        alert(String(err));
+      } finally {
+        await poll();
+      }
+    });
+
+
+    async function runSummarize(force) {
+      try {
+        qs("#poll-status").textContent = force ? "Regenerating all summaries…" : "Summarizing…";
+        const url = force ? "/api/summarize?force=true" : "/api/summarize";
+        const res = await fetch(url, { method: "POST" });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          alert(body.detail || res.statusText);
+          return;
+        }
+        if (body.message === "nothing pending") {
+          const n = body.summarizable_on_disk ?? 0;
+          alert(n ? `No new files to summarize (${n} on disk). Try Regenerate all.` : "No PDFs on disk to summarize.");
+        }
+      } catch (err) {
+        alert(String(err));
+      } finally {
+        await poll();
+      }
+    }
+
+    qs("#btn-summarize").addEventListener("click", () => runSummarize(false));
+    qs("#btn-summarize-force").addEventListener("click", () => runSummarize(true));
+
+    setPollInterval(3200);
+    poll();
+  </script>
+</body>
+
+</html>

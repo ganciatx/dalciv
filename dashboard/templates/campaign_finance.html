@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Council Accountability — Dallas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0f172a;
+      --panel: #111827;
+      --border: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #38bdf8;
+      --good: #4ade80;
+      --warn: #fbbf24;
+      --danger: #f87171;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f3f4f6;
+        --panel: #ffffff;
+        --border: #e5e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --accent: #0284c7;
+        --good: #16a34a;
+        --warn: #d97706;
+        --danger: #dc2626;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    header p {
+      margin: 0.2rem 0 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    a.btn-link,
+    button.btn-link {
+      text-decoration: none;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.7rem;
+      border-radius: 0.35rem;
+      font-size: 0.85rem;
+      background: var(--bg);
+    }
+
+    button.btn-link {
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    a.btn-link.primary,
+    button.btn-link.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0b1220;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.78rem;
+      padding: 0.3rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 0.85rem;
+      height: 0.85rem;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    main {
+      flex: 1;
+      padding: 1rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.65rem;
+      margin-bottom: 1rem;
+    }
+
+    .kpi {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.45rem;
+      padding: 0.75rem;
+    }
+
+    .kpi .label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .kpi .value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-top: 0.2rem;
+    }
+
+    .kpi .value.good {
+      color: var(--good);
+    }
+
+    .kpi .value.warn {
+      color: var(--warn);
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: flex-end;
+      margin-bottom: 1rem;
+      padding: 0.65rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.45rem;
+    }
+
+    .filters label {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.72rem;
+      color: var(--muted);
+      gap: 0.2rem;
+    }
+
+    .filters input,
+    .filters select {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 0.3rem;
+      padding: 0.35rem 0.45rem;
+      font-size: 0.82rem;
+      min-width: 8rem;
+    }
+
+    .filters input[type="search"] {
+      min-width: 12rem;
+    }
+
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    @media (max-width: 900px) {
+      .charts {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.45rem;
+      padding: 0.65rem;
+    }
+
+    .chart-card h2 {
+      margin: 0 0 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .chart-card.wide {
+      grid-column: 1 / -1;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 260px;
+    }
+
+    .chart-wrap.tall {
+      height: 300px;
+    }
+
+    .table-section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.45rem;
+      padding: 0.65rem;
+      overflow: hidden;
+    }
+
+    .table-section h2 {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 420px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 0.4rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: var(--panel);
+      color: var(--muted);
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    th:hover {
+      color: var(--text);
+    }
+
+    tr:hover td {
+      background: rgba(56, 189, 248, 0.06);
+    }
+
+    .amt {
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .kind-tag {
+      font-size: 0.68rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.2rem;
+      border: 1px solid var(--border);
+    }
+
+    .kind-tag.contribution {
+      color: var(--good);
+      border-color: var(--good);
+    }
+
+    .kind-tag.expenditure {
+      color: var(--warn);
+      border-color: var(--warn);
+    }
+
+    .pager {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .pager button {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.3rem 0.6rem;
+      border-radius: 0.3rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .pager button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    footer {
+      font-size: 0.72rem;
+      color: var(--muted);
+      padding: 0.5rem 1rem;
+      border-top: 1px solid var(--border);
+      background: var(--panel);
+    }
+
+    footer a {
+      color: var(--accent);
+    }
+
+    .insight-section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.45rem;
+      padding: 0.65rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .insight-section h2 {
+      margin: 0 0 0.35rem;
+      font-size: 0.95rem;
+    }
+
+    .insight-section .hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin: 0 0 0.5rem;
+    }
+
+    .insight-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 900px) {
+      .insight-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .watch-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      max-height: 320px;
+      overflow: auto;
+    }
+
+    .watch-card {
+      border: 1px solid var(--border);
+      border-radius: 0.35rem;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.8rem;
+      border-left-width: 3px;
+    }
+
+    .watch-card.high {
+      border-left-color: var(--danger);
+    }
+
+    .watch-card.medium {
+      border-left-color: var(--warn);
+    }
+
+    .watch-card.low {
+      border-left-color: var(--muted);
+    }
+
+    .watch-card strong {
+      display: block;
+      margin-bottom: 0.15rem;
+    }
+
+    .watch-card .chips {
+      margin-top: 0.35rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .mini-table {
+      width: 100%;
+      font-size: 0.78rem;
+      border-collapse: collapse;
+    }
+
+    .mini-table th,
+    .mini-table td {
+      padding: 0.35rem 0.4rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .mini-table th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .mini-table .amt {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mini-wrap {
+      max-height: 340px;
+      overflow: auto;
+    }
+
+    /* Voting tab: show full agenda text (no JS truncation) */
+    #votes-table .col-description,
+    .vote-desc {
+      white-space: normal;
+      word-break: break-word;
+      line-height: 1.45;
+      min-width: 12rem;
+      max-width: 48rem;
+    }
+
+    #votes-table th.col-description {
+      min-width: 14rem;
+    }
+
+    #votes-table td:not(.col-description) {
+      white-space: nowrap;
+      vertical-align: top;
+    }
+
+    #votes-table td.col-description {
+      vertical-align: top;
+    }
+
+    .candidate-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.5rem;
+      max-height: 280px;
+      overflow: auto;
+    }
+
+    .candidate-card {
+      border: 1px solid var(--border);
+      border-radius: 0.4rem;
+      padding: 0.55rem;
+      cursor: pointer;
+      background: var(--bg);
+      text-align: left;
+      font-family: inherit;
+      color: var(--text);
+    }
+
+    .candidate-card:hover {
+      border-color: var(--accent);
+    }
+
+    .candidate-card strong {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .candidate-card .line {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    #candidate-overview {
+      border-color: var(--accent);
+      border-width: 1px;
+    }
+
+    #candidate-overview h2 {
+      font-size: 1.05rem;
+    }
+
+    .overview-kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.5rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .overview-kpi {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0.35rem;
+      padding: 0.5rem;
+    }
+
+    .overview-kpi .label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .overview-kpi .value {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .fiscal-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0.4rem;
+      padding: 0.6rem 0.75rem;
+      margin-bottom: 0.65rem;
+      border-left: 3px solid var(--accent);
+    }
+
+    .fiscal-card.deficit {
+      border-left-color: var(--danger);
+    }
+
+    .fiscal-card.tight {
+      border-left-color: var(--warn);
+    }
+
+    .fiscal-card.surplus {
+      border-left-color: var(--good);
+    }
+
+    .fiscal-card .fiscal-label {
+      font-weight: 700;
+      font-size: 0.88rem;
+    }
+
+    .fiscal-card p {
+      margin: 0.35rem 0 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .fiscal-card ul {
+      margin: 0.4rem 0 0;
+      padding-left: 1.1rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .chart-wrap.compact {
+      height: 200px;
+    }
+
+    .member-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: flex-end;
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+    }
+
+    .member-bar label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .member-bar select,
+    .member-bar input {
+      font: inherit;
+      padding: 0.35rem 0.5rem;
+      border-radius: 0.35rem;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      min-width: 10rem;
+    }
+
+    .tab-nav {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      padding: 0 1rem;
+    }
+
+    .tab-nav button {
+      background: transparent;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      padding: 0.65rem 1rem;
+      font: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-bottom: -1px;
+    }
+
+    .tab-nav button.on {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .tab-panel {
+      display: none;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .tab-panel.on {
+      display: flex;
+    }
+
+    .vote-tag {
+      font-size: 0.7rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 0.25rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .vote-tag.yes { background: rgba(74, 222, 128, 0.2); color: var(--good); }
+    .vote-tag.no { background: rgba(248, 113, 113, 0.2); color: var(--danger); }
+    .vote-tag.abstain { background: rgba(251, 191, 36, 0.2); color: var(--warn); }
+    .vote-tag.absent { background: var(--border); color: var(--muted); }
+    .vote-tag.other { background: var(--border); color: var(--muted); }
+
+    .member-cards .candidate-card .badge {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-left: 0.35rem;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div>
+      <h1>Council accountability</h1>
+      <p id="header-sub">Campaign finance + city council voting · Loading…</p>
+    </div>
+    <div class="nav-links">
+      <span class="status-pill"><span class="spinner" id="refresh-spin" hidden></span> <span
+          id="refresh-text">—</span></span>
+      <a class="btn-link" href="/">Legistar</a>
+      <a class="btn-link" href="/police">Police map</a>
+      <button type="button" id="btn-refresh-finance" class="btn-link">Refresh finance</button>
+      <button type="button" id="btn-refresh-voting" class="btn-link primary">Refresh voting</button>
+    </div>
+  </header>
+
+  <div class="member-bar">
+    <label>Councilmember
+      <select id="filter-member">
+        <option value="">All members (browse below)</option>
+      </select>
+    </label>
+    <label>Votes from
+      <input type="date" id="vote-from" />
+    </label>
+    <label>Votes to
+      <input type="date" id="vote-to" />
+    </label>
+  </div>
+
+  <nav class="tab-nav" role="tablist">
+    <button type="button" class="tab-btn on" data-tab="overview">Overview</button>
+    <button type="button" class="tab-btn" data-tab="money">Money</button>
+    <button type="button" class="tab-btn" data-tab="voting">Voting</button>
+    <button type="button" class="tab-btn" data-tab="transactions">Transactions</button>
+  </nav>
+
+  <main>
+    <section class="kpis" id="kpis">
+      <div class="kpi">
+        <div class="label">Total raised</div>
+        <div class="value good" id="kpi-raised">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Total spent</div>
+        <div class="value warn" id="kpi-spent">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Money transactions</div>
+        <div class="value" id="kpi-txns">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Candidates</div>
+        <div class="value" id="kpi-candidates">—</div>
+      </div>
+    
+      <div class="kpi">
+        <div class="label">Vote records</div>
+        <div class="value" id="kpi-vote-records">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Council yes rate</div>
+        <div class="value" id="kpi-yes-rate">—</div>
+      </div>
+    </section>
+
+
+    <div id="tab-overview" class="tab-panel on">
+    <section class="insight-section" id="member-index-section">
+      <h2>Browse council members</h2>
+      <p class="hint">Members with campaign finance and/or voting data. Select one for a combined profile.</p>
+      <div class="candidate-cards member-cards" id="member-cards"></div>
+    </section>
+    <section class="insight-section" id="combined-overview" hidden>
+      <h2>Member profile — <span id="profile-name"></span></h2>
+      <p class="hint" id="profile-meta"></p>
+      <div class="overview-kpis" id="profile-kpis"></div>
+      <div class="insight-grid" id="profile-voting-block" hidden>
+        <div>
+          <h3 style="margin:0 0 .35rem;font-size:.85rem">Voting record</h3>
+          <div class="overview-kpis" id="vote-stats-kpis"></div>
+          <div class="chart-wrap compact"><canvas id="chart-vote-yearly"></canvas></div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 .35rem;font-size:.85rem">Recent roll calls</h3>
+          <div class="mini-wrap">
+            <table class="mini-table">
+              <thead><tr><th>Date</th><th>Vote</th><th>Item</th></tr></thead>
+              <tbody id="profile-recent-votes"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div id="profile-finance-wrap"></div>
+    </section>
+    </div>
+
+    <div id="tab-money" class="tab-panel">
+    <section class="filters">
+      <label>Candidate
+        <select id="filter-candidate">
+          <option value="">All candidates</option>
+        </select>
+      </label>
+      <label>Type
+        <select id="filter-kind">
+          <option value="all">All types</option>
+          <option value="contribution">Contributions</option>
+          <option value="expenditure">Expenditures</option>
+          <option value="filing">Filings only</option>
+          <option value="other">Other</option>
+        </select>
+      </label>
+      <label>Filing period
+        <select id="filter-record-type">
+          <option value="">All periods</option>
+        </select>
+      </label>
+      <label>Search
+        <input type="search" id="filter-q" placeholder="Name, schedule, ID…" autocomplete="off" />
+      </label>
+    </section>
+
+    <section class="insight-section" id="candidate-index-section">
+      <h2>Browse candidates</h2>
+      <p class="hint">Select a candidate for a full campaign finance overview (financials, donors, spending, fiscal health).</p>
+      <div class="candidate-cards" id="candidate-cards"></div>
+    </section>
+
+    <section class="insight-section" id="candidate-overview" hidden>
+      <h2>Campaign finance overview — <span id="ov-candidate-name"></span></h2>
+      <p class="hint" id="ov-meta"></p>
+      <div class="overview-kpis" id="ov-kpis"></div>
+      <div class="fiscal-card" id="ov-fiscal">
+        <div class="fiscal-label" id="ov-fiscal-label">—</div>
+        <p id="ov-fiscal-summary"></p>
+        <ul id="ov-fiscal-flags"></ul>
+      </div>
+      <div class="insight-grid">
+        <div>
+          <h3 style="margin:0 0 .35rem;font-size:.85rem">Major donors</h3>
+          <div class="mini-wrap">
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>Donor</th>
+                  <th class="amt">Amount</th>
+                  <th class="amt">Share</th>
+                </tr>
+              </thead>
+              <tbody id="ov-donors"></tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 .35rem;font-size:.85rem">Major expenditures (paid to)</h3>
+          <div class="mini-wrap">
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>Vendor / payee</th>
+                  <th class="amt">Amount</th>
+                  <th class="amt">Share</th>
+                </tr>
+              </thead>
+              <tbody id="ov-expend"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <h3 style="margin:.65rem 0 .35rem;font-size:.85rem">Cash flow by month</h3>
+      <div class="chart-wrap compact"><canvas id="chart-candidate-monthly"></canvas></div>
+      <h3 style="margin:.65rem 0 .35rem;font-size:.85rem">Flags for this candidate</h3>
+      <div class="watch-list" id="ov-watch" style="max-height:160px"></div>
+    </section>
+
+    <section class="insight-section" id="section-watch">
+      <h2>Watch list — possible conflicts of interest</h2>
+      <p class="hint">Automated flags for manual review only (not legal conclusions). Uses donor/vendor names from city filings.</p>
+      <div class="watch-list" id="watch-list"></div>
+    </section>
+
+    <section class="insight-grid">
+      <div class="insight-section">
+        <h2>Where money goes</h2>
+        <p class="hint">Who (candidate) spent how much with which vendor or payee.</p>
+        <div class="mini-wrap">
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>Candidate</th>
+                <th>Paid to</th>
+                <th class="amt">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="spending-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="insight-section">
+        <h2>Who bankrolls whom</h2>
+        <p class="hint">Top donors and which candidates they support.</p>
+        <div class="mini-wrap">
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>Donor</th>
+                <th class="amt">Total</th>
+                <th>Supports</th>
+              </tr>
+            </thead>
+            <tbody id="donors-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="insight-section">
+      <h2>Top vendors (all campaigns)</h2>
+      <p class="hint">Payees receiving the most campaign money, and which candidates paid them.</p>
+      <div class="mini-wrap" id="vendors-wrap"></div>
+    </section>
+
+    <section class="charts">
+      <div class="chart-card">
+        <h2>Top 10 — contributions by candidate</h2>
+        <div class="chart-wrap"><canvas id="chart-contrib"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h2>Top 10 — expenditures by candidate</h2>
+        <div class="chart-wrap"><canvas id="chart-expend"></canvas></div>
+      </div>
+      <div class="chart-card wide">
+        <h2>Contributions vs expenditures by month (last 24 months)</h2>
+        <div class="chart-wrap tall"><canvas id="chart-monthly"></canvas></div>
+      </div>
+    </section>
+
+    </div>
+
+
+    <div id="tab-voting" class="tab-panel">
+    <section class="insight-section">
+      <h2>Voting record</h2>
+      <p class="hint" id="voting-hint">Roll-call votes for selected member and date range.</p>
+      <div class="overview-kpis" id="voting-member-kpis"></div>
+      <div class="chart-wrap compact"><canvas id="chart-voting-yearly"></canvas></div>
+      <section class="filters" style="margin-bottom:.5rem">
+        <label>Vote
+          <select id="vote-filter">
+            <option value="">All votes</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="abstain">Abstain</option>
+            <option value="absent">Absent (any)</option>
+            <option value="ABSNT">Absent — personal</option>
+            <option value="ABSNT_CB">Absent — city business</option>
+            <option value="AWVT">Absent when vote taken</option>
+            <option value="N/A">N/A</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>Search votes <input type="search" id="vote-q" placeholder="Agenda description…" /></label>
+      </section>
+      <div class="mini-wrap">
+        <table class="mini-table" id="votes-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Vote</th>
+              <th>District</th>
+              <th class="col-description">Description</th>
+              <th>Outcome</th>
+            </tr>
+          </thead>
+          <tbody id="votes-body"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button type="button" id="votes-prev" disabled>Prev</button>
+        <span id="votes-pager-info">—</span>
+        <button type="button" id="votes-next" disabled>Next</button>
+      </div>
+    </section>
+    </div>
+
+    <div id="tab-transactions" class="tab-panel">
+    <section class="table-section">
+      <h2>Transactions <span id="table-count" style="font-weight:400;color:var(--muted)"></span></h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="transaction_date">Date</th>
+              <th data-sort="candidate_name">Candidate</th>
+              <th data-sort="counterparty_name">Donor / vendor</th>
+              <th data-sort="kind">Type</th>
+              <th data-sort="schedule_type">Schedule</th>
+              <th data-sort="amount_num" class="amt">Amount</th>
+              <th>Report</th>
+            </tr>
+          </thead>
+          <tbody id="tx-body"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button type="button" id="btn-prev" disabled>Previous</button>
+        <span id="pager-info">—</span>
+        <button type="button" id="btn-next" disabled>Next</button>
+      </div>
+    </section>
+    </div>
+  </main>
+
+  <footer>
+    Data:
+    <a href="https://www.dallasopendata.com/Services/Campaign-Finance/ndxz-gccx/data_preview" target="_blank" rel="noopener">Campaign Finance</a>
+    ·
+    <a href="https://www.dallasopendata.com/Services/Dallas-City-Council-Voting-Record/ts5d-gdq6/data_preview" target="_blank" rel="noopener">Council Voting Record</a>
+    · Cached locally (finance ~1h, voting ~24h). Not legal advice.
+  </footer>
+
+  <script>
+    const PAGE_SIZE = 50;
+    const VOTES_PAGE = 50;
+    let chartContrib = null;
+    let chartExpend = null;
+    let chartMonthly = null;
+    let chartCandidateMonthly = null;
+    let chartVoteYearly = null;
+    let chartVotingYearly = null;
+    let tableOffset = 0;
+    let tableTotal = 0;
+    let tableRows = [];
+    let sortKey = "transaction_date";
+    let sortDir = -1;
+    let searchTimer = null;
+    let voteSearchTimer = null;
+    let votesOffset = 0;
+    let votesTotal = 0;
+    let activeTab = "overview";
+    let memberDirectory = [];
+    let selectedMemberId = "";
+
+    const money = (n) =>
+      new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n || 0);
+
+    const escapeHtml = (s) =>
+      String(s || "").replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+      );
+
+    function formatDate(iso) {
+      if (!iso) return "—";
+      const d = new Date(iso);
+      return Number.isNaN(d.getTime()) ? iso.slice(0, 10) : d.toLocaleDateString();
+    }
+
+    function filterParams(refresh) {
+      const p = new URLSearchParams();
+      if (refresh) p.set("refresh", "true");
+      const cand = document.getElementById("filter-candidate").value;
+      const kind = document.getElementById("filter-kind").value;
+      const rt = document.getElementById("filter-record-type").value;
+      const q = document.getElementById("filter-q").value.trim();
+      if (cand) p.set("candidate", cand);
+      if (kind && kind !== "all") p.set("kind", kind);
+      if (rt) p.set("record_type", rt);
+      if (q) p.set("q", q);
+      return p;
+    }
+
+    function setRefreshing(on) {
+      document.getElementById("refresh-spin").hidden = !on;
+    }
+
+    function destroyCharts() {
+      [chartContrib, chartExpend, chartMonthly].forEach((c) => c && c.destroy());
+      chartContrib = chartExpend = chartMonthly = null;
+    }
+
+    function cssVar(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#94a3b8";
+    }
+
+    function renderBarChart(canvasId, items, labelKey, color) {
+      const ctx = document.getElementById(canvasId);
+      const labels = items.map((x) => x.candidate);
+      const data = items.map((x) => x.total);
+      const cfg = {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: labelKey,
+            data,
+            backgroundColor: color,
+            borderRadius: 4,
+          }],
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => money(ctx.raw),
+              },
+            },
+          },
+          scales: {
+            x: {
+              ticks: {
+                callback: (v) => "$" + (v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : v >= 1e3 ? (v / 1e3).toFixed(0) + "k" : v),
+              },
+            },
+          },
+        },
+      };
+      if (canvasId === "chart-contrib") {
+        if (chartContrib) chartContrib.destroy();
+        chartContrib = new Chart(ctx, cfg);
+      } else {
+        if (chartExpend) chartExpend.destroy();
+        chartExpend = new Chart(ctx, cfg);
+      }
+    }
+
+    function renderMonthlyChart(series) {
+      const ctx = document.getElementById("chart-monthly");
+      const labels = series.map((x) => x.month);
+      const cfg = {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Contributions",
+              data: series.map((x) => x.contributions),
+              backgroundColor: cssVar("--good"),
+              borderRadius: 3,
+            },
+            {
+              label: "Expenditures",
+              data: series.map((x) => x.expenditures),
+              backgroundColor: cssVar("--warn"),
+              borderRadius: 3,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            tooltip: {
+              callbacks: { label: (ctx) => `${ctx.dataset.label}: ${money(ctx.raw)}` },
+            },
+          },
+          scales: {
+            x: { stacked: false },
+            y: {
+              ticks: {
+                callback: (v) => "$" + (v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : v >= 1e3 ? (v / 1e3).toFixed(0) + "k" : v),
+              },
+            },
+          },
+        },
+      };
+      if (chartMonthly) chartMonthly.destroy();
+      chartMonthly = new Chart(ctx, cfg);
+    }
+
+    function fillSelect(id, values, current) {
+      const sel = document.getElementById(id);
+      const first = sel.options[0].outerHTML;
+      sel.innerHTML = first + values.map((v) =>
+        `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`
+      ).join("");
+      if (values.includes(current)) sel.value = current;
+    }
+
+    function pct(share) {
+      if (share == null || Number.isNaN(share)) return "—";
+      return `${(share * 100).toFixed(1)}%`;
+    }
+
+    function pctRate(rate) {
+      if (rate == null || Number.isNaN(rate)) return "—";
+      return `${(rate * 100).toFixed(1)}%`;
+    }
+
+    function voteParams(refresh) {
+      const p = new URLSearchParams();
+      if (refresh) p.set("refresh", "true");
+      const mid = selectedMemberId || document.getElementById("filter-member").value;
+      const from = document.getElementById("vote-from").value;
+      const to = document.getElementById("vote-to").value;
+      if (mid) p.set("member", mid);
+      if (from) p.set("from_date", from);
+      if (to) p.set("to_date", to);
+      const q = document.getElementById("vote-q")?.value?.trim();
+      if (q) p.set("q", q);
+      const vote = document.getElementById("vote-filter")?.value;
+      if (vote) p.set("vote", vote);
+      return p;
+    }
+
+    function fillVoteFilterOptions(options) {
+      const sel = document.getElementById("vote-filter");
+      if (!sel || !options?.length) return;
+      const cur = sel.value;
+      sel.innerHTML = options.map((o) =>
+        `<option value="${escapeHtml(o.value)}">${escapeHtml(o.label)}</option>`
+      ).join("");
+      if ([...sel.options].some((opt) => opt.value === cur)) sel.value = cur;
+    }
+
+    function setActiveTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll(".tab-btn").forEach((b) => {
+        b.classList.toggle("on", b.dataset.tab === tab);
+      });
+      document.querySelectorAll(".tab-panel").forEach((p) => {
+        p.classList.toggle("on", p.id === `tab-${tab}`);
+      });
+    }
+
+    function syncMemberToCandidate(memberId) {
+      selectedMemberId = memberId || "";
+      const entry = memberDirectory.find((m) => m.id === selectedMemberId);
+      const cand = entry?.finance_candidate_name || "";
+      document.getElementById("filter-member").value = selectedMemberId;
+      document.getElementById("filter-candidate").value = cand;
+    }
+
+    function renderMemberDirectory(members) {
+      memberDirectory = members || [];
+      const sel = document.getElementById("filter-member");
+      const cur = sel.value;
+      const first = sel.options[0].outerHTML;
+      sel.innerHTML = first + memberDirectory.map((m) => {
+        const tags = [];
+        if (m.has_finance) tags.push("$");
+        if (m.has_voting) tags.push("vote");
+        const label = tags.length ? `${m.display_name} (${tags.join(" · ")})` : m.display_name;
+        return `<option value="${escapeHtml(m.id)}">${escapeHtml(label)}</option>`;
+      }).join("");
+      if (memberDirectory.some((m) => m.id === cur)) sel.value = cur;
+
+      const wrap = document.getElementById("member-cards");
+      const section = document.getElementById("member-index-section");
+      if (!memberDirectory.length) {
+        section.hidden = true;
+        wrap.innerHTML = "";
+        return;
+      }
+      section.hidden = selectedMemberId && document.getElementById("combined-overview")?.hidden === false;
+      wrap.innerHTML = memberDirectory.map((m) => {
+        const fs = m.finance_summary;
+        const vs = m.voting_summary;
+        const moneyLine = fs
+          ? `Raised ${money(fs.total_raised)} · Spent ${money(fs.total_spent)}`
+          : "No finance filings";
+        const voteLine = vs
+          ? `Yes ${pctRate(vs.yes_rate)} · ${vs.records || 0} votes`
+          : "No voting data";
+        const dist = m.district ? `Dist ${escapeHtml(m.district)}` : "";
+        return `<button type="button" class="candidate-card" data-member="${escapeHtml(m.id)}">
+          <strong>${escapeHtml(m.display_name)}</strong>${dist ? `<span class="badge">${dist}</span>` : ""}
+          <span class="line">${moneyLine}</span>
+          <span class="line">${voteLine}</span>
+        </button>`;
+      }).join("");
+      wrap.querySelectorAll(".candidate-card").forEach((btn) => {
+        btn.addEventListener("click", () => selectMember(btn.dataset.member));
+      });
+    }
+
+    function selectMember(memberId) {
+      syncMemberToCandidate(memberId);
+      setActiveTab("overview");
+      tableOffset = 0;
+      votesOffset = 0;
+      if (!memberId) {
+        document.getElementById("combined-overview").hidden = true;
+        document.getElementById("member-index-section").hidden = false;
+        bootstrap(false, false);
+        return;
+      }
+      bootstrap(false, false);
+    }
+
+    function voteTagHtml(vote) {
+      const v = String(vote || "").toUpperCase();
+      let cls = "other";
+      if (v === "YES") cls = "yes";
+      else if (v === "NO") cls = "no";
+      else if (v === "ABST") cls = "abstain";
+      else if (["ABSNT", "ABSNT_CB", "AWVT"].includes(v)) cls = "absent";
+      return `<span class="vote-tag ${cls}">${escapeHtml(v || "—")}</span>`;
+    }
+
+    function renderVoteYearChart(canvasId, byYear) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+      const series = byYear || [];
+      const cfg = {
+        type: "bar",
+        data: {
+          labels: series.map((x) => x.year),
+          datasets: [
+            { label: "Yes", data: series.map((x) => x.yes), backgroundColor: cssVar("--good"), borderRadius: 3 },
+            { label: "No", data: series.map((x) => x.no), backgroundColor: cssVar("--danger"), borderRadius: 3 },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom" } },
+          scales: { x: { stacked: true }, y: { stacked: true } },
+        },
+      };
+      if (canvasId === "chart-vote-yearly") {
+        if (chartVoteYearly) chartVoteYearly.destroy();
+        chartVoteYearly = series.length ? new Chart(ctx, cfg) : null;
+      } else {
+        if (chartVotingYearly) chartVotingYearly.destroy();
+        chartVotingYearly = series.length ? new Chart(ctx, cfg) : null;
+      }
+    }
+
+    function renderVotingKpis(containerId, stats) {
+      const el = document.getElementById(containerId);
+      if (!el || !stats?.totals) {
+        if (el) el.innerHTML = "";
+        return;
+      }
+      const t = stats.totals;
+      el.innerHTML = `
+        <div class="overview-kpi"><div class="label">Yes</div><div class="value good">${t.yes}</div></div>
+        <div class="overview-kpi"><div class="label">No</div><div class="value" style="color:var(--danger)">${t.no}</div></div>
+        <div class="overview-kpi"><div class="label">Yes rate</div><div class="value">${pctRate(t.yes_rate)}</div></div>
+        <div class="overview-kpi"><div class="label">Participation</div><div class="value">${pctRate(t.participation_rate)}</div></div>
+        <div class="overview-kpi"><div class="label">Records</div><div class="value">${t.records}</div></div>`;
+    }
+
+    function renderRecentVotes(rows) {
+      const body = document.getElementById("profile-recent-votes");
+      if (!body) return;
+      if (!rows?.length) {
+        body.innerHTML = `<tr><td colspan="3" style="color:var(--muted)">No votes in range.</td></tr>`;
+        return;
+      }
+      body.innerHTML = rows.map((r) => `<tr>
+        <td>${escapeHtml(formatDate(r.date))}</td>
+        <td>${voteTagHtml(r.vote)}</td>
+        <td class="vote-desc">${escapeHtml(r.description || "—")}</td>
+      </tr>`).join("");
+    }
+
+    function renderMemberProfile(body) {
+      const panel = document.getElementById("combined-overview");
+      const idx = document.getElementById("member-index-section");
+      if (!body?.found) {
+        panel.hidden = true;
+        idx.hidden = false;
+        return;
+      }
+      panel.hidden = false;
+      idx.hidden = true;
+      const m = body.member || {};
+      document.getElementById("profile-name").textContent = m.display_name || m.id;
+      const tags = [];
+      if (m.has_finance) tags.push("campaign finance");
+      if (m.has_voting) tags.push("voting record");
+      if (m.district) tags.push(`district ${m.district}`);
+      document.getElementById("profile-meta").textContent = tags.join(" · ") || "—";
+
+      const fin = body.finance_overview;
+      const vote = body.voting_stats;
+      const pk = document.getElementById("profile-kpis");
+      let kpiHtml = "";
+      if (fin?.found) {
+        const f = fin.financials || {};
+        kpiHtml += `
+          <div class="overview-kpi"><div class="label">Raised</div><div class="value good">${money(f.total_raised)}</div></div>
+          <div class="overview-kpi"><div class="label">Spent</div><div class="value warn">${money(f.total_spent)}</div></div>
+          <div class="overview-kpi"><div class="label">Net</div><div class="value">${money(f.net_cash)}</div></div>`;
+      }
+      if (vote?.totals) {
+        kpiHtml += `
+          <div class="overview-kpi"><div class="label">Yes rate</div><div class="value">${pctRate(vote.totals.yes_rate)}</div></div>
+          <div class="overview-kpi"><div class="label">Participation</div><div class="value">${pctRate(vote.totals.participation_rate)}</div></div>`;
+      }
+      pk.innerHTML = kpiHtml;
+
+      const vBlock = document.getElementById("profile-voting-block");
+      if (vote?.found !== false && vote?.totals) {
+        vBlock.hidden = false;
+        renderVotingKpis("vote-stats-kpis", vote);
+        renderVoteYearChart("chart-vote-yearly", vote.by_year || []);
+        renderRecentVotes(body.recent_votes || []);
+      } else {
+        vBlock.hidden = true;
+      }
+
+      const wrap = document.getElementById("profile-finance-wrap");
+      if (fin?.found) {
+        const f = fin.fiscal_responsibility || {};
+        wrap.innerHTML = `
+          <h3 style="margin:.75rem 0 .35rem;font-size:.85rem">Campaign finance</h3>
+          <div class="fiscal-card ${escapeHtml(f.status || "")}">
+            <div class="fiscal-label">${escapeHtml(f.label || "—")}</div>
+            <p>${escapeHtml(f.summary || "")}</p>
+          </div>
+          <p class="hint">Major donors, vendors, and charts are on the <strong>Money</strong> tab.</p>`;
+        wrap.innerHTML = wrap.innerHTML.replace(/<div /g, "<div ");
+      } else {
+        wrap.innerHTML = `<p class="hint">No campaign finance filings linked to this member.</p>`;
+      }
+    }
+
+    async function loadDirectory(refreshFinance, refreshVoting) {
+      const p = new URLSearchParams();
+      if (refreshFinance) p.set("refresh_finance", "true");
+      if (refreshVoting) p.set("refresh_voting", "true");
+      const res = await fetch(`/api/council-accountability/directory?${p}`);
+      if (!res.ok) throw new Error(await res.text());
+      const body = await res.json();
+      renderMemberDirectory(body.members || []);
+      const meta = body.meta || {};
+      if (meta.voting_fetched_at && !document.getElementById("vote-from").value) {
+        const vs = await fetch(`/api/council-voting/summary`);
+        if (vs.ok) {
+          const vbody = await vs.json();
+          const dr = vbody.date_range_defaults || {};
+          if (dr.from) document.getElementById("vote-from").value = dr.from.slice(0, 10);
+          if (dr.to) document.getElementById("vote-to").value = dr.to.slice(0, 10);
+        }
+      }
+      return body;
+    }
+
+    async function loadVotingSummary(refresh) {
+      const p = voteParams(refresh);
+      p.delete("vote");
+      const res = await fetch(`/api/council-voting/summary?${p}`);
+      if (!res.ok) throw new Error(await res.text());
+      const body = await res.json();
+      fillVoteFilterOptions(body.vote_filter_options);
+      const g = body.global_kpis || {};
+      document.getElementById("kpi-vote-records").textContent = g.total_records ?? "—";
+      document.getElementById("kpi-yes-rate").textContent = pctRate(g.yes_rate);
+      const dr = body.date_range_defaults || {};
+      if (!document.getElementById("vote-from").value && dr.from) {
+        document.getElementById("vote-from").value = dr.from.slice(0, 10);
+      }
+      if (!document.getElementById("vote-to").value && dr.to) {
+        document.getElementById("vote-to").value = dr.to.slice(0, 10);
+      }
+      return body;
+    }
+
+    async function loadMemberProfile(refresh) {
+      const mid = selectedMemberId || document.getElementById("filter-member").value;
+      if (!mid) {
+        document.getElementById("combined-overview").hidden = true;
+        document.getElementById("member-index-section").hidden = false;
+        return;
+      }
+      const p = voteParams(false);
+      if (refresh) {
+        p.set("refresh_finance", "true");
+        p.set("refresh_voting", "true");
+      }
+      const rt = document.getElementById("filter-record-type").value;
+      const q = document.getElementById("filter-q").value.trim();
+      if (rt) p.set("record_type", rt);
+      if (q) p.set("q", q);
+      const res = await fetch(`/api/council-accountability/member?${p}`);
+      if (!res.ok) throw new Error(await res.text());
+      renderMemberProfile(await res.json());
+    }
+
+    function renderVotesTable(rows, total) {
+      const body = document.getElementById("votes-body");
+      if (!rows?.length) {
+        body.innerHTML = `<tr><td colspan="5" style="color:var(--muted)">No votes match filters.</td></tr>`;
+      } else {
+        body.innerHTML = rows.map((r) => `<tr>
+          <td>${escapeHtml(formatDate(r.date))}</td>
+          <td>${voteTagHtml(r.vote)}</td>
+          <td>${escapeHtml(r.district || "—")}</td>
+          <td class="col-description">${escapeHtml(r.description || "—")}</td>
+          <td>${escapeHtml(r.final_action_taken || "—")}</td>
+        </tr>`).join("");
+      }
+      votesTotal = total;
+      const start = votesOffset + 1;
+      const end = Math.min(votesOffset + VOTES_PAGE, total);
+      document.getElementById("votes-pager-info").textContent =
+        total ? `Showing ${start}–${end} of ${total}` : "No rows";
+      document.getElementById("votes-prev").disabled = votesOffset <= 0;
+      document.getElementById("votes-next").disabled = votesOffset + VOTES_PAGE >= total;
+    }
+
+    async function loadVotes(refresh) {
+      const p = voteParams(refresh);
+      p.set("limit", String(VOTES_PAGE));
+      p.set("offset", String(votesOffset));
+      const res = await fetch(`/api/council-voting/votes?${p}`);
+      if (!res.ok) throw new Error(await res.text());
+      const body = await res.json();
+      fillVoteFilterOptions(body.vote_filter_options);
+      renderVotesTable(body.votes || [], body.meta?.total ?? 0);
+      const mid = selectedMemberId || document.getElementById("filter-member").value;
+      if (mid) {
+        const prof = await fetch(`/api/council-accountability/member?${voteParams(false)}`);
+        if (prof.ok) {
+          const pb = await prof.json();
+          renderVotingKpis("voting-member-kpis", pb.voting_stats);
+          renderVoteYearChart("chart-voting-yearly", pb.voting_stats?.by_year || []);
+        }
+      } else {
+        renderVotingKpis("voting-member-kpis", null);
+      }
+    }
+
+    function renderCounterpartyTable(tbodyId, rows, emptyMsg) {
+      const body = document.getElementById(tbodyId);
+      if (!rows?.length) {
+        body.innerHTML = `<tr><td colspan="3" style="color:var(--muted)">${emptyMsg}</td></tr>`;
+        return;
+      }
+      body.innerHTML = rows.map((r) => `<tr>
+        <td>${escapeHtml(r.name)}</td>
+        <td class="amt">${money(r.total)}</td>
+        <td class="amt">${pct(r.share)}</td>
+      </tr>`).join("");
+    }
+
+    function renderCandidateIndex(index) {
+      const section = document.getElementById("candidate-index-section");
+      const wrap = document.getElementById("candidate-cards");
+      if (!index?.length) {
+        section.hidden = true;
+        wrap.innerHTML = "";
+        return;
+      }
+      section.hidden = false;
+      wrap.innerHTML = index.map((c) => `
+        <button type="button" class="candidate-card" data-candidate="${escapeHtml(c.candidate)}">
+          <strong>${escapeHtml(c.candidate)}</strong>
+          <span class="line">Raised ${money(c.total_raised)} · Spent ${money(c.total_spent)}</span>
+          <span class="line">Net ${money(c.net_cash)}</span>
+        </button>`).join("");
+      wrap.querySelectorAll(".candidate-card").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("filter-candidate").value = btn.dataset.candidate;
+          onFilterChange();
+        });
+      });
+    }
+
+    function renderCandidateMonthly(series) {
+      const ctx = document.getElementById("chart-candidate-monthly");
+      const labels = (series || []).map((x) => x.month);
+      const cfg = {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Raised",
+              data: (series || []).map((x) => x.contributions),
+              backgroundColor: cssVar("--good"),
+              borderRadius: 3,
+            },
+            {
+              label: "Spent",
+              data: (series || []).map((x) => x.expenditures),
+              backgroundColor: cssVar("--warn"),
+              borderRadius: 3,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "bottom" },
+            tooltip: {
+              callbacks: { label: (ctx) => `${ctx.dataset.label}: ${money(ctx.raw)}` },
+            },
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: (v) => "$" + (v >= 1e3 ? (v / 1e3).toFixed(0) + "k" : v),
+              },
+            },
+          },
+        },
+      };
+      if (chartCandidateMonthly) chartCandidateMonthly.destroy();
+      chartCandidateMonthly = labels.length ? new Chart(ctx, cfg) : null;
+    }
+
+    function renderCandidateOverview(ov) {
+      const panel = document.getElementById("candidate-overview");
+      const idxSection = document.getElementById("candidate-index-section");
+      if (!ov?.found) {
+        panel.hidden = true;
+        return;
+      }
+      panel.hidden = false;
+      idxSection.hidden = true;
+
+      document.getElementById("ov-candidate-name").textContent = ov.candidate;
+      const fin = ov.financials || {};
+      const rts = fin.record_types || [];
+      document.getElementById("ov-meta").textContent = [
+        fin.latest_transaction_date
+          ? `Latest activity ${formatDate(fin.latest_transaction_date)}` : null,
+        rts.length ? `Filing periods: ${rts.slice(0, 3).join("; ")}${rts.length > 3 ? "…" : ""}` : null,
+        `${fin.contribution_count || 0} contributions · ${fin.expenditure_count || 0} expenditures`,
+      ].filter(Boolean).join(" · ");
+
+      const f = ov.fiscal_responsibility || {};
+      const fiscalEl = document.getElementById("ov-fiscal");
+      fiscalEl.className = `fiscal-card ${escapeHtml(f.status || "")}`;
+      document.getElementById("ov-fiscal-label").textContent = f.label || "—";
+      document.getElementById("ov-fiscal-summary").textContent = f.summary || "";
+      const flags = f.flags || [];
+      document.getElementById("ov-fiscal-flags").innerHTML = flags.length
+        ? flags.map((x) => `<li>${escapeHtml(x)}</li>`).join("")
+        : "";
+
+      const burn = f.burn_rate != null ? pct(Math.min(f.burn_rate, 9.99)) : "—";
+      const reserve = f.reserve_pct != null ? pct(f.reserve_pct) : "—";
+      document.getElementById("ov-kpis").innerHTML = `
+        <div class="overview-kpi"><div class="label">Raised</div><div class="value good">${money(fin.total_raised)}</div></div>
+        <div class="overview-kpi"><div class="label">Spent</div><div class="value warn">${money(fin.total_spent)}</div></div>
+        <div class="overview-kpi"><div class="label">Net cash</div><div class="value">${money(fin.net_cash)}</div></div>
+        <div class="overview-kpi"><div class="label">Burn rate</div><div class="value">${burn}</div></div>
+        <div class="overview-kpi"><div class="label">Reserve</div><div class="value">${reserve}</div></div>
+      `;
+
+      renderCounterpartyTable("ov-donors", ov.major_donors, "No contributions reported.");
+      renderCounterpartyTable("ov-expend", ov.major_expenditures, "No expenditures reported.");
+      renderCandidateMonthly(ov.monthly || []);
+
+      const ow = document.getElementById("ov-watch");
+      const flags2 = ov.watch_list || [];
+      if (!flags2.length) {
+        ow.innerHTML = "<p class=\"hint\" style=\"margin:0\">No flags for this candidate in the current filter.</p>";
+      } else {
+        ow.innerHTML = flags2.map((s) => {
+          const sev = escapeHtml(s.severity || "low");
+          return `<div class="watch-card ${sev}">
+            <strong>${escapeHtml(s.title)}</strong>
+            ${escapeHtml(s.detail || "")}
+          </div>`;
+        }).join("");
+      }
+    }
+
+    function formatSupportList(candidates) {
+      return (candidates || [])
+        .map((c) => `${escapeHtml(c.candidate)} (${money(c.total)})`)
+        .join(" · ");
+    }
+
+    function renderInsights(insights) {
+      if (!insights) return;
+
+      const wl = document.getElementById("watch-list");
+      const flags = insights.watch_list || [];
+      if (!flags.length) {
+        wl.innerHTML = "<p class=\"hint\" style=\"margin:0\">No flags in the current filter set.</p>";
+      } else {
+        wl.innerHTML = flags.map((s) => {
+          const sev = escapeHtml(s.severity || "low");
+          let chips = "";
+          if (s.candidates?.length) {
+            chips = `<div class="chips">${formatSupportList(s.candidates)}</div>`;
+          } else if (s.gave_to?.length || s.paid_by?.length) {
+            const gave = s.gave_to?.length ? `Gave to: ${formatSupportList(s.gave_to)}` : "";
+            const paid = s.paid_by?.length ? `Paid by: ${formatSupportList(s.paid_by)}` : "";
+            chips = `<div class="chips">${gave}${gave && paid ? " | " : ""}${paid}</div>`;
+          }
+          return `<div class="watch-card ${sev}">
+            <strong>${escapeHtml(s.title)}</strong>
+            ${escapeHtml(s.detail || "")}
+            ${chips}
+          </div>`;
+        }).join("");
+      }
+
+      const spend = insights.spending_breakdown || [];
+      document.getElementById("spending-body").innerHTML = spend.length
+        ? spend.map((r) => `<tr>
+            <td>${escapeHtml(r.candidate)}</td>
+            <td>${escapeHtml(r.vendor)}</td>
+            <td class="amt">${money(r.total)}</td>
+          </tr>`).join("")
+        : `<tr><td colspan="3" style="color:var(--muted)">No expenditures in filter.</td></tr>`;
+
+      const donors = insights.donor_bankroll || [];
+      document.getElementById("donors-body").innerHTML = donors.length
+        ? donors.map((r) => `<tr>
+            <td>${escapeHtml(r.donor)}</td>
+            <td class="amt">${money(r.total)}</td>
+            <td>${formatSupportList(r.candidates)}</td>
+          </tr>`).join("")
+        : `<tr><td colspan="3" style="color:var(--muted)">No contributions in filter.</td></tr>`;
+
+      const vendors = insights.top_vendors || [];
+      const vw = document.getElementById("vendors-wrap");
+      if (!vendors.length) {
+        vw.innerHTML = "<p class=\"hint\" style=\"margin:0\">No vendor data.</p>";
+      } else {
+        vw.innerHTML = `<table class="mini-table"><thead><tr>
+          <th>Vendor</th><th class="amt">Total received</th><th>Paid by candidates</th>
+        </tr></thead><tbody>${vendors.map((v) => `<tr>
+          <td>${escapeHtml(v.vendor)}</td>
+          <td class="amt">${money(v.total)}</td>
+          <td>${formatSupportList(v.candidates)}</td>
+        </tr>`).join("")}</tbody></table>`;
+      }
+    }
+
+    function applySummary(body) {
+      const meta = body.meta || {};
+      const kpis = body.kpis || {};
+      document.getElementById("kpi-raised").textContent = money(kpis.total_contributions);
+      document.getElementById("kpi-spent").textContent = money(kpis.total_expenditures);
+      document.getElementById("kpi-txns").textContent =
+        (kpis.contribution_transactions || 0) + (kpis.expenditure_transactions || 0);
+      document.getElementById("kpi-candidates").textContent = kpis.unique_candidates ?? "—";
+
+      const sub = [
+        `${meta.filtered_count ?? 0} rows match filters (${meta.row_count ?? 0} total)`,
+        meta.fetched_at ? `cached ${new Date(meta.fetched_at).toLocaleString()}` : null,
+      ].filter(Boolean).join(" • ");
+      document.getElementById("header-sub").textContent = sub;
+
+      const charts = body.charts || {};
+      renderBarChart("chart-contrib", charts.top_contributions || [], "Contributions", cssVar("--good"));
+      renderBarChart("chart-expend", charts.top_expenditures || [], "Expenditures", cssVar("--warn"));
+      renderMonthlyChart(charts.by_month || []);
+
+      const opts = body.options || {};
+      const candNow = document.getElementById("filter-candidate").value;
+      const rtNow = document.getElementById("filter-record-type").value;
+      fillSelect("filter-candidate", opts.candidates || [], candNow);
+      fillSelect("filter-record-type", opts.record_types || [], rtNow);
+
+      renderInsights(body.insights);
+
+      const cand = document.getElementById("filter-candidate").value;
+      if (cand && body.candidate_overview?.found) {
+        renderCandidateOverview(body.candidate_overview);
+      } else {
+        document.getElementById("candidate-overview").hidden = true;
+        renderCandidateIndex(body.candidate_index || []);
+      }
+    }
+
+    function sortRows(rows) {
+      const key = sortKey;
+      const dir = sortDir;
+      return [...rows].sort((a, b) => {
+        let av = a[key];
+        let bv = b[key];
+        if (key === "amount_num") {
+          av = av ?? -1;
+          bv = bv ?? -1;
+        } else {
+          av = String(av || "").toLowerCase();
+          bv = String(bv || "").toLowerCase();
+        }
+        if (av < bv) return -1 * dir;
+        if (av > bv) return 1 * dir;
+        return 0;
+      });
+    }
+
+    function renderTable(rows, total) {
+      tableRows = sortRows(rows);
+      const body = document.getElementById("tx-body");
+      if (!tableRows.length) {
+        body.innerHTML = `<tr><td colspan="7" style="color:var(--muted)">No transactions match filters.</td></tr>`;
+      } else {
+        body.innerHTML = tableRows.map((r) => `
+          <tr>
+            <td>${escapeHtml(formatDate(r.transaction_date))}</td>
+            <td>${escapeHtml(r.candidate_name)}</td>
+            <td>${escapeHtml(r.counterparty_name || r.payee_name)}</td>
+            <td><span class="kind-tag ${escapeHtml(r.kind)}">${escapeHtml(r.kind)}</span></td>
+            <td>${escapeHtml(r.schedule_type)}</td>
+            <td class="amt">${r.amount_num != null ? money(r.amount_num) : escapeHtml(r.amount || "—")}</td>
+            <td>${r.file_url ? `<a href="${escapeHtml(r.file_url)}" target="_blank" rel="noopener">PDF</a>` : "—"}</td>
+          </tr>`).join("");
+      }
+      document.getElementById("table-count").textContent = `(${total} total)`;
+      const start = tableOffset + 1;
+      const end = Math.min(tableOffset + PAGE_SIZE, total);
+      document.getElementById("pager-info").textContent =
+        total ? `Showing ${start}–${end} of ${total}` : "No rows";
+      document.getElementById("btn-prev").disabled = tableOffset <= 0;
+      document.getElementById("btn-next").disabled = tableOffset + PAGE_SIZE >= total;
+    }
+
+    async function loadTransactions(refresh) {
+      const p = filterParams(refresh);
+      p.set("limit", String(PAGE_SIZE));
+      p.set("offset", String(tableOffset));
+      const res = await fetch(`/api/campaign-finance/transactions?${p}`);
+      if (!res.ok) throw new Error(await res.text());
+      const body = await res.json();
+      tableTotal = body.meta?.total ?? 0;
+      renderTable(body.transactions || [], tableTotal);
+    }
+
+    async function loadFinance(refresh = false) {
+      const p = filterParams(refresh);
+      const res = await fetch(`/api/campaign-finance/summary?${p}`);
+      if (!res.ok) throw new Error(await res.text());
+      applySummary(await res.json());
+      await loadTransactions(refresh);
+    }
+
+    async function bootstrap(refreshFinance = false, refreshVoting = false) {
+      setRefreshing(true);
+      document.getElementById("refresh-text").textContent = refreshFinance || refreshVoting
+        ? "Fetching from Socrata…" : "Updating…";
+      try {
+        await loadDirectory(refreshFinance, refreshVoting);
+        await loadVotingSummary(refreshVoting);
+        await loadFinance(refreshFinance);
+        if (selectedMemberId || document.getElementById("filter-member").value) {
+          await loadMemberProfile(refreshFinance || refreshVoting);
+          await loadVotes(false);
+        }
+        document.getElementById("refresh-text").textContent =
+          `Updated ${new Date().toLocaleTimeString()}`;
+      } catch (err) {
+        console.error(err);
+        document.getElementById("refresh-text").textContent = "Update failed";
+        document.getElementById("header-sub").textContent = String(err);
+      } finally {
+        setRefreshing(false);
+      }
+    }
+
+    function onFilterChange() {
+      tableOffset = 0;
+      votesOffset = 0;
+      const mid = document.getElementById("filter-member").value;
+      if (mid) selectedMemberId = mid;
+      const entry = memberDirectory.find((m) => m.id === selectedMemberId);
+      if (entry?.finance_candidate_name) {
+        document.getElementById("filter-candidate").value = entry.finance_candidate_name;
+      }
+      bootstrap(false, false);
+    }
+
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
+    });
+
+    document.getElementById("filter-member").addEventListener("change", () => {
+      selectMember(document.getElementById("filter-member").value);
+    });
+
+    document.getElementById("filter-candidate").addEventListener("change", onFilterChange);
+    document.getElementById("filter-kind").addEventListener("change", onFilterChange);
+    document.getElementById("filter-record-type").addEventListener("change", onFilterChange);
+    document.getElementById("filter-q").addEventListener("input", () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(onFilterChange, 350);
+    });
+
+    document.getElementById("vote-from").addEventListener("change", () => {
+      votesOffset = 0;
+      loadVotingSummary(false);
+      loadVotes(false);
+      loadMemberProfile(false);
+    });
+    document.getElementById("vote-to").addEventListener("change", () => {
+      votesOffset = 0;
+      loadVotingSummary(false);
+      loadVotes(false);
+      loadMemberProfile(false);
+    });
+    document.getElementById("vote-q").addEventListener("input", () => {
+      clearTimeout(voteSearchTimer);
+      voteSearchTimer = setTimeout(() => {
+        votesOffset = 0;
+        loadVotes(false);
+      }, 350);
+    });
+    document.getElementById("vote-filter").addEventListener("change", () => {
+      votesOffset = 0;
+      loadVotes(false);
+    });
+
+    document.getElementById("btn-refresh-finance").addEventListener("click", () => bootstrap(true, false));
+    document.getElementById("btn-refresh-voting").addEventListener("click", () => bootstrap(false, true));
+    document.getElementById("btn-prev").addEventListener("click", () => {
+      tableOffset = Math.max(0, tableOffset - PAGE_SIZE);
+      loadTransactions(false);
+    });
+    document.getElementById("btn-next").addEventListener("click", () => {
+      if (tableOffset + PAGE_SIZE < tableTotal) {
+        tableOffset += PAGE_SIZE;
+        loadTransactions(false);
+      }
+    });
+
+    document.querySelectorAll("th[data-sort]").forEach((th) => {
+      th.addEventListener("click", () => {
+        const key = th.dataset.sort;
+        if (sortKey === key) sortDir *= -1;
+        else {
+          sortKey = key;
+          sortDir = key === "amount_num" ? -1 : 1;
+        }
+        renderTable(tableRows, tableTotal);
+      });
+    });
+
+    document.getElementById("votes-prev").addEventListener("click", () => {
+      votesOffset = Math.max(0, votesOffset - VOTES_PAGE);
+      loadVotes(false);
+    });
+    document.getElementById("votes-next").addEventListener("click", () => {
+      if (votesOffset + VOTES_PAGE < votesTotal) {
+        votesOffset += VOTES_PAGE;
+        loadVotes(false);
+      }
+    });
+
+    bootstrap(false, false);
+  </script>
+</body>
+
+</html>

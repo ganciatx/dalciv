@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sivic Scraper — Dallas civic data</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #38bdf8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    main {
+      max-width: 36rem;
+      background: var(--panel);
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 2rem;
+    }
+    h1 { margin: 0 0 0.5rem; font-size: 1.35rem; }
+    p { color: var(--muted); line-height: 1.55; }
+    .status {
+      margin: 1.25rem 0;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      font-size: 0.9rem;
+    }
+    a { color: var(--accent); }
+    ul { padding-left: 1.2rem; color: var(--muted); }
+    code { font-size: 0.85em; background: #1f2937; padding: 0.1rem 0.35rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Sivic Scraper</h1>
+    <p>Dallas Legistar downloads, police active calls, and council accountability dashboards.</p>
+    <div class="status" id="status">
+      Checking for the live app…
+    </div>
+    <p><strong>Hostinger site:</strong> <span id="host-domain"></span></p>
+    <p>This subdomain is on <strong>Business Web Hosting</strong>. The full Python app runs on a
+      <strong>Hostinger VPS</strong> with Docker (see <code>HOSTINGER_DEPLOY_PLAN.md</code> in the repo).</p>
+    <ul>
+      <li>Police map — live DPD calls</li>
+      <li>Council accountability — campaign finance + voting records</li>
+      <li>Legistar scraper UI (optional; off by default in production)</li>
+    </ul>
+    <p>After VPS deploy, open your VPS URL or point a domain to the container on port 80.</p>
+  </main>
+  <script>
+    document.getElementById("host-domain").textContent = location.hostname;
+    const vpsUrl = ""; // Set after VPS deploy, e.g. "http://123.45.67.89"
+    const el = document.getElementById("status");
+    if (vpsUrl) {
+      el.innerHTML = 'App live at <a href="' + vpsUrl + '">' + vpsUrl + '</a>';
+    } else {
+      el.textContent = "Dashboard not linked yet — add a Hostinger VPS and run Docker deploy.";
+    }
+  </script>
+</body>
+</html>
