@@ -26,7 +26,7 @@ Your project lives in **two places**:
 | Site | Address (example) | What runs there |
 |------|-------------------|-----------------|
 | **Landing page** | `mediumturquoise-giraffe-322901.hostingersite.com` | A simple info page only (not the full dashboard) |
-| **Live app** | Your **VPS IP** or custom domain (e.g. `http://123.45.67.89`) | The real dashboard: police map, council finance, voting, Legistar UI |
+| **Live app** | **[http://ganciatx.com/](http://ganciatx.com/)** | The real dashboard: police map, council finance, voting, Legistar UI |
 
 Most changes you make in this project affect the **live app on the VPS**, not the small landing page.
 
@@ -70,7 +70,8 @@ Always check locally first so you don’t push a broken site live.
    python -m dashboard
    ```
 3. In your browser, open:
-   - http://127.0.0.1:8765 — Legistar dashboard  
+   - http://127.0.0.1:8765 — app portal
+   - http://127.0.0.1:8765/council-meetings — Legistar dashboard  
    - http://127.0.0.1:8765/police — Police map  
    - http://127.0.0.1:8765/campaign-finance — Council accountability  
 4. Click through what you changed. Fix issues **before** deploying.

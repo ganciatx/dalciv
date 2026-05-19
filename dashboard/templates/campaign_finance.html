@@ -467,6 +467,84 @@
       vertical-align: top;
     }
 
+    .voting-view-toggle {
+      display: flex;
+      gap: 0.35rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .voting-view-toggle button {
+      font-family: inherit;
+      font-size: 0.82rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 0.35rem;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .voting-view-toggle button.on {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    #agenda-items-table .col-description {
+      white-space: normal;
+      word-break: break-word;
+      max-width: 28rem;
+    }
+
+    #agenda-detail {
+      margin-top: 1rem;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      background: var(--panel);
+    }
+
+    #agenda-detail h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+    }
+
+    #agenda-detail .agenda-desc {
+      white-space: normal;
+      word-break: break-word;
+      line-height: 1.5;
+      margin: 0.5rem 0 1rem;
+      color: var(--text);
+    }
+
+    .tally-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .tally-pills span {
+      font-size: 0.78rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .agenda-row {
+      cursor: pointer;
+    }
+
+    .agenda-row:hover td {
+      background: var(--accent-dim);
+    }
+
+    .agenda-row.selected td {
+      background: var(--accent-dim);
+    }
+
     #votes-table td.col-description {
       vertical-align: top;
     }
@@ -678,7 +756,8 @@
     <div class="nav-links">
       <span class="status-pill"><span class="spinner" id="refresh-spin" hidden></span> <span
           id="refresh-text">—</span></span>
-      <a class="btn-link" href="/">Legistar</a>
+      <a class="btn-link" href="/">Apps</a>
+      <a class="btn-link" href="/council-meetings">Council meetings</a>
       <a class="btn-link" href="/police">Police map</a>
       <button type="button" id="btn-refresh-finance" class="btn-link">Refresh finance</button>
       <button type="button" id="btn-refresh-voting" class="btn-link primary">Refresh voting</button>
@@ -913,6 +992,11 @@
     <div id="tab-voting" class="tab-panel">
     <section class="insight-section">
       <h2>Voting record</h2>
+      <div class="voting-view-toggle" role="tablist" aria-label="Voting view">
+        <button type="button" class="on" data-voting-view="member" id="btn-vote-view-member">By member</button>
+        <button type="button" data-voting-view="agenda" id="btn-vote-view-agenda">By agenda item</button>
+      </div>
+      <div id="voting-member-panel">
       <p class="hint" id="voting-hint">Roll-call votes for selected member and date range.</p>
       <div class="overview-kpis" id="voting-member-kpis"></div>
       <div class="chart-wrap compact"><canvas id="chart-voting-yearly"></canvas></div>
@@ -951,6 +1035,50 @@
         <button type="button" id="votes-prev" disabled>Prev</button>
         <span id="votes-pager-info">—</span>
         <button type="button" id="votes-next" disabled>Next</button>
+      </div>
+      </div>
+
+      <div id="voting-agenda-panel" hidden>
+        <p class="hint">Roll calls grouped by agenda item. Click a row for the full council vote.</p>
+        <label>Search agenda <input type="search" id="agenda-q" placeholder="Description, agenda id…" /></label>
+        <div class="mini-wrap" style="margin-top:.5rem">
+          <table class="mini-table" id="agenda-items-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Item</th>
+                <th class="col-description">Description</th>
+                <th>Yes</th>
+                <th>No</th>
+                <th>Other</th>
+                <th>Outcome</th>
+              </tr>
+            </thead>
+            <tbody id="agenda-items-body"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button type="button" id="agenda-prev" disabled>Prev</button>
+          <span id="agenda-pager-info">—</span>
+          <button type="button" id="agenda-next" disabled>Next</button>
+        </div>
+        <section id="agenda-detail" hidden>
+          <h3 id="agenda-detail-title">Agenda item</h3>
+          <p class="agenda-desc" id="agenda-detail-desc"></p>
+          <div class="tally-pills" id="agenda-detail-tallies"></div>
+          <div class="mini-wrap">
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>District</th>
+                  <th>Vote</th>
+                </tr>
+              </thead>
+              <tbody id="agenda-detail-members"></tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </section>
     </div>
@@ -1009,6 +1137,12 @@
     let voteSearchTimer = null;
     let votesOffset = 0;
     let votesTotal = 0;
+    let votingViewMode = "member";
+    let agendaOffset = 0;
+    let agendaTotal = 0;
+    const AGENDA_PAGE = 50;
+    let selectedRollCallId = "";
+    let agendaSearchTimer = null;
     let activeTab = "overview";
     let memberDirectory = [];
     let selectedMemberId = "";
@@ -1178,6 +1312,123 @@
       return p;
     }
 
+    function agendaDateParams() {
+      const p = new URLSearchParams();
+      const from = document.getElementById("vote-from").value;
+      const to = document.getElementById("vote-to").value;
+      if (from) p.set("from_date", from);
+      if (to) p.set("to_date", to);
+      const q = document.getElementById("agenda-q")?.value?.trim();
+      if (q) p.set("q", q);
+      return p;
+    }
+
+    function setVotingViewMode(mode) {
+      votingViewMode = mode;
+      document.querySelectorAll("[data-voting-view]").forEach((btn) => {
+        btn.classList.toggle("on", btn.dataset.votingView === mode);
+      });
+      document.getElementById("voting-member-panel").hidden = mode !== "member";
+      document.getElementById("voting-agenda-panel").hidden = mode !== "agenda";
+      document.getElementById("voting-hint").hidden = mode !== "member";
+      if (mode === "agenda") {
+        agendaOffset = 0;
+        selectedRollCallId = "";
+        document.getElementById("agenda-detail").hidden = true;
+        loadAgendaItems(false);
+      } else {
+        loadVotes(false);
+      }
+    }
+
+    function renderAgendaItemsTable(items, total) {
+      const body = document.getElementById("agenda-items-body");
+      if (!items?.length) {
+        body.innerHTML = `<tr><td colspan="7" style="color:var(--muted)">No agenda items match filters.</td></tr>`;
+      } else {
+        body.innerHTML = items.map((item) => {
+          const t = item.tallies || {};
+          const other = (t.abstain || 0) + (t.absent || 0) + (t.other || 0);
+          const sel = item.roll_call_id === selectedRollCallId ? " selected" : "";
+          return `<tr class="agenda-row${sel}" data-roll-call-id="${escapeHtml(item.roll_call_id)}">
+            <td>${escapeHtml(formatDate(item.date))}</td>
+            <td class="mono">${escapeHtml(item.agenda_item_number || item.agenda_id || "—")}</td>
+            <td class="col-description">${escapeHtml(item.description_snippet || item.description || "—")}</td>
+            <td>${t.yes ?? 0}</td>
+            <td>${t.no ?? 0}</td>
+            <td>${other}</td>
+            <td>${escapeHtml(item.outcome_label || item.final_action_taken || "—")}</td>
+          </tr>`;
+        }).join("");
+        body.querySelectorAll(".agenda-row").forEach((row) => {
+          row.addEventListener("click", () => {
+            selectedRollCallId = row.dataset.rollCallId;
+            loadAgendaItemDetail(selectedRollCallId);
+            body.querySelectorAll(".agenda-row").forEach((r) => {
+              r.classList.toggle("selected", r.dataset.rollCallId === selectedRollCallId);
+            });
+          });
+        });
+      }
+      agendaTotal = total;
+      const start = agendaOffset + 1;
+      const end = Math.min(agendaOffset + AGENDA_PAGE, total);
+      document.getElementById("agenda-pager-info").textContent =
+        total ? `Showing ${start}–${end} of ${total}` : "No rows";
+      document.getElementById("agenda-prev").disabled = agendaOffset <= 0;
+      document.getElementById("agenda-next").disabled = agendaOffset + AGENDA_PAGE >= total;
+    }
+
+    function renderAgendaDetail(body) {
+      const panel = document.getElementById("agenda-detail");
+      if (!body?.found) {
+        panel.hidden = true;
+        return;
+      }
+      panel.hidden = false;
+      const itemLabel = body.agenda_item_number || body.agenda_id || "Item";
+      document.getElementById("agenda-detail-title").textContent =
+        `${formatDate(body.date)} · ${itemLabel}`;
+      document.getElementById("agenda-detail-desc").textContent = body.description || "—";
+      const t = body.tallies || {};
+      document.getElementById("agenda-detail-tallies").innerHTML = `
+        <span><strong>Yes</strong> ${t.yes ?? 0}</span>
+        <span><strong>No</strong> ${t.no ?? 0}</span>
+        <span><strong>Abstain</strong> ${t.abstain ?? 0}</span>
+        <span><strong>Absent</strong> ${t.absent ?? 0}</span>
+        <span><strong>Outcome</strong> ${escapeHtml(body.final_action_taken || body.outcome_label || "—")}</span>`;
+      const members = body.members || [];
+      const tbody = document.getElementById("agenda-detail-members");
+      if (!members.length) {
+        tbody.innerHTML = `<tr><td colspan="3" style="color:var(--muted)">No member votes.</td></tr>`;
+      } else {
+        tbody.innerHTML = members.map((m) => `<tr>
+          <td>${escapeHtml(m.member_name || "—")}</td>
+          <td>${escapeHtml(m.district || "—")}</td>
+          <td>${voteTagHtml(m.vote)}</td>
+        </tr>`).join("");
+      }
+    }
+
+    async function loadAgendaItems(refresh) {
+      const p = agendaDateParams();
+      if (refresh) p.set("refresh", "true");
+      p.set("limit", String(AGENDA_PAGE));
+      p.set("offset", String(agendaOffset));
+      const res = await fetch(`/api/council-voting/agenda-items?${p}`);
+      if (!res.ok) throw new Error(await res.text());
+      const body = await res.json();
+      renderAgendaItemsTable(body.items || [], body.meta?.total ?? 0);
+    }
+
+    async function loadAgendaItemDetail(rollCallId) {
+      if (!rollCallId) return;
+      const p = new URLSearchParams({ roll_call_id: rollCallId });
+      const res = await fetch(`/api/council-voting/agenda-item?${p}`);
+      if (!res.ok) throw new Error(await res.text());
+      renderAgendaDetail(await res.json());
+    }
+
     function fillVoteFilterOptions(options) {
       const sel = document.getElementById("vote-filter");
       if (!sel || !options?.length) return;
@@ -1196,6 +1447,9 @@
       document.querySelectorAll(".tab-panel").forEach((p) => {
         p.classList.toggle("on", p.id === `tab-${tab}`);
       });
+      if (tab === "voting" && votingViewMode === "agenda") {
+        loadAgendaItems(false);
+      }
     }
 
     function syncMemberToCandidate(memberId) {
@@ -1857,15 +2111,25 @@
 
     document.getElementById("vote-from").addEventListener("change", () => {
       votesOffset = 0;
+      agendaOffset = 0;
       loadVotingSummary(false);
-      loadVotes(false);
-      loadMemberProfile(false);
+      if (votingViewMode === "agenda") {
+        loadAgendaItems(false);
+      } else {
+        loadVotes(false);
+        loadMemberProfile(false);
+      }
     });
     document.getElementById("vote-to").addEventListener("change", () => {
       votesOffset = 0;
+      agendaOffset = 0;
       loadVotingSummary(false);
-      loadVotes(false);
-      loadMemberProfile(false);
+      if (votingViewMode === "agenda") {
+        loadAgendaItems(false);
+      } else {
+        loadVotes(false);
+        loadMemberProfile(false);
+      }
     });
     document.getElementById("vote-q").addEventListener("input", () => {
       clearTimeout(voteSearchTimer);
@@ -1912,6 +2176,32 @@
       if (votesOffset + VOTES_PAGE < votesTotal) {
         votesOffset += VOTES_PAGE;
         loadVotes(false);
+      }
+    });
+
+    document.getElementById("btn-vote-view-member").addEventListener("click", () => {
+      setVotingViewMode("member");
+    });
+    document.getElementById("btn-vote-view-agenda").addEventListener("click", () => {
+      setVotingViewMode("agenda");
+    });
+    document.getElementById("agenda-q").addEventListener("input", () => {
+      clearTimeout(agendaSearchTimer);
+      agendaSearchTimer = setTimeout(() => {
+        agendaOffset = 0;
+        selectedRollCallId = "";
+        document.getElementById("agenda-detail").hidden = true;
+        loadAgendaItems(false);
+      }, 350);
+    });
+    document.getElementById("agenda-prev").addEventListener("click", () => {
+      agendaOffset = Math.max(0, agendaOffset - AGENDA_PAGE);
+      loadAgendaItems(false);
+    });
+    document.getElementById("agenda-next").addEventListener("click", () => {
+      if (agendaOffset + AGENDA_PAGE < agendaTotal) {
+        agendaOffset += AGENDA_PAGE;
+        loadAgendaItems(false);
       }
     });
 

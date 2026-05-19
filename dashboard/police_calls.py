@@ -103,6 +103,17 @@ def fetch_active_calls(limit: int = 500) -> list[dict[str, Any]]:
     }
     url = f"{SOCRATA_RESOURCE_URL}?{urlencode(params)}"
     resp = requests.get(url, headers=_socrata_headers(), timeout=45)
+    try:
+        from .command_center import PAGE_POLICE, record_upstream_call
+
+        record_upstream_call(
+            page=PAGE_POLICE,
+            service="Dallas Open Data (Socrata)",
+            endpoint=f"resource/{SOCRATA_DATASET_ID}",
+            url=SOCRATA_RESOURCE_URL,
+        )
+    except Exception:
+        pass
     resp.raise_for_status()
     data = resp.json()
     if not isinstance(data, list):
@@ -114,6 +125,17 @@ def fetch_dataset_meta() -> dict[str, Any]:
     """Optional upstream ``rowsUpdatedAt`` for staleness hints in the UI."""
     try:
         resp = requests.get(SOCRATA_VIEW_META_URL, headers=_socrata_headers(), timeout=20)
+        try:
+            from .command_center import PAGE_POLICE, record_upstream_call
+
+            record_upstream_call(
+                page=PAGE_POLICE,
+                service="Dallas Open Data (Socrata)",
+                endpoint=f"views/{SOCRATA_DATASET_ID} metadata",
+                url=SOCRATA_VIEW_META_URL,
+            )
+        except Exception:
+            pass
         resp.raise_for_status()
         body = resp.json()
         updated = body.get("rowsUpdatedAt")
@@ -159,8 +181,9 @@ def geocode_address(
         time.sleep(GEOCODE_MIN_INTERVAL_SEC - elapsed)
 
     try:
+        nominatim_url = "https://nominatim.openstreetmap.org/search"
         resp = requests.get(
-            "https://nominatim.openstreetmap.org/search",
+            nominatim_url,
             params={"q": address, "format": "json", "limit": 1},
             headers={
                 "User-Agent": "SivicScraper/1.0 (local dashboard; police map)",
@@ -168,6 +191,17 @@ def geocode_address(
             },
             timeout=25,
         )
+        try:
+            from .command_center import PAGE_POLICE, record_upstream_call
+
+            record_upstream_call(
+                page=PAGE_POLICE,
+                service="Nominatim (OpenStreetMap)",
+                endpoint="search",
+                url=nominatim_url,
+            )
+        except Exception:
+            pass
         _last_geocode_at = time.monotonic()
         resp.raise_for_status()
         results = resp.json()

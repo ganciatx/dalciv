@@ -21,8 +21,11 @@ from .council_accountability import (
     get_directory_payload,
     get_member_profile_payload,
 )
+from .council_voting import get_agenda_item_payload
+from .council_voting import get_agenda_items_payload
 from .council_voting import get_summary_payload as get_voting_summary_payload
 from .council_voting import get_votes_payload
+from .command_center import ApiUsageTracker, build_command_payload
 from .police_calls import get_active_calls_payload
 from .summaries import SummaryJob, join_manifest_summaries
 from .supervisor import (
@@ -46,9 +49,18 @@ SCRAPER_ENABLED = os.environ.get("SCRAPER_ENABLED", "1").strip().lower() in (
 
 app = FastAPI(title="Legistar Scraper Dashboard", docs_url=None, redoc_url=None)
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+API_USAGE = ApiUsageTracker()
 _static_dir = Path(__file__).parent / "static"
 if _static_dir.is_dir():
     app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
+
+
+@app.middleware("http")
+async def api_usage_middleware(request: Request, call_next):
+    """Count HTTP hits for the ops portal (excludes /static and /api/command)."""
+    response = await call_next(request)
+    API_USAGE.record(request.method, request.url.path)
+    return response
 
 
 @app.get("/campaign-finance", response_class=HTMLResponse)
@@ -175,6 +187,61 @@ async def api_council_voting_votes(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
+@app.get("/api/council-voting/agenda-items")
+async def api_council_voting_agenda_items(
+    refresh: bool = False,
+    q: Optional[str] = None,
+    from_date: Optional[str] = None,
+    to_date: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> dict[str, Any]:
+    """Paginated roll calls grouped by agenda item (vote-centric view)."""
+    try:
+        return get_agenda_items_payload(
+            PROJECT_ROOT,
+            force_refresh=refresh,
+            q=q,
+            from_date=from_date,
+            to_date=to_date,
+            limit=max(1, min(limit, 100)),
+            offset=max(0, offset),
+        )
+    except requests.HTTPError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Upstream Socrata error: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/api/council-voting/agenda-item")
+async def api_council_voting_agenda_item(
+    roll_call_id: str = Query(..., description="Roll call id from agenda-items list"),
+    refresh: bool = False,
+) -> dict[str, Any]:
+    """One agenda item with full description and councilmember roll call."""
+    if not roll_call_id.strip():
+        raise HTTPException(status_code=400, detail="roll_call_id is required")
+    try:
+        payload = get_agenda_item_payload(
+            PROJECT_ROOT,
+            roll_call_id.strip(),
+            force_refresh=refresh,
+        )
+    except requests.HTTPError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Upstream Socrata error: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    if not payload.get("found"):
+        raise HTTPException(status_code=404, detail="Roll call not found")
+    return payload
+
+
 @app.get("/api/council-accountability/directory")
 async def api_council_accountability_directory(
     refresh_finance: bool = False,
@@ -257,8 +324,18 @@ async def api_police_active_calls(limit: int = 500) -> dict[str, Any]:
 
 
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request) -> HTMLResponse:
-    """Single-page supervisor UI (client polls JSON APIs)."""
+async def home(request: Request) -> HTMLResponse:
+    """App portal — links to council meetings, police, council accountability."""
+    return templates.TemplateResponse(
+        request=request,
+        name="home.html",
+        context={},
+    )
+
+
+@app.get("/council-meetings", response_class=HTMLResponse)
+async def council_meetings(request: Request) -> HTMLResponse:
+    """Legistar scrape supervisor UI (client polls JSON APIs)."""
     return templates.TemplateResponse(
         request=request,
         name="index.html",
@@ -383,6 +460,29 @@ async def api_summarize_one(
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return {"ok": True, "record": record}
+
+
+@app.get("/command", response_class=HTMLResponse)
+async def command_portal(request: Request) -> HTMLResponse:
+    """Unlisted ops portal (no auth in v1). Not linked from public UI."""
+    return templates.TemplateResponse(
+        request=request,
+        name="command.html",
+        context={},
+    )
+
+
+@app.get("/api/command")
+async def api_command() -> dict[str, Any]:
+    """JSON ops snapshot: caches, supervisor, API usage, redacted env."""
+    return build_command_payload(
+        PROJECT_ROOT,
+        SUP,
+        app=app,
+        api_usage=API_USAGE,
+        scraper_enabled=SCRAPER_ENABLED,
+        summarize_job_status=SUMMARY_JOB.status(),
+    )
 
 
 @app.get("/api/overview")

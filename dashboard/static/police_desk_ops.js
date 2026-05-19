@@ -367,7 +367,8 @@
       </div>
       <span style="width:1px;height:16px;background:var(--br-2)"></span>
       <button type="button" class="btn ghost sm" id="btn-refresh" title="Refresh">${Ic.refresh()}</button>
-      <a class="btn ghost sm" href="/">Legistar</a>
+      <a class="btn ghost sm" href="/">Apps</a>
+      <a class="btn ghost sm" href="/council-meetings">Meetings</a>
       <a class="btn ghost sm" href="/campaign-finance">Council</a>
       <button type="button" class="btn ghost sm" id="btn-fit">${Ic.scope()} Fit</button>
     `;

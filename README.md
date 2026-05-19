@@ -57,7 +57,7 @@ python dallas_legistar_scraper.py
 python -m dashboard
 ```
 
-Open **http://127.0.0.1:8765** (Legistar), **http://127.0.0.1:8765/police** (active calls), or **http://127.0.0.1:8765/campaign-finance** (campaign finance).
+Open **http://127.0.0.1:8765** (app portal), **http://127.0.0.1:8765/council-meetings** (Legistar), **http://127.0.0.1:8765/police** (active calls), or **http://127.0.0.1:8765/campaign-finance** (council accountability).
 
 | Control | Action |
 |---------|--------|
@@ -121,13 +121,16 @@ Unified dashboard for **campaign finance** and **city council voting**:
 
 | Method | Path | Notes |
 |--------|------|--------|
-| GET | `/` | Legistar dashboard UI |
+| GET | `/` | App portal (home) |
+| GET | `/council-meetings` | Legistar scrape dashboard UI |
 | GET | `/police` | Police active-calls map |
 | GET | `/api/police/active-calls` | Socrata proxy + geocoded calls |
 | GET | `/campaign-finance` | Council accountability UI |
 | GET | `/api/campaign-finance/summary` | Finance KPIs + charts; `refresh`, filter query params |
 | GET | `/api/council-voting/summary` | Voting KPIs + member index; `refresh`, `from_date`, `to_date` |
 | GET | `/api/council-voting/votes` | Paginated vote rows; `member`, `vote`, `q`, date range |
+| GET | `/api/council-voting/agenda-items` | Paginated roll calls by agenda item; `q`, date range |
+| GET | `/api/council-voting/agenda-item` | One roll call + member votes; `roll_call_id` |
 | GET | `/api/council-accountability/directory` | Merged member list (`refresh_finance`, `refresh_voting`) |
 | GET | `/api/council-accountability/member` | Combined profile for one `member` id |
 | GET | `/api/campaign-finance/transactions` | Paginated rows; same filters + `limit` / `offset` |
@@ -140,6 +143,10 @@ Unified dashboard for **campaign finance** and **city council voting**:
 | GET | `/api/summarize/status` | `{ running, done, total, current }` |
 | POST | `/api/summarize/one` | `saved_to` query param |
 | GET | `/api/overview` | Bundle for polling |
+| GET | `/command` | Ops portal UI (unlisted; no auth in v1) |
+| GET | `/api/command` | Ops JSON: caches, API usage, supervisor, redacted env |
+
+**Admin:** bookmark **`/command`** for deployment health, API usage, and **Police/Council API catalogs** (browser endpoints + upstream Socrata/Nominatim call counts). Not linked from the public app grid.
 
 ---
 
@@ -170,14 +177,14 @@ Unified dashboard for **campaign finance** and **city council voting**:
 
 ## Hostinger (publish online)
 
-Your connected account has **Business Web Hosting**. The full app needs a **Hostinger VPS** + Docker (FastAPI cannot run on shared hosting).
+Your connected account has **Business Web Hosting** plus a **VPS** running the full app in Docker.
 
-| Step | Action |
-|------|--------|
-| 1 | Site created: `mediumturquoise-giraffe-322901.hostingersite.com` (landing page) |
-| 2 | Add a [Hostinger VPS](https://www.hostinger.com/vps-hosting) in hPanel |
-| 3 | Set GitHub `HOSTINGER_API_KEY` + `HOSTINGER_VM_ID`, push to `main` (workflow deploys Docker) |
-| 4 | Or on VPS: `docker compose up -d --build` |
+| URL | Role |
+|-----|------|
+| **[http://ganciatx.com/](http://ganciatx.com/)** | App portal; council meetings, police, council accountability |
+| [mediumturquoise-giraffe-322901.hostingersite.com](https://mediumturquoise-giraffe-322901.hostingersite.com) | Landing page (links to VPS) |
+
+**Publish updates:** push to `main` on [github.com/ganciatx/dalciv](https://github.com/ganciatx/dalciv), then redeploy via GitHub Actions (if `HOSTINGER_API_KEY` + `HOSTINGER_VM_ID` are set) or hPanel → VPS → Docker Manager → project `dalciv` → Update.
 
 | Guide | Audience |
 |-------|----------|

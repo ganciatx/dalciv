@@ -4,6 +4,11 @@
 
 ### Added
 
+- **App portal** (`GET /`): DALCIV logo + enterprise-style app grid; Legistar scraper moved to **`/council-meetings`**.
+- **Command ops portal** (`GET /command`, `GET /api/command`): unlisted admin view — API usage, Socrata cache health, supervisor state, redacted env.
+- **Command — Police & Council APIs**: per-page dashboard endpoint catalog with hit counts; upstream Socrata/Nominatim call tracking.
+- **Council Voting — by agenda item**: toggle on Voting tab; `/api/council-voting/agenda-items` + `agenda-item` with roll-call tallies and member breakdown.
+- **Fix agenda-item grouping**: roll calls group by `agenda_id` + item + date (not per-member `vote_id`).
 - **docs/DEPLOYING_UPDATES.md**: Non-technical guide for testing locally, publishing via GitHub or SSH, versioning, landing vs VPS app, and post-deploy checklist.
 - **Manifest meeting metadata**: `meeting_title`, `meeting_detail_url`, `source`, `legistar_id`; unique PDF filenames (Legistar ID/GUID suffix).
 - **`dashboard/content.py`**: PDF text extraction (`pypdf`) + extractive `build_summary()`.

@@ -160,6 +160,17 @@ def fetch_voting_page(*, limit: int, offset: int) -> list[dict[str, Any]]:
     }
     url = f"{SOCRATA_RESOURCE_URL}?{urlencode(params)}"
     resp = requests.get(url, headers=_socrata_headers(), timeout=180)
+    try:
+        from .command_center import PAGE_COUNCIL, record_upstream_call
+
+        record_upstream_call(
+            page=PAGE_COUNCIL,
+            service="Dallas Open Data (Socrata)",
+            endpoint=f"resource/{SOCRATA_DATASET_ID}",
+            url=SOCRATA_RESOURCE_URL,
+        )
+    except Exception:
+        pass
     resp.raise_for_status()
     data = resp.json()
     return data if isinstance(data, list) else []
@@ -184,6 +195,17 @@ def fetch_voting_records() -> list[dict[str, Any]]:
 def fetch_dataset_meta() -> dict[str, Any]:
     try:
         resp = requests.get(SOCRATA_VIEW_META_URL, headers=_socrata_headers(), timeout=20)
+        try:
+            from .command_center import PAGE_COUNCIL, record_upstream_call
+
+            record_upstream_call(
+                page=PAGE_COUNCIL,
+                service="Dallas Open Data (Socrata)",
+                endpoint=f"views/{SOCRATA_DATASET_ID} metadata",
+                url=SOCRATA_VIEW_META_URL,
+            )
+        except Exception:
+            pass
         resp.raise_for_status()
         body = resp.json()
         updated = body.get("rowsUpdatedAt")
@@ -571,4 +593,245 @@ def get_votes_payload(
         },
         "vote_filter_options": VOTE_FILTER_OPTIONS,
         "votes": page,
+    }
+
+
+# In-memory roll-call index keyed by (project_root, cache fetched_at, version).
+_ROLL_CALL_INDEX_VERSION = 2  # bump when roll_call_key logic changes
+_ROLL_CALL_INDEX: dict[tuple[str, ...], list[dict[str, Any]]] = {}
+
+
+def roll_call_key(row: dict[str, Any]) -> str:
+    """
+    Stable id for one agenda item / roll call (all councilmember rows share this).
+
+    Dallas Open Data ``vote_id`` is unique **per member vote**, not per roll call —
+    grouping on ``vote_id`` duplicates the same agenda item once per councilmember.
+    """
+    aid = str(row.get("agenda_id") or "").strip()
+    num = str(row.get("agenda_item_number") or "").strip()
+    date = str(row.get("date") or "")[:10]
+    if aid or num:
+        return f"ag:{aid}|{num}|{date}"
+    desc = normalize_whitespace(str(row.get("description") or ""))[:240]
+    return f"desc:{date}|{desc}"
+
+
+def _dedupe_member_votes(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """One row per councilmember within a roll call (defensive)."""
+    by_member: dict[str, dict[str, Any]] = {}
+    for r in rows:
+        mid = str(r.get("member_id") or r.get("member_name") or "").strip().lower()
+        if not mid:
+            mid = f"_{len(by_member)}"
+        if mid not in by_member:
+            by_member[mid] = r
+    return list(by_member.values())
+
+
+def tally_vote_categories(rows: list[dict[str, Any]]) -> dict[str, int]:
+    tallies = {"yes": 0, "no": 0, "abstain": 0, "absent": 0, "other": 0}
+    for r in rows:
+        cat = r.get("vote_category") or "other"
+        if cat == "cast_yes":
+            tallies["yes"] += 1
+        elif cat == "cast_no":
+            tallies["no"] += 1
+        elif cat == "abstain":
+            tallies["abstain"] += 1
+        elif cat == "absent":
+            tallies["absent"] += 1
+        else:
+            tallies["other"] += 1
+    tallies["total"] = len(rows)
+    return tallies
+
+
+def build_roll_call_index(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """One summary dict per agenda item / roll call."""
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        key = roll_call_key(row)
+        groups.setdefault(key, []).append(row)
+
+    index: list[dict[str, Any]] = []
+    for rc_id, raw_rows in groups.items():
+        member_rows = _dedupe_member_votes(raw_rows)
+        member_rows.sort(key=lambda r: (r.get("district") or "", r.get("member_name") or ""))
+        first = member_rows[0]
+        tallies = tally_vote_categories(member_rows)
+        desc = max(
+            (str(r.get("description") or "").strip() for r in member_rows),
+            key=len,
+            default="",
+        )
+        index.append(
+            {
+                "roll_call_id": rc_id,
+                "vote_id": str(first.get("vote_id") or "").strip() or None,
+                "agenda_id": str(first.get("agenda_id") or "").strip(),
+                "agenda_item_number": str(first.get("agenda_item_number") or "").strip(),
+                "date": str(first.get("date") or "").strip(),
+                "item_type": str(first.get("item_type") or "").strip(),
+                "description": desc,
+                "description_snippet": (desc[:160] + "…") if len(desc) > 160 else desc,
+                "final_action_taken": str(first.get("final_action_taken") or "").strip(),
+                "tallies": tallies,
+                "outcome_label": _outcome_label(first, tallies),
+            }
+        )
+
+    index.sort(key=lambda x: x.get("date") or "", reverse=True)
+    return index
+
+
+def _outcome_label(first: dict[str, Any], tallies: dict[str, int]) -> str:
+    fa = str(first.get("final_action_taken") or "").strip()
+    if fa:
+        return fa
+    yes_n, no_n = tallies.get("yes", 0), tallies.get("no", 0)
+    if yes_n > no_n:
+        return "Passed (vote tally)"
+    if no_n > yes_n:
+        return "Failed (vote tally)"
+    if yes_n or no_n:
+        return "Tied or mixed"
+    return "—"
+
+
+def _roll_call_index_for_cache(
+    project_root: Path, cached: dict[str, Any]
+) -> list[dict[str, Any]]:
+    cache_key = (
+        str(project_root.resolve()),
+        str(cached.get("fetched_at") or ""),
+        str(_ROLL_CALL_INDEX_VERSION),
+    )
+    if cache_key in _ROLL_CALL_INDEX:
+        return _ROLL_CALL_INDEX[cache_key]
+    built = build_roll_call_index(cached.get("rows") or [])
+    if len(_ROLL_CALL_INDEX) > 4:
+        _ROLL_CALL_INDEX.pop(next(iter(_ROLL_CALL_INDEX)))
+    _ROLL_CALL_INDEX[cache_key] = built
+    return built
+
+
+def filter_roll_call_index(
+    index: list[dict[str, Any]],
+    *,
+    q: Optional[str] = None,
+    from_date: Optional[str] = None,
+    to_date: Optional[str] = None,
+) -> list[dict[str, Any]]:
+    out = index
+    if from_date or to_date:
+        out = [
+            item
+            for item in out
+            if _in_date_range(str(item.get("date") or ""), from_date, to_date)
+        ]
+    if q:
+        needle = q.strip().lower()
+        if needle:
+
+            def matches(item: dict[str, Any]) -> bool:
+                hay = " ".join(
+                    str(item.get(k) or "")
+                    for k in (
+                        "description",
+                        "agenda_id",
+                        "agenda_item_number",
+                        "final_action_taken",
+                        "outcome_label",
+                        "vote_id",
+                    )
+                ).lower()
+                return needle in hay
+
+            out = [item for item in out if matches(item)]
+    return out
+
+
+def get_agenda_items_payload(
+    project_root: Path,
+    *,
+    force_refresh: bool = False,
+    q: Optional[str] = None,
+    from_date: Optional[str] = None,
+    to_date: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> dict[str, Any]:
+    """Paginated agenda-item / roll-call index for the Voting tab."""
+    cached = get_cached_rows(project_root, force_refresh=force_refresh)
+    index = _roll_call_index_for_cache(project_root, cached)
+    filtered = filter_roll_call_index(
+        index, q=q, from_date=from_date, to_date=to_date
+    )
+    cap = max(1, min(limit, 100))
+    start = max(0, offset)
+    page = filtered[start : start + cap]
+
+    return {
+        "meta": {
+            "fetched_at": cached.get("fetched_at"),
+            "total": len(filtered),
+            "limit": cap,
+            "offset": start,
+            "roll_call_count": len(index),
+        },
+        "items": page,
+    }
+
+
+def get_agenda_item_payload(
+    project_root: Path,
+    roll_call_id: str,
+    *,
+    force_refresh: bool = False,
+) -> dict[str, Any]:
+    """Single roll call with per-member votes."""
+    cached = get_cached_rows(project_root, force_refresh=force_refresh)
+    rows = cached.get("rows") or []
+    rc_id = roll_call_id.strip()
+    member_rows = _dedupe_member_votes(
+        [r for r in rows if roll_call_key(r) == rc_id]
+    )
+    if not member_rows:
+        return {"found": False, "roll_call_id": rc_id}
+
+    member_rows.sort(key=lambda r: (r.get("district") or "", r.get("member_name") or ""))
+    first = member_rows[0]
+    tallies = tally_vote_categories(member_rows)
+    desc = max(
+        (str(r.get("description") or "").strip() for r in member_rows),
+        key=len,
+        default="",
+    )
+
+    return {
+        "found": True,
+        "roll_call_id": rc_id,
+        "vote_id": None,  # per-member in source data; use roll_call_id for grouping
+        "agenda_id": str(first.get("agenda_id") or "").strip(),
+        "agenda_item_number": str(first.get("agenda_item_number") or "").strip(),
+        "date": str(first.get("date") or "").strip(),
+        "item_type": str(first.get("item_type") or "").strip(),
+        "description": desc,
+        "final_action_taken": str(first.get("final_action_taken") or "").strip(),
+        "tallies": tallies,
+        "outcome_label": _outcome_label(first, tallies),
+        "members": [
+            {
+                "member_id": r.get("member_id"),
+                "member_name": r.get("member_name"),
+                "member_canonical": r.get("member_canonical"),
+                "district": r.get("district"),
+                "title": r.get("title"),
+                "vote": r.get("vote"),
+                "vote_category": r.get("vote_category"),
+            }
+            for r in member_rows
+        ],
+        "meta": {"fetched_at": cached.get("fetched_at")},
     }

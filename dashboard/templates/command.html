@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Command — ops</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f172a;
+      --panel: #111827;
+      --border: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #38bdf8;
+      --good: #4ade80;
+      --warn: #fbbf24;
+      --bad: #f87171;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 3rem;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h1 { margin: 0; font-size: 1.15rem; }
+
+    .muted { color: var(--muted); font-size: 0.85rem; }
+
+    button {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 0.35rem 0.75rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    button:hover { border-color: var(--accent); }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.65rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 0.85rem;
+    }
+
+    .card .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    .card .value {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-top: 0.2rem;
+      word-break: break-word;
+    }
+
+    .card .value.ok { color: var(--good); }
+    .card .value.warn { color: var(--warn); }
+    .card .value.bad { color: var(--bad); }
+
+    section {
+      margin-bottom: 1.5rem;
+    }
+
+    section h2 {
+      margin: 0 0 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.45rem 0.65rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    code, .mono {
+      font-family: ui-monospace, monospace;
+      font-size: 0.78rem;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .pill.ok { background: rgba(74, 222, 128, 0.15); color: var(--good); }
+    .pill.warn { background: rgba(251, 191, 36, 0.15); color: var(--warn); }
+    .pill.bad { background: rgba(248, 113, 113, 0.15); color: var(--bad); }
+
+    .page-block {
+      margin-bottom: 1rem;
+    }
+
+    .page-block h3 {
+      margin: 0 0 0.35rem;
+      font-size: 0.92rem;
+    }
+
+    .page-block .ui-path {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .subhead {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin: 0.65rem 0 0.35rem;
+    }
+
+    #err {
+      color: var(--bad);
+      margin-bottom: 0.75rem;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header>
+      <h1>Command</h1>
+      <span class="muted" id="updated">—</span>
+      <span style="flex:1"></span>
+      <button type="button" id="btn-refresh">Refresh</button>
+    </header>
+    <p id="err" hidden></p>
+
+    <div class="cards" id="overview-cards"></div>
+
+    <section id="page-apis-section">
+      <h2>Police &amp; Council APIs</h2>
+      <p class="muted" style="margin:0 0 0.75rem;font-size:0.82rem">
+        Dashboard endpoints your browser calls, and outbound Socrata / Nominatim requests triggered on the server.
+      </p>
+      <div id="page-apis-host"></div>
+    </section>
+
+    <section>
+      <h2>All API usage <span class="muted">(since process start)</span></h2>
+      <div class="panel">
+        <table id="usage-table">
+          <thead>
+            <tr>
+              <th>Route</th>
+              <th>Hits</th>
+              <th>Last</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Socrata &amp; caches</h2>
+      <div class="panel">
+        <table id="cache-table">
+          <thead>
+            <tr>
+              <th>Dataset</th>
+              <th>Cache</th>
+              <th>Rows / entries</th>
+              <th>Fetched</th>
+              <th>Stale</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Paths &amp; disk</h2>
+      <div class="panel">
+        <table id="paths-table">
+          <thead>
+            <tr><th>Key</th><th>Path / size</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Environment <span class="muted">(safe fields only)</span></h2>
+      <div class="panel">
+        <table id="env-table">
+          <thead>
+            <tr><th>Key</th><th>Value</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const POLL_MS = 12000;
+
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+      );
+    }
+
+    function fmtBytes(n) {
+      if (n == null || n === 0) return "0 B";
+      const u = ["B", "KB", "MB", "GB"];
+      let i = 0;
+      let v = Number(n);
+      while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+      return `${v.toFixed(i ? 1 : 0)} ${u[i]}`;
+    }
+
+    function stalePill(stale, exists) {
+      if (!exists) return '<span class="pill bad">missing</span>';
+      if (stale === true) return '<span class="pill warn">stale</span>';
+      if (stale === false) return '<span class="pill ok">fresh</span>';
+      return '<span class="pill">—</span>';
+    }
+
+    function renderOverview(d) {
+      const sup = d.supervisor || {};
+      const env = d.environment || {};
+      const usage = d.api_usage || {};
+      const fin = d.socrata?.campaign_finance?.cache || {};
+      const vote = d.socrata?.council_voting?.cache || {};
+      const cards = [
+        ["Scraper", sup.running ? "Running" : "Idle", sup.running ? "ok" : ""],
+        ["Scraper enabled", env.scraper_enabled ? "Yes" : "No", env.scraper_enabled ? "ok" : "warn"],
+        ["API requests", String(usage.total_requests ?? 0), ""],
+        ["Finance cache", fin.exists ? (fin.row_count ?? "—") + " rows" : "None", fin.stale ? "warn" : "ok"],
+        ["Voting cache", vote.exists ? (vote.row_count ?? "—") + " rows" : "None", vote.stale ? "warn" : "ok"],
+        ["Socrata token", env.socrata_token_configured ? "Set" : "Not set", env.socrata_token_configured ? "ok" : "warn"],
+      ];
+      document.getElementById("overview-cards").innerHTML = cards.map(([label, value, cls]) =>
+        `<div class="card"><div class="label">${esc(label)}</div><div class="value ${cls}">${esc(value)}</div></div>`
+      ).join("");
+    }
+
+    function renderPageApis(d) {
+      const pages = d.page_apis || [];
+      const host = document.getElementById("page-apis-host");
+      if (!pages.length) {
+        host.innerHTML = '<p class="muted">No page API catalog</p>';
+        return;
+      }
+      host.innerHTML = pages.map((page) => {
+        const dashRows = (page.dashboard_endpoints || []).map((e) =>
+          `<tr>
+            <td class="mono">${esc(e.method)} ${esc(e.path)}</td>
+            <td>${esc(e.description)}</td>
+            <td>${e.hits ?? 0}</td>
+            <td class="mono">${esc(e.last_at || "—")}</td>
+          </tr>`
+        ).join("");
+        const upRows = (page.upstream_endpoints || []).map((u) =>
+          `<tr>
+            <td>${esc(u.service)}<br><span class="mono muted">${esc(u.endpoint)}</span></td>
+            <td class="mono" style="font-size:0.72rem;word-break:break-all">${esc(u.url || "—")}</td>
+            <td>${u.count ?? 0}</td>
+            <td class="mono">${esc(u.last_at || "—")}</td>
+            <td class="muted">${esc(u.note || "")}</td>
+          </tr>`
+        ).join("");
+        return `<div class="page-block panel" style="padding:0.75rem">
+          <h3>${esc(page.title)}</h3>
+          <div class="ui-path">UI: <span class="mono">${esc(page.ui_path)}</span></div>
+          <div class="subhead">Dashboard (browser → this server)</div>
+          <table>
+            <thead><tr><th>Endpoint</th><th>Purpose</th><th>Hits</th><th>Last</th></tr></thead>
+            <tbody>${dashRows || '<tr><td colspan="4" class="muted">—</td></tr>'}</tbody>
+          </table>
+          <div class="subhead">Upstream (server → Dallas Open Data / Nominatim)</div>
+          <table>
+            <thead><tr><th>Service</th><th>URL</th><th>Calls</th><th>Last</th><th>Notes</th></tr></thead>
+            <tbody>${upRows || '<tr><td colspan="5" class="muted">—</td></tr>'}</tbody>
+          </table>
+        </div>`;
+      }).join("");
+    }
+
+    function renderUsage(d) {
+      const rows = d.api_usage?.routes || [];
+      const tbody = document.querySelector("#usage-table tbody");
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="muted">No tracked requests yet</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map((r) =>
+        `<tr><td class="mono">${esc(r.route)}</td><td>${r.count}</td><td class="mono">${esc(r.last_at || "—")}</td></tr>`
+      ).join("");
+    }
+
+    function renderCaches(d) {
+      const soc = d.socrata || {};
+      const rows = [
+        ["Campaign finance", soc.campaign_finance],
+        ["Council voting", soc.council_voting],
+        ["Police (live)", soc.police_active_calls],
+        ["Geocode", { cache: soc.police_active_calls?.geocode_cache, dataset_id: "geocode" }],
+      ];
+      document.querySelector("#cache-table tbody").innerHTML = rows.map(([name, block]) => {
+        const c = block?.cache || block;
+        const isLive = c?.mode === "live_fetch";
+        const isGeo = name === "Geocode";
+        return `<tr>
+          <td><strong>${esc(name)}</strong><br><span class="muted mono">${esc(block?.dataset_id || "")}</span></td>
+          <td class="mono">${isLive ? esc(c.note || "live") : esc(c?.path || "—")}<br>${isLive ? "" : fmtBytes(c?.size_bytes)}</td>
+          <td>${isGeo ? (c?.entry_count ?? "—") : isLive ? "—" : (c?.row_count ?? "—")}</td>
+          <td class="mono">${isGeo || isLive ? "—" : esc(c?.fetched_at || "—")}</td>
+          <td>${isLive || isGeo ? "—" : stalePill(c?.stale, c?.exists)}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function renderPaths(d) {
+      const paths = d.supervisor?.paths || {};
+      const disk = d.disk || {};
+      const items = [
+        ["project_root", paths.project_root],
+        ["data_dir", paths.data_dir],
+        ["downloads", paths.downloads],
+        ["audit_log", paths.audit_log],
+        ["active_run", paths.active_run],
+        ["summaries_store", paths.summaries_store],
+        ["scraper_dashboard_data (size)", fmtBytes(disk.scraper_dashboard_data_bytes)],
+        ["dallas_legistar_downloads (size)", fmtBytes(disk.dallas_legistar_downloads_bytes)],
+      ];
+      document.querySelector("#paths-table tbody").innerHTML = items.map(([k, v]) =>
+        `<tr><td>${esc(k)}</td><td class="mono">${esc(v)}</td></tr>`
+      ).join("");
+    }
+
+    function renderEnv(d) {
+      const env = d.environment || {};
+      const rt = d.runtime || {};
+      const items = [
+        ["hostname", rt.hostname],
+        ["python", rt.python],
+        ["platform", rt.platform],
+        ["dashboard_host", env.dashboard_host],
+        ["dashboard_port", env.dashboard_port],
+        ["scraper_enabled", env.scraper_enabled],
+        ["socrata_token_configured", env.socrata_token_configured],
+        ["git_commit", env.git_commit || "—"],
+        ["deploy_label", env.deploy_label || "—"],
+      ];
+      document.querySelector("#env-table tbody").innerHTML = items.map(([k, v]) =>
+        `<tr><td class="mono">${esc(k)}</td><td>${esc(v)}</td></tr>`
+      ).join("");
+    }
+
+    async function load() {
+      const err = document.getElementById("err");
+      err.hidden = true;
+      try {
+        const res = await fetch("/api/command");
+        if (!res.ok) throw new Error(await res.text());
+        const d = await res.json();
+        document.getElementById("updated").textContent =
+          `Updated ${new Date().toLocaleTimeString()} · ${d.generated_at || ""}`;
+        renderOverview(d);
+        renderPageApis(d);
+        renderUsage(d);
+        renderCaches(d);
+        renderPaths(d);
+        renderEnv(d);
+      } catch (e) {
+        err.textContent = String(e);
+        err.hidden = false;
+      }
+    }
+
+    document.getElementById("btn-refresh").addEventListener("click", load);
+    load();
+    setInterval(load, POLL_MS);
+  </script>
+</body>
+
+</html>

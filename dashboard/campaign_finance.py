@@ -82,6 +82,17 @@ def fetch_campaign_finance(limit: int = 10000) -> list[dict[str, Any]]:
     }
     url = f"{SOCRATA_RESOURCE_URL}?{urlencode(params)}"
     resp = requests.get(url, headers=_socrata_headers(), timeout=120)
+    try:
+        from .command_center import PAGE_COUNCIL, record_upstream_call
+
+        record_upstream_call(
+            page=PAGE_COUNCIL,
+            service="Dallas Open Data (Socrata)",
+            endpoint=f"resource/{SOCRATA_DATASET_ID}",
+            url=SOCRATA_RESOURCE_URL,
+        )
+    except Exception:
+        pass
     resp.raise_for_status()
     data = resp.json()
     return data if isinstance(data, list) else []
@@ -91,6 +102,17 @@ def fetch_dataset_meta() -> dict[str, Any]:
     """Optional upstream ``rowsUpdatedAt`` for UI staleness hints."""
     try:
         resp = requests.get(SOCRATA_VIEW_META_URL, headers=_socrata_headers(), timeout=20)
+        try:
+            from .command_center import PAGE_COUNCIL, record_upstream_call
+
+            record_upstream_call(
+                page=PAGE_COUNCIL,
+                service="Dallas Open Data (Socrata)",
+                endpoint=f"views/{SOCRATA_DATASET_ID} metadata",
+                url=SOCRATA_VIEW_META_URL,
+            )
+        except Exception:
+            pass
         resp.raise_for_status()
         body = resp.json()
         updated = body.get("rowsUpdatedAt")
