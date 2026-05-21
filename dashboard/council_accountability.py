@@ -181,6 +181,7 @@ def get_directory_payload(
             "voting_fetched_at": vote.get("fetched_at"),
             "finance_row_count": len(finance_rows),
             "voting_row_count": len(voting_rows),
+            "date_range_defaults": council_voting.default_date_range(voting_rows),
         },
         "members": directory,
     }

@@ -533,6 +533,7 @@ def get_summary_payload(
     force_refresh: bool = False,
     from_date: Optional[str] = None,
     to_date: Optional[str] = None,
+    lightweight: bool = False,
 ) -> dict[str, Any]:
     cached = get_cached_rows(project_root, force_refresh=force_refresh)
     all_rows: list[dict[str, Any]] = cached.get("rows") or []
@@ -540,12 +541,13 @@ def get_summary_payload(
     f = from_date or dr.get("from")
     t = to_date or dr.get("to")
 
-    return {
+    payload: dict[str, Any] = {
         "meta": {
             "fetched_at": cached.get("fetched_at"),
             "row_count": len(all_rows),
             "cache_ttl_sec": CACHE_TTL_SEC,
             "from_cache": not force_refresh,
+            "lightweight": lightweight,
             **(cached.get("meta") or {}),
         },
         "date_range_defaults": dr,
@@ -554,8 +556,10 @@ def get_summary_payload(
         "global_kpis": global_voting_kpis(
             filter_vote_rows(all_rows, from_date=f, to_date=t)
         ),
-        "members": member_index(all_rows, from_date=f, to_date=t),
     }
+    if not lightweight:
+        payload["members"] = member_index(all_rows, from_date=f, to_date=t)
+    return payload
 
 
 def get_votes_payload(

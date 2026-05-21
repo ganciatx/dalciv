@@ -6,6 +6,10 @@
   "use strict";
 
   const POLL_MS = 90000;
+  const SEARCH_DEBOUNCE_MS = 250;
+  /** Per poll: geocode uncached addresses (US Census, parallel). */
+  const POLL_GEOCODE_BUDGET = 12;
+  const MANUAL_REFRESH_GEOCODE_BUDGET = 30;
   const DALLAS_CENTER = [32.81, -96.78];
   const PIN_KEY = "dpd_desk_pins";
   const NOTES_KEY = "dpd_desk_notes";
@@ -40,6 +44,8 @@
   let clusterLayerGroup = null;
   let pollTimer = null;
   let clockTimer = null;
+  let searchDebounceTimer = null;
+  let mapFitDone = false;
 
   /* ── helpers ───────────────────────────────────────────── */
   function loadJson(key, fallback) {
@@ -85,9 +91,13 @@
 
   function parseDispatch(date, time) {
     if (!date && !time) return new Date().toISOString();
-    const d = (date || "").trim();
-    const t = (time || "00:00:00").trim();
-    const iso = d.includes("T") ? d : `${d}T${t}`;
+    const d = String(date || "").trim();
+    const t = String(time || "00:00:00").trim();
+    // Socrata date is often "YYYY-MM-DDTHH:mm:ss.sss" with time stuck at midnight;
+    // the real dispatch clock time lives in the separate `time` field (HH:mm:ss).
+    const datePart = d.includes("T") ? d.slice(0, 10) : d.slice(0, 10);
+    const timePart = t.includes("T") ? t.split("T").pop() : t;
+    const iso = `${datePart}T${timePart}`;
     const dt = new Date(iso);
     return Number.isNaN(dt.getTime()) ? new Date().toISOString() : dt.toISOString();
   }
@@ -147,10 +157,11 @@
       status: c.status || "atscene",
       units,
       unitCount,
-      dispatchedAt: parseDispatch(c.date, c.time),
+      dispatchedAt: c.dispatched_at || parseDispatch(c.date, c.time),
       lat: c.lat,
       lng: c.lon,
       mapped: c.lat != null && c.lon != null,
+      geocodeStatus: c.geocode_status || (c.lat != null ? "ok" : "pending"),
       flag: isHot ? "hot" : null,
       pinned: state.pins.includes(c.id),
       raw: c,
@@ -265,6 +276,14 @@
     return `<span class="chip ${air ? "solid-air" : "ghost"}">${esc(u.call)}</span>`;
   }
 
+  function mapChip(inc) {
+    if (inc.mapped) return "";
+    if (inc.geocodeStatus === "pending") {
+      return ' <span class="chip ghost" title="Pin will appear shortly">locating…</span>';
+    }
+    return ' <span class="chip ghost" title="Could not place address on map">unmapped</span>';
+  }
+
   function callTypeTip(inc) {
     const tip = escAttr(inc.typeDesc || "No description for this call type.");
     return `<span class="call-type-line">${esc(inc.type)}<button type="button" class="call-type-tip" aria-label="About call type" data-tip="${tip}">i</button></span>`;
@@ -323,23 +342,42 @@
       </div>`;
   }
 
-  function renderMarkers(list) {
-    Object.values(markers).forEach((m) => map.removeLayer(m));
-    markers = {};
-    if (clusterLayerGroup) clusterLayerGroup.clearLayers();
+  function makeMarkerIcon(inc, selected) {
+    return L.divIcon({
+      className: "",
+      html: markerHtml(inc, selected),
+      iconSize: [0, 0],
+      iconAnchor: [0, 0],
+    });
+  }
 
+  /** Incremental marker sync — add/update/remove by incident id (avoids full rebuild). */
+  function renderMarkers(list) {
     const mapped = list.filter((i) => i.mapped);
+    const nextIds = new Set(mapped.map((i) => i.id));
+
+    Object.keys(markers).forEach((id) => {
+      if (!nextIds.has(id)) {
+        map.removeLayer(markers[id]);
+        delete markers[id];
+      }
+    });
+
     mapped.forEach((inc) => {
-      const icon = L.divIcon({
-        className: "",
-        html: markerHtml(inc, inc.id === state.selectedId),
-        iconSize: [0, 0],
-        iconAnchor: [0, 0],
-      });
-      const marker = L.marker([inc.lat, inc.lng], { icon }).addTo(map);
+      const selected = inc.id === state.selectedId;
+      const latLng = [inc.lat, inc.lng];
+      const existing = markers[inc.id];
+      if (existing) {
+        existing.setLatLng(latLng);
+        existing.setIcon(makeMarkerIcon(inc, selected));
+        return;
+      }
+      const marker = L.marker(latLng, { icon: makeMarkerIcon(inc, selected) }).addTo(map);
       marker.on("click", () => selectIncident(inc.id));
       markers[inc.id] = marker;
     });
+
+    if (clusterLayerGroup) clusterLayerGroup.clearLayers();
 
     // Cluster hint: division with 2+ P1/P2 mapped calls (stroke only; one LayerGroup)
     if (state.showClusters && clusterLayerGroup) {
@@ -411,9 +449,12 @@
       <a class="btn ghost sm" href="/">Apps</a>
       <a class="btn ghost sm" href="https://cityofdallas.legistar.com/Calendar.aspx" target="_blank" rel="noopener noreferrer">Meetings</a>
       <a class="btn ghost sm" href="/council-accountability">Council</a>
+      <a class="btn ghost sm" href="/city-budget">Budget</a>
       <button type="button" class="btn ghost sm" id="btn-fit">${Ic.scope()} Fit</button>
     `;
-    document.getElementById("btn-refresh")?.addEventListener("click", () => loadCalls());
+    document.getElementById("btn-refresh")?.addEventListener("click", () =>
+      loadCalls({ force: true })
+    );
     document.getElementById("btn-fit")?.addEventListener("click", () => fitMap(visibleIncidents()));
   }
 
@@ -485,7 +526,7 @@
             </div>
             <span class="t-mono" style="white-space:nowrap">${fmt.timeHm(inc.dispatchedAt)} · ${fmt.elapsed(inc.dispatchedAt)}</span>
           </div>
-          <div class="t-body-sm" style="margin-top:4px">${esc(inc.addr)}${inc.mapped ? "" : ' <span class="chip ghost">no map</span>'}</div>
+          <div class="t-body-sm" style="margin-top:4px">${esc(inc.addr)}${mapChip(inc)}</div>
           <div class="row gap-2" style="margin-top:6px;flex-wrap:wrap;align-items:center">
             <span class="chip ghost" title="Units at scene">${inc.unitCount} unit${inc.unitCount === 1 ? "" : "s"}</span>
             <span class="t-mono">${esc(inc.div)}</span>
@@ -646,7 +687,9 @@
       </div>`;
     document.getElementById("insp-close").onclick = () => {
       state.selectedId = null;
-      renderAll();
+      renderMarkers(visibleIncidents());
+      el.hidden = true;
+      renderRail();
     };
     document.getElementById("insp-pin").onclick = () => togglePin(inc.id);
     document.getElementById("insp-note").onclick = () => addNote(inc.id);
@@ -689,13 +732,45 @@
     fillDivisionSelect();
   }
 
+  /** Lighter path for 90s polls — skip alerts/division rebuild when data shape unchanged. */
+  function renderPollLight() {
+    renderTopBar();
+    renderMapStats();
+    renderMarkers(visibleIncidents());
+    renderRail();
+    if (state.selectedId && state.calls.some((c) => c.id === state.selectedId)) {
+      renderInspector();
+    } else if (state.selectedId) {
+      state.selectedId = null;
+    }
+  }
+
+  /** Filters/search — markers + rail + stats only (debounced for search input). */
+  function renderFilterLight() {
+    renderMarkers(visibleIncidents());
+    renderRail();
+    renderMapStats();
+    if (state.selectedId) renderInspector();
+  }
+
+  function scheduleFilterRender() {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(renderFilterLight, SEARCH_DEBOUNCE_MS);
+  }
+
+  function renderSelectionLight() {
+    renderMarkers(visibleIncidents());
+    renderInspector();
+    renderRail();
+  }
+
   function selectIncident(id) {
     state.selectedId = id;
     const inc = state.calls.find((c) => c.id === id);
     if (inc?.mapped) {
       map.setView([inc.lat, inc.lng], 15);
     }
-    renderAll();
+    renderSelectionLight();
     const row = [...document.querySelectorAll(".inc-row")].find((el) => el.dataset.id === id);
     row?.scrollIntoView({ block: "nearest" });
   }
@@ -708,7 +783,7 @@
     state.calls = state.calls.map((c) =>
       c.id === id ? { ...c, pinned: state.pins.includes(id) } : c
     );
-    renderAll();
+    renderSelectionLight();
   }
 
   function addNote(incId) {
@@ -730,14 +805,27 @@
       btn.style.opacity = on ? "1" : "0.4";
       btn.style.background = on ? "var(--bg-3)" : "transparent";
     });
-    renderAll();
+    renderFilterLight();
   }
 
-  async function loadCalls() {
+  function activeCallsUrl(options) {
+    const params = new URLSearchParams();
+    if (options.force) {
+      params.set("refresh", "true");
+      params.set("geocode_budget", String(MANUAL_REFRESH_GEOCODE_BUDGET));
+    } else {
+      params.set("geocode_budget", String(POLL_GEOCODE_BUDGET));
+    }
+    const q = params.toString();
+    return q ? `/api/police/active-calls?${q}` : "/api/police/active-calls";
+  }
+
+  async function loadCalls(options) {
+    options = options || {};
     state.refreshing = true;
     renderTopBar();
     try {
-      const res = await fetch("/api/police/active-calls");
+      const res = await fetch(activeCallsUrl(options));
       if (!res.ok) throw new Error(await res.text());
       const body = await res.json();
       state.meta = body.meta || {};
@@ -747,7 +835,15 @@
         const first = sortedIncidents(state.calls).find(isHot) || state.calls[0];
         state.selectedId = first?.id || null;
       }
-      renderAll();
+      if (!mapFitDone) {
+        renderAll();
+        fitMap(visibleIncidents());
+        mapFitDone = true;
+      } else if (options.force) {
+        renderAll();
+      } else {
+        renderPollLight();
+      }
     } catch (err) {
       console.error(err);
       document.getElementById("map-stats").innerHTML = `<span class="t-mono" style="color:var(--p1)">${esc(String(err))}</span>`;
@@ -761,16 +857,16 @@
   function bindUi() {
     document.getElementById("search-input").addEventListener("input", (e) => {
       state.query = e.target.value;
-      renderAll();
+      scheduleFilterRender();
     });
     document.getElementById("filter-division").addEventListener("change", (e) => {
       state.division = e.target.value;
-      renderAll();
+      renderFilterLight();
     });
     document.getElementById("hide-routine").addEventListener("click", () => {
       state.hideRoutine = !state.hideRoutine;
       document.getElementById("hide-routine").classList.toggle("on", state.hideRoutine);
-      renderAll();
+      renderFilterLight();
     });
     document.getElementById("toggle-clusters")?.addEventListener("click", () => {
       state.showClusters = !state.showClusters;
@@ -815,7 +911,7 @@
     bindUi();
     applyMapChrome();
     loadCalls();
-    pollTimer = setInterval(loadCalls, POLL_MS);
+    pollTimer = setInterval(() => loadCalls(), POLL_MS);
     clockTimer = setInterval(() => {
       const c = document.getElementById("live-clock");
       if (c) c.textContent = fmt.clock();

@@ -26,6 +26,14 @@ from .council_voting import get_agenda_items_payload
 from .council_voting import get_summary_payload as get_voting_summary_payload
 from .council_voting import get_votes_payload
 from .command_center import ApiUsageTracker, build_command_payload
+from .city_budget import (
+    BULK_ROWS_LIMIT,
+    get_operating_payload,
+    get_revenue_payload,
+    get_rows_payload,
+    get_summary_payload as get_city_budget_summary_payload,
+    get_vendor_payload,
+)
 from .police_calls import get_active_calls_payload
 from .summaries import SummaryJob, join_manifest_summaries
 from .supervisor import (
@@ -150,6 +158,7 @@ async def api_council_voting_summary(
     refresh: bool = False,
     from_date: Optional[str] = None,
     to_date: Optional[str] = None,
+    lightweight: bool = False,
 ) -> dict[str, Any]:
     """Voting cache meta, member index, and global roll-call KPIs."""
     try:
@@ -158,6 +167,7 @@ async def api_council_voting_summary(
             force_refresh=refresh,
             from_date=from_date,
             to_date=to_date,
+            lightweight=lightweight,
         )
     except requests.HTTPError as exc:
         raise HTTPException(
@@ -310,6 +320,151 @@ async def api_council_accountability_member(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
+@app.get("/city-budget", response_class=HTMLResponse)
+async def city_budget_page(request: Request) -> HTMLResponse:
+    """City Budget: revenue + operating budget dashboards (Socrata)."""
+    return templates.TemplateResponse(
+        request=request,
+        name="city_budget.html",
+        context={},
+    )
+
+
+@app.get("/api/city-budget/summary")
+async def api_city_budget_summary(
+    refresh: bool = False,
+    refresh_revenue: bool = False,
+    refresh_operating: bool = False,
+    bfy: Optional[str] = None,
+    ftyp: Optional[str] = None,
+    fundtype: Optional[str] = None,
+) -> dict[str, Any]:
+    try:
+        return get_city_budget_summary_payload(
+            PROJECT_ROOT,
+            force_refresh=refresh,
+            refresh_revenue=refresh_revenue,
+            refresh_operating=refresh_operating,
+            bfy=bfy,
+            ftyp=ftyp,
+            fundtype=fundtype,
+        )
+    except requests.HTTPError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Upstream Socrata error: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/api/city-budget/revenue")
+async def api_city_budget_revenue(
+    refresh: bool = False,
+    bfy: Optional[str] = None,
+    ftyp: Optional[str] = None,
+    fundtype: Optional[str] = None,
+) -> dict[str, Any]:
+    try:
+        return get_revenue_payload(
+            PROJECT_ROOT,
+            force_refresh=refresh,
+            bfy=bfy,
+            ftyp=ftyp,
+            fundtype=fundtype,
+        )
+    except requests.HTTPError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Upstream Socrata error: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/api/city-budget/operating")
+async def api_city_budget_operating(
+    refresh: bool = False,
+    bfy: Optional[str] = None,
+    ftyp: Optional[str] = None,
+    fundtype: Optional[str] = None,
+) -> dict[str, Any]:
+    try:
+        return get_operating_payload(
+            PROJECT_ROOT,
+            force_refresh=refresh,
+            bfy=bfy,
+            ftyp=ftyp,
+            fundtype=fundtype,
+        )
+    except requests.HTTPError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Upstream Socrata error: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/api/city-budget/vendors")
+async def api_city_budget_vendors(
+    refresh: bool = False,
+    refresh_vendor: bool = False,
+    bfy: Optional[str] = None,
+) -> dict[str, Any]:
+    """Vendor payment aggregates + department links for the budget UI."""
+    try:
+        return get_vendor_payload(
+            PROJECT_ROOT,
+            force_refresh=refresh,
+            refresh_vendor=refresh_vendor,
+            bfy=bfy,
+        )
+    except requests.HTTPError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Upstream Socrata error: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/api/city-budget/rows")
+async def api_city_budget_rows(
+    dataset: str = Query(..., pattern="^(revenue|operating|vendor)$"),
+    refresh: bool = False,
+    bfy: Optional[str] = None,
+    ftyp: Optional[str] = None,
+    fundtype: Optional[str] = None,
+    department: Optional[str] = None,
+    service: Optional[str] = None,
+    q: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> dict[str, Any]:
+    try:
+        return get_rows_payload(
+            PROJECT_ROOT,
+            dataset,  # type: ignore[arg-type]
+            force_refresh=refresh,
+            bfy=bfy,
+            ftyp=ftyp,
+            fundtype=fundtype,
+            department=department,
+            service=service,
+            q=q,
+            limit=max(1, min(limit, BULK_ROWS_LIMIT)),
+            offset=max(0, offset),
+        )
+    except requests.HTTPError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Upstream Socrata error: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
 @app.get("/police", response_class=HTMLResponse)
 async def police_map(request: Request) -> HTMLResponse:
     """Map view of Dallas Police active calls (Socrata + geocoded markers)."""
@@ -321,12 +476,18 @@ async def police_map(request: Request) -> HTMLResponse:
 
 
 @app.get("/api/police/active-calls")
-async def api_police_active_calls(limit: int = 500) -> dict[str, Any]:
+async def api_police_active_calls(
+    limit: int = 500,
+    refresh: bool = False,
+    geocode_budget: int = 0,
+) -> dict[str, Any]:
     """Proxy Dallas Open Data active calls with geocoding for map display."""
     try:
         return get_active_calls_payload(
             PROJECT_ROOT,
             limit=max(1, min(limit, 1000)),
+            force_refresh=refresh,
+            geocode_budget=max(0, min(geocode_budget, 40)),
         )
     except requests.HTTPError as exc:
         raise HTTPException(

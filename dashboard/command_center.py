@@ -14,10 +14,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Optional
 
-from . import campaign_finance, council_voting, police_calls
+from . import campaign_finance, city_budget, council_voting, police_calls
 from .campaign_finance import CACHE_TTL_SEC as FINANCE_CACHE_TTL
 from .campaign_finance import cache_is_stale as finance_cache_is_stale
 from .campaign_finance import cache_path as finance_cache_path
+from .city_budget import CACHE_TTL_SEC as BUDGET_CACHE_TTL
+from .city_budget import cache_is_stale as budget_cache_is_stale
+from .city_budget import operating_cache_path, revenue_cache_path, vendor_cache_path
 from .council_voting import CACHE_TTL_SEC as VOTING_CACHE_TTL
 from .council_voting import cache_is_stale as voting_cache_is_stale
 from .council_voting import cache_path as voting_cache_path
@@ -27,6 +30,7 @@ from .supervisor import ScraperSupervisor
 # Pages whose APIs are documented on /command (Police + Council accountability).
 PAGE_POLICE = "police"
 PAGE_COUNCIL = "council"
+PAGE_BUDGET = "budget"
 
 NOMINATIM_SEARCH_URL = "https://nominatim.openstreetmap.org/search"
 
@@ -217,13 +221,14 @@ def build_page_api_catalog(
     """
     police_tracked = _upstream_for_page(upstream, PAGE_POLICE)
     council_tracked = _upstream_for_page(upstream, PAGE_COUNCIL)
+    budget_tracked = _upstream_for_page(upstream, PAGE_BUDGET)
 
     police_upstream_defs = [
         {
             "service": "Dallas Open Data (Socrata)",
             "endpoint": f"resource/{police_calls.SOCRATA_DATASET_ID}",
             "url": police_calls.SOCRATA_RESOURCE_URL,
-            "note": "Live fetch on each GET /api/police/active-calls",
+            "note": f"Socrata when response cache stale (TTL {police_calls.RESPONSE_CACHE_TTL_SEC}s)",
         },
         {
             "service": "Dallas Open Data (Socrata)",
@@ -262,6 +267,44 @@ def build_page_api_catalog(
             "endpoint": f"views/{council_voting.SOCRATA_DATASET_ID} metadata",
             "url": council_voting.SOCRATA_VIEW_META_URL,
             "note": "Voting dataset metadata",
+        },
+    ]
+    budget_upstream_defs = [
+        {
+            "service": "Dallas Open Data (Socrata)",
+            "endpoint": f"resource/{city_budget.REVENUE_DATASET_ID}",
+            "url": city_budget.REVENUE_RESOURCE_URL,
+            "note": "Revenue budget rows on cache refresh",
+        },
+        {
+            "service": "Dallas Open Data (Socrata)",
+            "endpoint": f"views/{city_budget.REVENUE_DATASET_ID} metadata",
+            "url": city_budget.REVENUE_VIEW_META_URL,
+            "note": "Revenue budget metadata",
+        },
+        {
+            "service": "Dallas Open Data (Socrata)",
+            "endpoint": f"resource/{city_budget.OPERATING_DATASET_ID}",
+            "url": city_budget.OPERATING_RESOURCE_URL,
+            "note": "Operating budget rows on cache refresh",
+        },
+        {
+            "service": "Dallas Open Data (Socrata)",
+            "endpoint": f"views/{city_budget.OPERATING_DATASET_ID} metadata",
+            "url": city_budget.OPERATING_VIEW_META_URL,
+            "note": "Operating budget metadata",
+        },
+        {
+            "service": "Dallas Open Data (Socrata)",
+            "endpoint": f"resource/{city_budget.VENDOR_PAYMENTS_DATASET_ID}",
+            "url": city_budget.VENDOR_RESOURCE_URL,
+            "note": "Vendor payment rows on cache refresh",
+        },
+        {
+            "service": "Dallas Open Data (Socrata)",
+            "endpoint": f"views/{city_budget.VENDOR_PAYMENTS_DATASET_ID} metadata",
+            "url": city_budget.VENDOR_VIEW_META_URL,
+            "note": "Vendor payments metadata",
         },
     ]
 
@@ -342,6 +385,41 @@ def build_page_api_catalog(
             ],
             "upstream_endpoints": _merge_upstream_defs(
                 council_upstream_defs, council_tracked
+            ),
+        },
+        {
+            "id": PAGE_BUDGET,
+            "title": "City budget",
+            "ui_path": "/city-budget",
+            "dashboard_endpoints": [
+                ep(
+                    "GET",
+                    "/api/city-budget/summary",
+                    "Overview KPIs + fund comparison",
+                ),
+                ep(
+                    "GET",
+                    "/api/city-budget/revenue",
+                    "Revenue tab chart series",
+                ),
+                ep(
+                    "GET",
+                    "/api/city-budget/operating",
+                    "Operating tab chart series",
+                ),
+                ep(
+                    "GET",
+                    "/api/city-budget/rows",
+                    "Paginated Explore table",
+                ),
+                ep(
+                    "GET",
+                    "/api/city-budget/vendors",
+                    "Vendor payment aggregates + department links",
+                ),
+            ],
+            "upstream_endpoints": _merge_upstream_defs(
+                budget_upstream_defs, budget_tracked
             ),
         },
     ]
@@ -514,6 +592,39 @@ def build_command_payload(
                     "note": "No response cache; geocode entries persisted on disk",
                 },
                 "geocode_cache": _geocode_cache_status(project_root),
+            },
+            "revenue_budget": {
+                "dataset_id": city_budget.REVENUE_DATASET_ID,
+                "resource_url": city_budget.REVENUE_RESOURCE_URL,
+                "portal_url": city_budget.REVENUE_PORTAL_URL,
+                "cache": _cache_file_status(
+                    revenue_cache_path(project_root),
+                    ttl_sec=BUDGET_CACHE_TTL,
+                    stale_fn=budget_cache_is_stale,
+                    row_count_fn=lambda d: len(d.get("rows") or []),
+                ),
+            },
+            "operating_budget": {
+                "dataset_id": city_budget.OPERATING_DATASET_ID,
+                "resource_url": city_budget.OPERATING_RESOURCE_URL,
+                "portal_url": city_budget.OPERATING_PORTAL_URL,
+                "cache": _cache_file_status(
+                    operating_cache_path(project_root),
+                    ttl_sec=BUDGET_CACHE_TTL,
+                    stale_fn=budget_cache_is_stale,
+                    row_count_fn=lambda d: len(d.get("rows") or []),
+                ),
+            },
+            "vendor_payments": {
+                "dataset_id": city_budget.VENDOR_PAYMENTS_DATASET_ID,
+                "resource_url": city_budget.VENDOR_RESOURCE_URL,
+                "portal_url": city_budget.VENDOR_PORTAL_URL,
+                "cache": _cache_file_status(
+                    vendor_cache_path(project_root),
+                    ttl_sec=BUDGET_CACHE_TTL,
+                    stale_fn=budget_cache_is_stale,
+                    row_count_fn=lambda d: d.get("row_count") or 0,
+                ),
             },
         },
         "api_usage": usage_snap,

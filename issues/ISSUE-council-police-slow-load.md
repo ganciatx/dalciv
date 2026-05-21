@@ -1,6 +1,6 @@
 # Issue: Council and Police pages slow to load — explore optimizations
 
-**Type:** `improvement` • **Priority:** `normal` • **Effort:** `medium` • **Status:** open
+**Type:** `improvement` • **Priority:** `normal` • **Effort:** `medium` • **Status:** done (see `COUNCIL_POLICE_PERF_PLAN.md`)
 
 ## TL;DR
 

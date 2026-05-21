@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Performance
+
+- **Police map**: 90s response cache on disk; geocodes from cache on hot path with a small per-request Nominatim budget (default 5). Polls within TTL skip Socrata.
+- **Council accountability**: parallel overview fetch (`Promise.all`); Money transactions and Voting tables load on first tab visit; voting summary uses `lightweight=true`; directory includes vote date-range defaults (no extra summary round-trip).
+
 ### Fixed
 
 - **Council accountability 500**: Jinja2 choked on `{{` in a JS comment in `campaign_finance.html`; safe member directory sort; canonical URL **`/council-accountability`** (`/campaign-finance` redirects); Docker image includes **`images/`** for headshots.

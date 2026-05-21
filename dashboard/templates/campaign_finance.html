@@ -854,6 +854,7 @@
       <a class="btn-link" href="/">Apps</a>
       <a class="btn-link" href="https://cityofdallas.legistar.com/Calendar.aspx" target="_blank" rel="noopener noreferrer">Council meetings</a>
       <a class="btn-link" href="/police">Police map</a>
+      <a class="btn-link" href="/city-budget">City budget</a>
       <button type="button" id="btn-refresh-finance" class="btn-link">Refresh finance</button>
       <button type="button" id="btn-refresh-voting" class="btn-link primary">Refresh voting</button>
     </div>
@@ -1244,6 +1245,8 @@
     let selectedRollCallId = "";
     let agendaSearchTimer = null;
     let activeTab = "overview";
+    /** Tabs whose heavy API payloads have been loaded (Money transactions, Voting tables). */
+    const tabsLoaded = new Set(["overview"]);
     let memberDirectory = [];
     let selectedMemberId = "";
 
@@ -1547,8 +1550,17 @@
       document.querySelectorAll(".tab-panel").forEach((p) => {
         p.classList.toggle("on", p.id === `tab-${tab}`);
       });
-      if (tab === "voting" && votingViewMode === "agenda") {
-        loadAgendaItems(false);
+      if (tab === "money" && !tabsLoaded.has("money")) {
+        tabsLoaded.add("money");
+        loadTransactions(false);
+      }
+      if (tab === "voting" && !tabsLoaded.has("voting")) {
+        tabsLoaded.add("voting");
+        if (votingViewMode === "agenda") {
+          loadAgendaItems(false);
+        } else {
+          loadVotes(false);
+        }
       }
     }
 
@@ -1799,15 +1811,12 @@
       if (!res.ok) throw new Error(await res.text());
       const body = await res.json();
       renderMemberDirectory(body.members || []);
-      const meta = body.meta || {};
-      if (meta.voting_fetched_at && !document.getElementById("vote-from").value) {
-        const vs = await fetch(`/api/council-voting/summary`);
-        if (vs.ok) {
-          const vbody = await vs.json();
-          const dr = vbody.date_range_defaults || {};
-          if (dr.from) document.getElementById("vote-from").value = dr.from.slice(0, 10);
-          if (dr.to) document.getElementById("vote-to").value = dr.to.slice(0, 10);
-        }
+      const dr = (body.meta || {}).date_range_defaults || {};
+      if (!document.getElementById("vote-from").value && dr.from) {
+        document.getElementById("vote-from").value = dr.from.slice(0, 10);
+      }
+      if (!document.getElementById("vote-to").value && dr.to) {
+        document.getElementById("vote-to").value = dr.to.slice(0, 10);
       }
       return body;
     }
@@ -1815,6 +1824,7 @@
     async function loadVotingSummary(refresh) {
       const p = voteParams(refresh);
       p.delete("vote");
+      p.set("lightweight", "true");
       const res = await fetch(`/api/council-voting/summary?${p}`);
       if (!res.ok) throw new Error(await res.text());
       const body = await res.json();
@@ -2194,11 +2204,16 @@
       renderTable(body.transactions || [], tableTotal);
     }
 
-    async function loadFinance(refresh = false) {
+    async function loadFinanceSummaryOnly(refresh = false) {
       const p = filterParams(refresh);
       const res = await fetch(`/api/campaign-finance/summary?${p}`);
       if (!res.ok) throw new Error(await res.text());
       applySummary(await res.json());
+    }
+
+    async function loadFinance(refresh = false) {
+      await loadFinanceSummaryOnly(refresh);
+      tabsLoaded.add("money");
       await loadTransactions(refresh);
     }
 
@@ -2207,12 +2222,27 @@
       document.getElementById("refresh-text").textContent = refreshFinance || refreshVoting
         ? "Fetching from Socrata…" : "Updating…";
       try {
-        await loadDirectory(refreshFinance, refreshVoting);
-        await loadVotingSummary(refreshVoting);
-        await loadFinance(refreshFinance);
+        tabsLoaded.clear();
+        tabsLoaded.add("overview");
+        await Promise.all([
+          loadDirectory(refreshFinance, refreshVoting),
+          loadVotingSummary(refreshVoting),
+          loadFinanceSummaryOnly(refreshFinance),
+        ]);
         if (selectedMemberId || document.getElementById("filter-member").value) {
           await loadMemberProfile(refreshFinance || refreshVoting);
-          await loadVotes(false);
+        }
+        if (activeTab === "money") {
+          tabsLoaded.add("money");
+          await loadTransactions(refreshFinance);
+        }
+        if (activeTab === "voting") {
+          tabsLoaded.add("voting");
+          if (votingViewMode === "agenda") {
+            await loadAgendaItems(refreshVoting);
+          } else {
+            await loadVotes(false);
+          }
         }
         document.getElementById("refresh-text").textContent =
           `Updated ${new Date().toLocaleTimeString()}`;

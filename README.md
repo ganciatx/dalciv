@@ -6,9 +6,10 @@ Four capabilities:
 2. **Local dashboard** — FastAPI on **`127.0.0.1:8765`**: Start/Stop scrape subprocess, JSONL audit, manifest table, disk checks.
 3. **Agenda summaries** — On-demand extractive summaries (**pypdf**, no API key) grouped by meeting; stored in **`scraper_dashboard_data/summaries.json`**.
 4. **Police active-calls map** — **`/police`** page: Leaflet map of [Dallas Police Active Calls](https://www.dallasopendata.com/Public-Safety/Dallas-Police-Active-Calls/9fxf-t2tr/data_preview) via Socrata + cached Nominatim geocoding.
-5. **Campaign finance dashboard** — **`/campaign-finance`**: charts + filters + transaction table for [Dallas Campaign Finance](https://www.dallasopendata.com/Services/Campaign-Finance/ndxz-gccx/data_preview) (Socrata + ~1h disk cache).
+5. **Council accountability** — **`/council-accountability`**: campaign finance + council voting (see plans).
+6. **City budget** — **`/city-budget`**: interactive revenue and operating budget dashboards from Dallas Open Data.
 
-Plans: **`SCRAPER_UI_PLAN.md`**, **`AGENDA_SUMMARY_PLAN.md`**, **`CAMPAIGN_FINANCE_PLAN.md`**. Further manifest fields: **`issues/ISSUE-more-file-identifying-metadata.md`**.
+Plans: **`plans/`** (e.g. **`CAMPAIGN_FINANCE_PLAN.md`**, **`COUNCIL_ACCOUNTABILITY_PLAN.md`**). Further manifest fields: **`issues/ISSUE-more-file-identifying-metadata.md`**.
 
 ---
 
@@ -57,7 +58,7 @@ python dallas_legistar_scraper.py
 python -m dashboard
 ```
 
-Open **http://127.0.0.1:8765** (app portal), **http://127.0.0.1:8765/council-meetings** (Legistar), **http://127.0.0.1:8765/police** (active calls), or **http://127.0.0.1:8765/campaign-finance** (council accountability).
+Open **http://127.0.0.1:8765** (app portal), **http://127.0.0.1:8765/council-meetings** (Legistar), **http://127.0.0.1:8765/police** (active calls), **http://127.0.0.1:8765/council-accountability** (finance + voting), or **http://127.0.0.1:8765/city-budget** (revenue + operating budget).
 
 | Control | Action |
 |---------|--------|
@@ -101,7 +102,23 @@ The feed has **block + street name only** (no coordinates). The server geocodes 
 
 ---
 
-## Council accountability (`/campaign-finance`)
+## City budget (`/city-budget`)
+
+Interactive dashboard for **revenue**, **operating** adopted budgets, and **vendor payments**:
+
+| Dataset | Socrata ID | Cache file | TTL |
+|---------|------------|------------|-----|
+| [Revenue Budget](https://www.dallasopendata.com/Economy/Revenue-Budget/rtn4-pmj9/about_data) | `rtn4-pmj9` | `scraper_dashboard_data/revenue_budget_cache.json` | ~24h |
+| [Operating Budget](https://www.dallasopendata.com/Economy/Operating-Budget/e2fs-y4nb/about_data) | `e2fs-y4nb` | `scraper_dashboard_data/operating_budget_cache.json` | ~24h |
+| [Vendor Payments FY2019–Present](https://www.dallasopendata.com/Economy/Vendor-Payments-for-Fiscal-Year-2019-Present/x5ih-idh7/data_preview) | `x5ih-idh7` | `scraper_dashboard_data/vendor_payments_cache.json` | ~24h |
+
+- **UI**: Dallas Budget prototype layout (Hero “$X in, $Y out”, Money in, Money out, Departments, Funds, Glossary, Tweaks). Built from `sections.jsx` / `app.jsx` matching `Dallas Budget (1).html`.
+- **Data**: Full FY row sets from cache via `/api/city-budget/rows?limit=10000` (626 revenue + 779 operating rows for FY26 — matches `Revenue_Budget_*.xlsx` / `Operating_Budget_*.xlsx` Data sheets). `revtype` mapped from `revsource-type-map.json` (sync: `python scripts/sync_budget_revsource_map.py`).
+- Assets: `dashboard/static/dallas-budget/` (React, Babel, JSX). Primary amount **`budcurr`** (adopted current budget).
+
+---
+
+## Council accountability (`/council-accountability`)
 
 Unified dashboard for **campaign finance** and **city council voting**:
 
@@ -125,7 +142,14 @@ Unified dashboard for **campaign finance** and **city council voting**:
 | GET | `/council-meetings` | Legistar scrape dashboard UI |
 | GET | `/police` | Police active-calls map |
 | GET | `/api/police/active-calls` | Socrata proxy + geocoded calls |
-| GET | `/campaign-finance` | Council accountability UI |
+| GET | `/city-budget` | City budget UI |
+| GET | `/api/city-budget/summary` | Overview KPIs + fund comparison; `bfy`, `ftyp`, `fundtype`, `refresh`, `refresh_revenue`, `refresh_operating` |
+| GET | `/api/city-budget/revenue` | Revenue chart series; `refresh`, filters |
+| GET | `/api/city-budget/operating` | Operating chart series; `refresh`, filters |
+| GET | `/api/city-budget/vendors` | Vendor payment aggregates + department links; `bfy`, `refresh`, `refresh_vendor` |
+| GET | `/api/city-budget/rows` | Paginated rows; `dataset=revenue\|operating\|vendor`, `q`, filters, `limit`, `offset` |
+| GET | `/council-accountability` | Council accountability UI |
+| GET | `/campaign-finance` | Redirect → `/council-accountability` |
 | GET | `/api/campaign-finance/summary` | Finance KPIs + charts; `refresh`, filter query params |
 | GET | `/api/council-voting/summary` | Voting KPIs + member index; `refresh`, `from_date`, `to_date` |
 | GET | `/api/council-voting/votes` | Paginated vote rows; `member`, `vote`, `q`, date range |
@@ -160,6 +184,8 @@ Unified dashboard for **campaign finance** and **city council voting**:
 | `scraper_dashboard_data/geocode_cache.json` | Block/location → lat/lon cache for police map |
 | `scraper_dashboard_data/campaign_finance_cache.json` | Cached Socrata campaign finance rows |
 | `scraper_dashboard_data/council_voting_cache.json` | Cached council roll-call votes (~189k rows) |
+| `scraper_dashboard_data/revenue_budget_cache.json` | Cached revenue budget rows |
+| `scraper_dashboard_data/operating_budget_cache.json` | Cached operating budget rows |
 | `scraper_dashboard_data/audit_log.jsonl` | Run audit (`started` / `finished`) |
 | `scraper_dashboard_data/active_run.json` | In-flight scrape PID metadata |
 | `scraper_dashboard_data/logs/<run_id>.log` | Scraper stdout/stderr |
@@ -208,7 +234,9 @@ dashboard/
   campaign_finance.py     # Campaign finance Socrata + cache + aggregates
   council_voting.py       # Council voting record (~189k rows) + cache
   council_accountability.py  # Member directory + combined profiles
+  city_budget.py           # Revenue + operating budget Socrata + cache
   templates/index.html
+  templates/city_budget.html
   templates/police_map.html
   static/police_desk_ops.css
   static/police_desk_ops.js
