@@ -207,7 +207,7 @@ Your connected account has **Business Web Hosting** plus a **VPS** running the f
 
 | URL | Role |
 |-----|------|
-| **[http://ganciatx.com/](http://ganciatx.com/)** | App portal; council meetings, police, council accountability |
+| **[https://ganciatx.com/](https://ganciatx.com/)** | App portal; council meetings, police, council accountability (HTTPS via Caddy) |
 | [mediumturquoise-giraffe-322901.hostingersite.com](https://mediumturquoise-giraffe-322901.hostingersite.com) | Landing page (links to VPS) |
 
 **Publish updates:** push to `main` on [github.com/ganciatx/dalciv](https://github.com/ganciatx/dalciv), then redeploy via GitHub Actions (if `HOSTINGER_API_KEY` + `HOSTINGER_VM_ID` are set) or hPanel → VPS → Docker Manager → project `dalciv` → Update.

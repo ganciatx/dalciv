@@ -14,10 +14,10 @@ Publish **Sivic Scraper** on your connected Hostinger account. **Business Web Ho
 | Order ID | `1009365178` |
 | Website (landing) | [mediumturquoise-giraffe-322901.hostingersite.com](https://mediumturquoise-giraffe-322901.hostingersite.com) |
 | VPS | **VM ID `1685117`** — `168.231.65.105` (`srv1685117.hstgr.cloud`) |
-| **Live app** | **[http://ganciatx.com/](http://ganciatx.com/)** (also [http://168.231.65.105/](http://168.231.65.105/)) |
+| **Live app** | **[https://ganciatx.com/](https://ganciatx.com/)** (also [https://168.231.65.105/](https://168.231.65.105/) if cert allows IP) |
 | Custom domain | `ganciatx.com` → A `168.231.65.105`; `www` → CNAME `ganciatx.com` |
 | GitHub | [github.com/ganciatx/dalciv](https://github.com/ganciatx/dalciv) (public) |
-| Docker project | `dalciv` on VPS (port 80 → 8765) |
+| Docker project | `dalciv` on VPS — **Caddy** on host 80/443 → **sivic** on internal 8765 |
 
 ## Critical decisions
 
@@ -40,7 +40,8 @@ Publish **Sivic Scraper** on your connected Hostinger account. **Business Web Ho
 
 - [x] 🟩 **Step 2: Docker artifacts**
   - [x] 🟩 `Dockerfile` (Python 3.12 + Playwright Chromium)
-  - [x] 🟩 `docker-compose.yml` (port 80 → 8765)
+  - [x] 🟩 `docker-compose.yml` (Caddy 80/443 → sivic 8765)
+  - [x] 🟩 `deploy/caddy/Caddyfile` (Let's Encrypt, security headers)
   - [x] 🟩 `.dockerignore`, `.env.example`
 
 - [x] 🟩 **Step 3: Hostinger account setup**
@@ -64,7 +65,7 @@ Publish **Sivic Scraper** on your connected Hostinger account. **Business Web Ho
 - [x] 🟩 **Step 7: Subdomain landing**
   - [x] 🟩 Static landing page in `deploy/hostinger-landing/`
   - [x] 🟩 Live at [mediumturquoise-giraffe-322901.hostingersite.com](https://mediumturquoise-giraffe-322901.hostingersite.com)
-  - [x] 🟩 Landing links to VPS app URL (`http://168.231.65.105`)
+  - [x] 🟩 Landing links to VPS app URL (`https://ganciatx.com`)
 
 ## Ongoing updates (after first deploy)
 
@@ -89,13 +90,13 @@ zip -r deploy/hostinger-landing_$(date +%Y%m%d_%H%M%S).zip deploy/hostinger-land
 ```bash
 # On the VPS (SSH) — or use Docker Manager / MCP with GitHub URL
 git clone https://github.com/ganciatx/dalciv.git && cd dalciv
-cp .env.example .env   # edit SOCRATA_APP_TOKEN, SCRAPER_ENABLED if needed
+cp .env.example .env   # edit SOCRATA_APP_TOKEN, ACME_EMAIL, SCRAPER_ENABLED if needed
 docker compose up -d --build
 docker compose ps
-curl -fsS http://127.0.0.1/api/state
+curl -fsS http://127.0.0.1/api/state   # via Caddy on port 80
 ```
 
-Open **http://ganciatx.com/** — portal (`/`), council meetings (`/council-meetings`), police (`/police`), council accountability (`/campaign-finance`).
+Open **https://ganciatx.com/** — portal (`/`), council meetings (`/council-meetings`), police (`/police`), council accountability (`/campaign-finance`), city budget (`/city-budget`). Caddy obtains and renews Let's Encrypt certificates automatically; cert data lives in the `caddy_data` volume.
 
 ## Custom domain (done)
 
@@ -106,7 +107,7 @@ Open **http://ganciatx.com/** — portal (`/`), council meetings (`/council-meet
 
 DNS was updated via Hostinger (removed old parking IP `2.57.91.91`). Propagation can take up to ~5 minutes (TTL 300).
 
-**HTTPS (optional):** install a free certificate on the VPS, e.g. `certbot --nginx` or Caddy in front of port 80, then use `https://ganciatx.com/`.
+**HTTPS:** Caddy in `docker-compose.yml` terminates TLS for `ganciatx.com` and `www`. Ensure VPS firewall allows **443/tcp** (and **80/tcp** for ACME + redirect). Set `ACME_EMAIL` in `.env` for Let's Encrypt account contact.
 
 ## Acceptance criteria
 
@@ -120,7 +121,8 @@ DNS was updated via Hostinger (removed old parking IP `2.57.91.91`). Propagation
 | Path | Role |
 |------|------|
 | `Dockerfile` | Production image |
-| `docker-compose.yml` | Hostinger VPS stack |
+| `docker-compose.yml` | Caddy + sivic stack |
+| `deploy/caddy/Caddyfile` | TLS, reverse proxy, security headers |
 | `.github/workflows/deploy-hostinger.yml` | Auto deploy |
 | `HOSTINGER_DEPLOY_PLAN.md` | This plan |
 | `deploy/hostinger-landing/` | Static placeholder site |

@@ -1,0 +1,17 @@
+# TLS termination for ganciatx.com (see plans/HOSTINGER_DEPLOY_PLAN.md).
+# ACME_EMAIL is set via docker-compose environment (optional but recommended).
+
+{
+	email {$ACME_EMAIL}
+}
+
+ganciatx.com, www.ganciatx.com {
+	reverse_proxy sivic:8765
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+}

@@ -26,7 +26,7 @@ Your project lives in **two places**:
 | Site | Address (example) | What runs there |
 |------|-------------------|-----------------|
 | **Landing page** | `mediumturquoise-giraffe-322901.hostingersite.com` | A simple info page only (not the full dashboard) |
-| **Live app** | **[http://ganciatx.com/](http://ganciatx.com/)** | The real dashboard: police map, council finance, voting, Legistar UI |
+| **Live app** | **[https://ganciatx.com/](https://ganciatx.com/)** | The real dashboard: police map, council finance, voting, Legistar UI (HTTP redirects to HTTPS) |
 
 Most changes you make in this project affect the **live app on the VPS**, not the small landing page.
 
@@ -152,8 +152,11 @@ The full dashboard still lives on the **VPS**, not on this landing subdomain.
 | Python code or `requirements.txt` | Yes | Yes (rebuild) | No |
 | Landing page text only | Optional | No | Yes |
 | Server settings (`.env` on VPS) | N/A | Edit on server, restart | No |
+| HTTPS / Caddy config | N/A | Yes (rebuild stack) | No |
 
 If you added a new Python package, deploy **must** rebuild Docker (`docker compose up -d --build` or GitHub Action).
+
+The live app is served over **HTTPS** by **Caddy** (ports 80 and 443 on the VPS). The Python app runs only inside Docker on port 8765; visitors never connect to it directly. Certificates renew automatically. Optional: set `ACME_EMAIL` in the server `.env` for Let's Encrypt account notices.
 
 ---
 

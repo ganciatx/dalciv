@@ -19,8 +19,10 @@ jobs:
         with:
           api-key: ${{ secrets.HOSTINGER_API_KEY }}
           virtual-machine: ${{ vars.HOSTINGER_VM_ID }}
-          project-name: sivic-scraper
+          project-name: dalciv
           environment-variables: |
             SCRAPER_ENABLED=0
             DASHBOARD_HOST=0.0.0.0
             DASHBOARD_PORT=8765
+            ACME_EMAIL=${{ vars.ACME_EMAIL }}
+            FORWARDED_ALLOW_IPS=127.0.0.1,172.16.0.0/12
