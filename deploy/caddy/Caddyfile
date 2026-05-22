@@ -1,9 +1,5 @@
 # TLS termination for ganciatx.com (see plans/HOSTINGER_DEPLOY_PLAN.md).
-# ACME_EMAIL is set via docker-compose environment (optional but recommended).
-
-{
-	email {$ACME_EMAIL}
-}
+# Set ACME_EMAIL in docker-compose when you want a Let's Encrypt account contact.
 
 ganciatx.com, www.ganciatx.com {
 	reverse_proxy sivic:8765
