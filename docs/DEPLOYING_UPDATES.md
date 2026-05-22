@@ -50,9 +50,9 @@ We don’t use a fancy version number on the website itself. Instead:
 
 These stay on the VPS between updates (unless you delete them on purpose):
 
-- Police map geocode cache  
+- Police map geocode cache and active-calls response cache  
 - Campaign finance cache  
-- Council voting cache (~189k rows — first build can take several minutes)  
+- Council voting cache (~189k rows — first build can take several minutes) and voting summary sidecar  
 - Downloaded PDFs and summaries (if you use the Legistar scraper on the server)
 
 **Code updates** (pages, colors, filters, bug fixes) are replaced. **Data folders** are stored in Docker “volumes” and are kept.
@@ -157,6 +157,8 @@ The full dashboard still lives on the **VPS**, not on this landing subdomain.
 If you added a new Python package, deploy **must** rebuild Docker (`docker compose up -d --build` or GitHub Action).
 
 The live app is served over **HTTPS** by **Caddy** (ports 80 and 443 on the VPS). The Python app runs only inside Docker on port 8765; visitors never connect to it directly. Certificates renew automatically. Optional: set `ACME_EMAIL` in the server `.env` for Let's Encrypt account notices.
+
+**Background data sync:** When `DATA_SYNC_ENABLED=1` (default in Docker), the server refreshes Socrata caches on a schedule (police ~90s, finance ~1h, voting/budget ~24h). Pages read the last saved JSON immediately; stale data triggers a background refresh instead of blocking the browser. Check job status on `/command` under `data_sync`. First deploy may show “cache warming” until the initial sync finishes.
 
 ---
 

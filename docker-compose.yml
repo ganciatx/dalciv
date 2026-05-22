@@ -24,6 +24,7 @@ services:
       SCRAPER_ENABLED: "${SCRAPER_ENABLED:-0}"
       SOCRATA_APP_TOKEN: "${SOCRATA_APP_TOKEN:-}"
       FORWARDED_ALLOW_IPS: "${FORWARDED_ALLOW_IPS:-127.0.0.1,172.16.0.0/12}"
+      DATA_SYNC_ENABLED: "${DATA_SYNC_ENABLED:-1}"
     volumes:
       - sivic_data:/app/scraper_dashboard_data
       - sivic_downloads:/app/dallas_legistar_downloads

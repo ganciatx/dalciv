@@ -1,5 +1,5 @@
 /**
- * Loads Dallas Open Data via /api/city-budget/* and builds BUDGET_DATA for the proto UI.
+ * Loads Dallas Open Data via /api/city-budget/bootstrap (single cache-backed request).
  */
 (async function loadBudgetData() {
   const POP = 1302868;
@@ -16,38 +16,29 @@
       throw new Error("budget-build.js did not load");
     }
 
-    const summary = await fetchJson("/api/city-budget/summary");
-    const fy = parseInt(summary.selected?.bfy || summary.overview?.kpis?.bfy || "2026", 10);
+    const boot = await fetchJson("/api/city-budget/bootstrap");
+    const summary = boot.summary || {};
+    const fy = parseInt(boot.selected_bfy || summary.selected?.bfy || "2026", 10);
 
-    // Full FY row sets (Excel Data sheet: ~626 revenue + ~779 operating rows for FY26).
-    const revPayload = await fetchJson(
-      `/api/city-budget/rows?dataset=revenue&bfy=${fy}&limit=10000`
-    );
-    const opPayload = await fetchJson(
-      `/api/city-budget/rows?dataset=operating&bfy=${fy}&limit=10000`
-    );
-    const revRows = revPayload.rows;
-    const opRows = opPayload.rows;
-    if (revPayload.total > revRows.length || opPayload.total > opRows.length) {
+    const revRows = boot.revenue_rows || [];
+    const opRows = boot.operating_rows || [];
+    const revPrev = boot.revenue_rows_prior || [];
+    const opPrev = boot.operating_rows_prior || [];
+
+    if (
+      boot.revenue_total > revRows.length ||
+      boot.operating_total > opRows.length
+    ) {
       throw new Error(
-        `Incomplete budget rows (revenue ${revRows.length}/${revPayload.total}, ` +
-          `operating ${opRows.length}/${opPayload.total}). Retry after cache refresh.`
+        `Incomplete budget rows (revenue ${revRows.length}/${boot.revenue_total}, ` +
+          `operating ${opRows.length}/${boot.operating_total}). Retry after cache refresh.`
       );
     }
 
-    const bfys = (summary.filters?.bfys || []).map(String).sort((a, b) => b - a);
-    const prior = bfys.find((y) => parseInt(y, 10) < fy);
-    let revPrev = [];
-    let opPrev = [];
-    if (prior) {
-      const revPrevPayload = await fetchJson(
-        `/api/city-budget/rows?dataset=revenue&bfy=${prior}&limit=10000`
+    if ((boot.meta || {}).cache_warming) {
+      throw new Error(
+        "Budget cache is still warming. Wait a minute and refresh the page."
       );
-      const opPrevPayload = await fetchJson(
-        `/api/city-budget/rows?dataset=operating&bfy=${prior}&limit=10000`
-      );
-      revPrev = revPrevPayload.rows;
-      opPrev = opPrevPayload.rows;
     }
 
     window.BUDGET_DATA = window.buildBudgetData(revRows, opRows, revPrev, opPrev, {
@@ -55,7 +46,10 @@
       population: POP,
       households: HOUSEHOLDS,
       source: "dallas-opendata-live",
-      fetchedAt: summary.revenue_meta?.fetched_at || summary.operating_meta?.fetched_at,
+      fetchedAt:
+        boot.meta?.revenue_fetched_at ||
+        summary.revenue_meta?.fetched_at ||
+        summary.operating_meta?.fetched_at,
     });
 
     window.dispatchEvent(new Event("budget-data-ready"));

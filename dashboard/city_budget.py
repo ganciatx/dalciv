@@ -510,16 +510,27 @@ def get_vendor_cached(
 ) -> dict[str, Any]:
     path = vendor_cache_path(project_root)
     fy_clean = str(fy or "").strip()
-    if not force_refresh:
-        cached = load_cache(path)
-        if (
-            cached
-            and cached.get("aggregates")
-            and str(cached.get("fy") or "") == fy_clean
-            and not cache_is_stale(cached)
-        ):
-            return cached
-    return refresh_vendor_cache(project_root, fy_clean)
+
+    def _has_vendor(c: dict[str, Any]) -> bool:
+        return bool(c.get("aggregates")) and str(c.get("fy") or "") == fy_clean
+
+    if force_refresh:
+        return refresh_vendor_cache(project_root, fy_clean)
+
+    cached = load_cache(path)
+    if cached and _has_vendor(cached):
+        stale = cache_is_stale(cached)
+        from .data_sync import JOB_BUDGET, attach_cache_meta, maybe_schedule_stale
+
+        maybe_schedule_stale(project_root, JOB_BUDGET, cached, cache_is_stale)
+        return attach_cache_meta(cached, job_id=JOB_BUDGET, stale=stale)
+
+    from .data_sync import JOB_BUDGET, schedule_refresh, warming_rows_document
+
+    schedule_refresh(project_root, JOB_BUDGET, force=True)
+    doc = warming_rows_document("vendor")
+    doc["fy"] = fy_clean
+    return doc
 
 
 def refresh_operating_cache(project_root: Path) -> dict[str, Any]:
@@ -540,26 +551,74 @@ def refresh_operating_cache(project_root: Path) -> dict[str, Any]:
     return payload
 
 
+def _serve_budget_cache(
+    project_root: Path,
+    path: Path,
+    dataset: str,
+    *,
+    force_refresh: bool,
+    refresh_fn: Any,
+    has_rows: Any,
+) -> dict[str, Any]:
+    if force_refresh:
+        return refresh_fn(project_root)
+
+    cached = load_cache(path)
+    if cached and has_rows(cached):
+        stale = cache_is_stale(cached)
+        from .data_sync import JOB_BUDGET, attach_cache_meta, maybe_schedule_stale
+
+        maybe_schedule_stale(project_root, JOB_BUDGET, cached, cache_is_stale)
+        return attach_cache_meta(cached, job_id=JOB_BUDGET, stale=stale)
+
+    from .data_sync import JOB_BUDGET, schedule_refresh, warming_rows_document
+
+    schedule_refresh(project_root, JOB_BUDGET, force=True)
+    doc = warming_rows_document(dataset)
+    doc["meta"]["dataset"] = dataset
+    return doc
+
+
 def get_revenue_cached(
     project_root: Path, *, force_refresh: bool = False
 ) -> dict[str, Any]:
-    path = revenue_cache_path(project_root)
-    if not force_refresh:
-        cached = load_cache(path)
-        if cached and cached.get("rows") and not cache_is_stale(cached):
-            return cached
-    return refresh_revenue_cache(project_root)
+    return _serve_budget_cache(
+        project_root,
+        revenue_cache_path(project_root),
+        "revenue",
+        force_refresh=force_refresh,
+        refresh_fn=refresh_revenue_cache,
+        has_rows=lambda c: bool(c.get("rows")),
+    )
 
 
 def get_operating_cached(
     project_root: Path, *, force_refresh: bool = False
 ) -> dict[str, Any]:
-    path = operating_cache_path(project_root)
-    if not force_refresh:
-        cached = load_cache(path)
-        if cached and cached.get("rows") and not cache_is_stale(cached):
-            return cached
-    return refresh_operating_cache(project_root)
+    return _serve_budget_cache(
+        project_root,
+        operating_cache_path(project_root),
+        "operating",
+        force_refresh=force_refresh,
+        refresh_fn=refresh_operating_cache,
+        has_rows=lambda c: bool(c.get("rows")),
+    )
+
+
+def refresh_all_budget_caches(project_root: Path) -> dict[str, Any]:
+    """Background job: refresh revenue, operating, and vendor for default FY."""
+    rev = refresh_revenue_cache(project_root)
+    op = refresh_operating_cache(project_root)
+    revenue_rows: list[dict[str, Any]] = rev.get("rows") or []
+    operating_rows: list[dict[str, Any]] = op.get("rows") or []
+    bfy = _default_bfy(revenue_rows, operating_rows, None) or str(
+        datetime.now(tz=UTC).year
+    )
+    vendor = refresh_vendor_cache(project_root, bfy)
+    return {
+        "row_count": len(revenue_rows) + len(operating_rows) + len(vendor.get("rows") or []),
+        "bfy": bfy,
+    }
 
 
 def _sum_amount(rows: list[dict[str, Any]], field: str = "amount_budget") -> float:
@@ -1037,5 +1096,72 @@ def get_vendor_payload(
             "row_count": cached.get("row_count"),
             "portal_url": VENDOR_PORTAL_URL,
             **(cached.get("meta") or {}),
+        },
+    }
+
+
+def get_bootstrap_payload(
+    project_root: Path,
+    *,
+    force_refresh: bool = False,
+    bfy: Optional[str] = None,
+) -> dict[str, Any]:
+    """
+    Single response for the city-budget UI: summary + full FY revenue/operating rows.
+    """
+    summary = get_summary_payload(project_root, force_refresh=force_refresh, bfy=bfy)
+    selected_bfy = str(
+        summary.get("selected", {}).get("bfy")
+        or summary.get("overview", {}).get("kpis", {}).get("bfy")
+        or ""
+    ).strip()
+    if not selected_bfy:
+        selected_bfy = str(datetime.now(tz=UTC).year)
+
+    rev_cached = get_revenue_cached(project_root, force_refresh=force_refresh)
+    op_cached = get_operating_cached(project_root, force_refresh=force_refresh)
+    revenue_rows: list[dict[str, Any]] = rev_cached.get("rows") or []
+    operating_rows: list[dict[str, Any]] = op_cached.get("rows") or []
+
+    rev_fy = apply_budget_filters(revenue_rows, bfy=selected_bfy)
+    op_fy = apply_budget_filters(operating_rows, bfy=selected_bfy)
+
+    bfys = (summary.get("filters") or {}).get("bfys") or available_bfys(
+        revenue_rows, operating_rows
+    )
+    prior = None
+    for y in sorted((str(b) for b in bfys), reverse=True):
+        try:
+            if int(y) < int(selected_bfy):
+                prior = y
+                break
+        except ValueError:
+            continue
+
+    rev_prev: list[dict[str, Any]] = []
+    op_prev: list[dict[str, Any]] = []
+    if prior:
+        rev_prev = apply_budget_filters(revenue_rows, bfy=prior)
+        op_prev = apply_budget_filters(operating_rows, bfy=prior)
+
+    warming = bool(
+        (rev_cached.get("meta") or {}).get("cache_warming")
+        or (op_cached.get("meta") or {}).get("cache_warming")
+    )
+
+    return {
+        "summary": summary,
+        "selected_bfy": selected_bfy,
+        "prior_bfy": prior,
+        "revenue_rows": rev_fy,
+        "operating_rows": op_fy,
+        "revenue_rows_prior": rev_prev,
+        "operating_rows_prior": op_prev,
+        "revenue_total": len(rev_fy),
+        "operating_total": len(op_fy),
+        "meta": {
+            "cache_warming": warming,
+            "revenue_fetched_at": rev_cached.get("fetched_at"),
+            "operating_fetched_at": op_cached.get("fetched_at"),
         },
     }

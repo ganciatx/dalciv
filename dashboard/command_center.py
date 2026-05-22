@@ -14,7 +14,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Optional
 
-from . import campaign_finance, city_budget, council_voting, police_calls
+from . import campaign_finance, city_budget, council_voting, data_sync, police_calls
 from .campaign_finance import CACHE_TTL_SEC as FINANCE_CACHE_TTL
 from .campaign_finance import cache_is_stale as finance_cache_is_stale
 from .campaign_finance import cache_path as finance_cache_path
@@ -587,10 +587,12 @@ def build_command_payload(
                 "dataset_id": police_calls.SOCRATA_DATASET_ID,
                 "resource_url": police_calls.SOCRATA_RESOURCE_URL,
                 "portal_url": police_calls.SOURCE_PORTAL_URL,
-                "cache": {
-                    "mode": "live_fetch",
-                    "note": "No response cache; geocode entries persisted on disk",
-                },
+                "cache": _cache_file_status(
+                    police_calls.response_cache_path(project_root),
+                    ttl_sec=police_calls.RESPONSE_CACHE_TTL_SEC,
+                    stale_fn=police_calls.response_cache_is_stale,
+                    row_count_fn=lambda d: len(d.get("calls") or []),
+                ),
                 "geocode_cache": _geocode_cache_status(project_root),
             },
             "revenue_budget": {
@@ -627,6 +629,7 @@ def build_command_payload(
                 ),
             },
         },
+        "data_sync": data_sync.sync_status_for_command(project_root),
         "api_usage": usage_snap,
         "upstream_usage": upstream_snap,
         "page_apis": build_page_api_catalog(

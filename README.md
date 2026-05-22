@@ -182,10 +182,14 @@ Unified dashboard for **campaign finance** and **city council voting**:
 | `dallas_legistar_downloads/download_manifest.csv` | Last scrape index + meeting metadata |
 | `scraper_dashboard_data/summaries.json` | Extractive summaries keyed by `saved_to` |
 | `scraper_dashboard_data/geocode_cache.json` | Block/location → lat/lon cache for police map |
+| `scraper_dashboard_data/police_active_calls_cache.json` | Cached active-calls API payload (~90s TTL) |
 | `scraper_dashboard_data/campaign_finance_cache.json` | Cached Socrata campaign finance rows |
 | `scraper_dashboard_data/council_voting_cache.json` | Cached council roll-call votes (~189k rows) |
+| `scraper_dashboard_data/council_voting_summary_cache.json` | Precomputed council Overview KPIs |
 | `scraper_dashboard_data/revenue_budget_cache.json` | Cached revenue budget rows |
 | `scraper_dashboard_data/operating_budget_cache.json` | Cached operating budget rows |
+| `scraper_dashboard_data/vendor_payments_cache.json` | Cached vendor payment rows + aggregates |
+| `scraper_dashboard_data/sync_state.json` | Background sync job status (see `DATA_SYNC_ENABLED`) |
 | `scraper_dashboard_data/audit_log.jsonl` | Run audit (`started` / `finished`) |
 | `scraper_dashboard_data/active_run.json` | In-flight scrape PID metadata |
 | `scraper_dashboard_data/logs/<run_id>.log` | Scraper stdout/stderr |

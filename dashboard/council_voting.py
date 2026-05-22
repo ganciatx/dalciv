@@ -84,6 +84,10 @@ def cache_path(project_root: Path) -> Path:
     return project_root / "scraper_dashboard_data" / "council_voting_cache.json"
 
 
+def summary_sidecar_path(project_root: Path) -> Path:
+    return project_root / "scraper_dashboard_data" / "council_voting_summary_cache.json"
+
+
 def _socrata_headers() -> dict[str, str]:
     headers = {
         "Accept": "application/json",
@@ -271,11 +275,79 @@ def refresh_cache(project_root: Path) -> dict[str, Any]:
 
 
 def get_cached_rows(project_root: Path, *, force_refresh: bool = False) -> dict[str, Any]:
-    if not force_refresh:
-        cached = load_cache(project_root)
-        if cached and cached.get("rows") is not None and not cache_is_stale(cached):
-            return cached
-    return refresh_cache(project_root)
+    if force_refresh:
+        doc = refresh_cache(project_root)
+        refresh_voting_summary_sidecar(project_root)
+        return doc
+
+    cached = load_cache(project_root)
+    if cached and cached.get("rows") is not None:
+        stale = cache_is_stale(cached)
+        from .data_sync import JOB_VOTING, attach_cache_meta, maybe_schedule_stale
+
+        maybe_schedule_stale(project_root, JOB_VOTING, cached, cache_is_stale)
+        return attach_cache_meta(cached, job_id=JOB_VOTING, stale=stale)
+
+    from .data_sync import JOB_VOTING, schedule_refresh, warming_rows_document
+
+    schedule_refresh(project_root, JOB_VOTING, force=True)
+    return warming_rows_document("council_voting")
+
+
+def load_summary_sidecar(project_root: Path) -> Optional[dict[str, Any]]:
+    path = summary_sidecar_path(project_root)
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else None
+    except Exception:
+        return None
+
+
+def save_summary_sidecar(project_root: Path, payload: dict[str, Any]) -> None:
+    path = summary_sidecar_path(project_root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def summary_sidecar_matches_cache(
+    sidecar: dict[str, Any], cached: dict[str, Any]
+) -> bool:
+    return str(sidecar.get("source_fetched_at") or "") == str(
+        cached.get("fetched_at") or ""
+    )
+
+
+def refresh_voting_summary_sidecar(project_root: Path) -> None:
+    """Persist lightweight overview KPIs so Overview avoids scanning all rows."""
+    cached = load_cache(project_root)
+    rows: list[dict[str, Any]] = (cached or {}).get("rows") or []
+    if not rows:
+        return
+    dr = default_date_range(rows)
+    f = dr.get("from")
+    t = dr.get("to")
+    payload = {
+        "source_fetched_at": cached.get("fetched_at"),
+        "built_at": utc_now_iso(),
+        "meta": {
+            "fetched_at": cached.get("fetched_at"),
+            "row_count": len(rows),
+            "cache_ttl_sec": CACHE_TTL_SEC,
+            "from_cache": True,
+            "lightweight": True,
+            "from_summary_sidecar": True,
+            **((cached or {}).get("meta") or {}),
+        },
+        "date_range_defaults": dr,
+        "filters": {"from": f or "", "to": t or ""},
+        "vote_filter_options": VOTE_FILTER_OPTIONS,
+        "global_kpis": global_voting_kpis(
+            filter_vote_rows(rows, from_date=f, to_date=t)
+        ),
+    }
+    save_summary_sidecar(project_root, payload)
 
 
 def _parse_date(iso: str) -> Optional[datetime]:
@@ -535,8 +607,43 @@ def get_summary_payload(
     to_date: Optional[str] = None,
     lightweight: bool = False,
 ) -> dict[str, Any]:
+    if (
+        lightweight
+        and not force_refresh
+        and not from_date
+        and not to_date
+    ):
+        sidecar = load_summary_sidecar(project_root)
+        cached_disk = load_cache(project_root)
+        if (
+            sidecar
+            and cached_disk
+            and cached_disk.get("rows")
+            and summary_sidecar_matches_cache(sidecar, cached_disk)
+        ):
+            out = dict(sidecar)
+            out.pop("source_fetched_at", None)
+            out.pop("built_at", None)
+            meta = out.setdefault("meta", {})
+            if isinstance(meta, dict):
+                meta["cache_stale"] = cache_is_stale(cached_disk)
+            return out
+
     cached = get_cached_rows(project_root, force_refresh=force_refresh)
     all_rows: list[dict[str, Any]] = cached.get("rows") or []
+    if (cached.get("meta") or {}).get("cache_warming") and not all_rows:
+        return {
+            "meta": {
+                "cache_warming": True,
+                "lightweight": lightweight,
+                "row_count": 0,
+            },
+            "date_range_defaults": {"from": "", "to": ""},
+            "filters": {"from": "", "to": ""},
+            "vote_filter_options": VOTE_FILTER_OPTIONS,
+            "global_kpis": global_voting_kpis([]),
+            **({} if lightweight else {"members": []}),
+        }
     dr = default_date_range(all_rows)
     f = from_date or dr.get("from")
     t = to_date or dr.get("to")

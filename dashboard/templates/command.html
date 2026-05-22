@@ -252,6 +252,25 @@
     </section>
 
     <section>
+      <h2>Background sync</h2>
+      <div class="panel">
+        <table id="sync-table">
+          <thead>
+            <tr>
+              <th>Job</th>
+              <th>Interval</th>
+              <th>Last status</th>
+              <th>Last finished</th>
+              <th>Rows</th>
+              <th>Error</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
       <h2>Paths &amp; disk</h2>
       <div class="panel">
         <table id="paths-table">
@@ -307,9 +326,11 @@
       const usage = d.api_usage || {};
       const fin = d.socrata?.campaign_finance?.cache || {};
       const vote = d.socrata?.council_voting?.cache || {};
+      const syncOn = d.data_sync?.enabled;
       const cards = [
         ["Scraper", sup.running ? "Running" : "Idle", sup.running ? "ok" : ""],
         ["Scraper enabled", env.scraper_enabled ? "Yes" : "No", env.scraper_enabled ? "ok" : "warn"],
+        ["Data sync", syncOn ? "On" : "Off", syncOn ? "ok" : "warn"],
         ["API requests", String(usage.total_requests ?? 0), ""],
         ["Finance cache", fin.exists ? (fin.row_count ?? "—") + " rows" : "None", fin.stale ? "warn" : "ok"],
         ["Voting cache", vote.exists ? (vote.row_count ?? "—") + " rows" : "None", vote.stale ? "warn" : "ok"],
@@ -379,7 +400,7 @@
       const rows = [
         ["Campaign finance", soc.campaign_finance],
         ["Council voting", soc.council_voting],
-        ["Police (live)", soc.police_active_calls],
+        ["Police active calls", soc.police_active_calls],
         ["Geocode", { cache: soc.police_active_calls?.geocode_cache, dataset_id: "geocode" }],
       ];
       document.querySelector("#cache-table tbody").innerHTML = rows.map(([name, block]) => {
@@ -392,6 +413,30 @@
           <td>${isGeo ? (c?.entry_count ?? "—") : isLive ? "—" : (c?.row_count ?? "—")}</td>
           <td class="mono">${isGeo || isLive ? "—" : esc(c?.fetched_at || "—")}</td>
           <td>${isLive || isGeo ? "—" : stalePill(c?.stale, c?.exists)}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function renderDataSync(d) {
+      const sync = d.data_sync || {};
+      const jobs = sync.jobs || {};
+      const tbody = document.querySelector("#sync-table tbody");
+      const ids = Object.keys(jobs).sort();
+      if (!ids.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="muted">No sync jobs</td></tr>';
+        return;
+      }
+      tbody.innerHTML = ids.map((id) => {
+        const j = jobs[id];
+        const status = j.last_status || "—";
+        const cls = status === "success" ? "ok" : status === "error" ? "bad" : status === "running" ? "warn" : "";
+        return `<tr>
+          <td class="mono">${esc(id)}</td>
+          <td>${j.interval_sec ?? "—"}s</td>
+          <td><span class="pill ${cls}">${esc(status)}</span></td>
+          <td class="mono">${esc(j.last_finished_at || "—")}</td>
+          <td>${j.row_count ?? "—"}</td>
+          <td class="muted">${esc(j.last_error || "")}</td>
         </tr>`;
       }).join("");
     }
@@ -446,6 +491,7 @@
         renderPageApis(d);
         renderUsage(d);
         renderCaches(d);
+        renderDataSync(d);
         renderPaths(d);
         renderEnv(d);
       } catch (e) {

@@ -595,42 +595,66 @@ def _build_payload_meta(
     return meta
 
 
+def response_cache_is_stale(payload: dict[str, Any]) -> bool:
+    return response_cache_age_sec(payload) >= RESPONSE_CACHE_TTL_SEC
+
+
+def refresh_response_cache(
+    project_root: Path,
+    *,
+    limit: int = 500,
+    geocode_budget: int = 40,
+) -> dict[str, Any]:
+    """Fetch Socrata, geocode, and persist the active-calls response cache."""
+    raw_rows = fetch_active_calls(limit=limit)
+    unit_rows = len([r for r in raw_rows if r.get("incident_number")])
+    rows = [normalize_row(r) for r in raw_rows if r.get("incident_number")]
+    calls = aggregate_by_incident(rows)
+    calls = apply_geocodes_from_cache_only(calls, project_root)
+    if geocode_budget > 0:
+        calls = enrich_with_geocodes(calls, project_root, max_budget=geocode_budget)
+    meta = _build_payload_meta(
+        calls,
+        unit_rows=unit_rows,
+        from_cache=False,
+        include_dataset_meta=True,
+    )
+    payload = {"calls": calls, "meta": meta}
+    save_response_cache(project_root, payload)
+    return payload
+
+
 def get_active_calls_payload(
     project_root: Path,
     *,
     limit: int = 500,
     force_refresh: bool = False,
-    geocode_budget: int = DEFAULT_GEOCODE_BUDGET,
+    geocode_budget: int = 0,
 ) -> dict[str, Any]:
-    """Full API payload for ``GET /api/police/active-calls``."""
-    from_cache = False
-    unit_rows = 0
-    calls: list[dict[str, Any]] = []
-    cached_meta: dict[str, Any] = {}
-    cache_age_sec: Optional[float] = None
-    cached_payload: Optional[dict[str, Any]] = None
+    """Full API payload for ``GET /api/police/active-calls`` (disk-first)."""
+    if force_refresh:
+        return refresh_response_cache(
+            project_root,
+            limit=limit,
+            geocode_budget=max(geocode_budget, DEFAULT_GEOCODE_BUDGET),
+        )
 
-    if not force_refresh:
-        cached_payload = load_response_cache(project_root)
-        if cached_payload is not None:
-            cache_age_sec = response_cache_age_sec(cached_payload)
-            if cache_age_sec < RESPONSE_CACHE_TTL_SEC:
-                from_cache = True
-                calls = list(cached_payload.get("calls") or [])
-                cached_meta = dict(cached_payload.get("meta") or {})
-                unit_rows = int(cached_meta.get("unit_rows") or 0)
+    cached_payload = load_response_cache(project_root)
+    if cached_payload is not None:
+        from .data_sync import JOB_POLICE, schedule_refresh
 
-    if not from_cache:
-        raw_rows = fetch_active_calls(limit=limit)
-        unit_rows = len([r for r in raw_rows if r.get("incident_number")])
-        rows = [normalize_row(r) for r in raw_rows if r.get("incident_number")]
-        calls = aggregate_by_incident(rows)
+        if response_cache_is_stale(cached_payload):
+            schedule_refresh(project_root, JOB_POLICE)
 
-    calls = apply_geocodes_from_cache_only(calls, project_root)
-    if geocode_budget > 0:
-        calls = enrich_with_geocodes(calls, project_root, max_budget=geocode_budget)
+        calls = list(cached_payload.get("calls") or [])
+        cached_meta = dict(cached_payload.get("meta") or {})
+        unit_rows = int(cached_meta.get("unit_rows") or 0)
+        cache_age_sec = response_cache_age_sec(cached_payload)
 
-    if from_cache:
+        calls = apply_geocodes_from_cache_only(calls, project_root)
+        if geocode_budget > 0:
+            calls = enrich_with_geocodes(calls, project_root, max_budget=geocode_budget)
+
         meta = dict(cached_meta)
         meta.update(
             _build_payload_meta(
@@ -642,16 +666,23 @@ def get_active_calls_payload(
             )
         )
         meta["from_response_cache"] = True
+        meta["cache_stale"] = response_cache_is_stale(cached_payload)
         if cache_age_sec is not None:
             meta["response_cache_age_sec"] = round(cache_age_sec, 1)
-    else:
-        meta = _build_payload_meta(
-            calls,
-            unit_rows=unit_rows,
-            from_cache=False,
-            include_dataset_meta=True,
-        )
+        return {"calls": calls, "meta": meta}
 
-    payload = {"calls": calls, "meta": meta}
-    save_response_cache(project_root, payload)
-    return payload
+    from .data_sync import JOB_POLICE, schedule_refresh
+
+    schedule_refresh(project_root, JOB_POLICE, force=True)
+    return {
+        "calls": [],
+        "meta": {
+            "cache_warming": True,
+            "fetched_at": utc_now_iso(),
+            "total": 0,
+            "mapped": 0,
+            "unmapped": 0,
+            "source_url": SOURCE_PORTAL_URL,
+            "response_cache_ttl_sec": RESPONSE_CACHE_TTL_SEC,
+        },
+    }

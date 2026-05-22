@@ -6,6 +6,7 @@ Local dev binds ``127.0.0.1``; production (Hostinger VPS Docker) uses ``0.0.0.0`
 from __future__ import annotations
 
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Optional
 from urllib.parse import unquote
@@ -28,6 +29,7 @@ from .council_voting import get_votes_payload
 from .command_center import ApiUsageTracker, build_command_payload
 from .city_budget import (
     BULK_ROWS_LIMIT,
+    get_bootstrap_payload,
     get_operating_payload,
     get_revenue_payload,
     get_rows_payload,
@@ -55,7 +57,21 @@ SCRAPER_ENABLED = os.environ.get("SCRAPER_ENABLED", "1").strip().lower() in (
     "on",
 )
 
-app = FastAPI(title="Legistar Scraper Dashboard", docs_url=None, redoc_url=None)
+@asynccontextmanager
+async def _app_lifespan(_app: FastAPI):
+    from .data_sync import start_scheduler, stop_scheduler
+
+    start_scheduler(PROJECT_ROOT)
+    yield
+    stop_scheduler()
+
+
+app = FastAPI(
+    title="Legistar Scraper Dashboard",
+    docs_url=None,
+    redoc_url=None,
+    lifespan=_app_lifespan,
+)
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 API_USAGE = ApiUsageTracker()
 _static_dir = Path(__file__).parent / "static"
@@ -328,6 +344,27 @@ async def city_budget_page(request: Request) -> HTMLResponse:
         name="city_budget.html",
         context={},
     )
+
+
+@app.get("/api/city-budget/bootstrap")
+async def api_city_budget_bootstrap(
+    refresh: bool = False,
+    bfy: Optional[str] = None,
+) -> dict[str, Any]:
+    """Summary + full FY revenue/operating rows in one response (cache-backed)."""
+    try:
+        return get_bootstrap_payload(
+            PROJECT_ROOT,
+            force_refresh=refresh,
+            bfy=bfy,
+        )
+    except requests.HTTPError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Upstream Socrata error: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.get("/api/city-budget/summary")

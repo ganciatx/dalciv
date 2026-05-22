@@ -273,14 +273,24 @@ def get_cached_rows(project_root: Path, *, force_refresh: bool = False) -> dict[
     """
     Return cache document with ``rows`` list.
 
-    Refreshes from Socrata when missing, stale, or ``force_refresh``.
+    Serves disk first; refreshes synchronously only when ``force_refresh``.
+    Stale or missing caches trigger background sync when enabled.
     """
-    if not force_refresh:
-        cached = load_cache(project_root)
-        if cached and cached.get("rows") and not cache_is_stale(cached):
-            return cached
+    if force_refresh:
+        return refresh_cache(project_root)
 
-    return refresh_cache(project_root)
+    cached = load_cache(project_root)
+    if cached and cached.get("rows") is not None:
+        stale = cache_is_stale(cached)
+        from .data_sync import JOB_FINANCE, attach_cache_meta, maybe_schedule_stale
+
+        maybe_schedule_stale(project_root, JOB_FINANCE, cached, cache_is_stale)
+        return attach_cache_meta(cached, job_id=JOB_FINANCE, stale=stale)
+
+    from .data_sync import JOB_FINANCE, schedule_refresh, warming_rows_document
+
+    schedule_refresh(project_root, JOB_FINANCE, force=True)
+    return warming_rows_document("campaign_finance")
 
 
 def _parse_tx_month(tx_date: str) -> Optional[str]:
