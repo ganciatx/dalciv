@@ -2,7 +2,7 @@
 # Public HTTP/HTTPS is handled by Caddy; the app listens only on the internal network.
 services:
   caddy:
-    image: caddy:2-alpine
+    build: ./deploy/caddy
     restart: unless-stopped
     ports:
       - "80:80"
@@ -10,7 +10,6 @@ services:
     environment:
       ACME_EMAIL: "${ACME_EMAIL:-}"
     volumes:
-      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
