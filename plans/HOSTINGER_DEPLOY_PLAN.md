@@ -41,7 +41,7 @@ Publish **Sivic Scraper** on your connected Hostinger account. **Business Web Ho
 - [x] 🟩 **Step 2: Docker artifacts**
   - [x] 🟩 `Dockerfile` (Python 3.12 + Playwright Chromium)
   - [x] 🟩 `docker-compose.yml` (Caddy 80/443 → sivic 8765)
-  - [x] 🟩 `deploy/caddy/Caddyfile` (Let's Encrypt, security headers)
+  - [x] 🟩 `deploy/caddy/` (Caddyfile + Dockerfile image; required for Hostinger Docker Manager)
   - [x] 🟩 `.dockerignore`, `.env.example`
 
 - [x] 🟩 **Step 3: Hostinger account setup**
