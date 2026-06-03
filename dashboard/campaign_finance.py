@@ -986,6 +986,7 @@ def get_summary_payload(
     kind: Optional[str] = None,
     record_type: Optional[str] = None,
     q: Optional[str] = None,
+    lightweight: bool = False,
 ) -> dict[str, Any]:
     """API payload for ``GET /api/campaign-finance/summary``."""
     cached = get_cached_rows(project_root, force_refresh=force_refresh)
@@ -1006,16 +1007,17 @@ def get_summary_payload(
         q=q,
     )
     candidate_overview: Optional[dict[str, Any]] = None
-    if candidate:
+    if candidate and not lightweight:
         candidate_overview = build_candidate_overview(overview_rows, candidate)
 
-    payload = {
+    payload: dict[str, Any] = {
         "meta": {
             "fetched_at": cached.get("fetched_at"),
             "row_count": len(all_rows),
             "filtered_count": len(filtered),
             "cache_ttl_sec": CACHE_TTL_SEC,
             "from_cache": not force_refresh,
+            "lightweight": lightweight,
             **(cached.get("meta") or {}),
         },
         "filters": {
@@ -1024,11 +1026,16 @@ def get_summary_payload(
             "record_type": record_type or "",
             "q": q or "",
         },
-        "options": distinct_values(all_rows),
-        **build_summary(filtered),
+        "kpis": build_kpis(filtered),
         "candidate_overview": candidate_overview,
-        "candidate_index": build_candidate_index(all_rows) if not candidate else [],
     }
+    if lightweight:
+        payload["options"] = {"candidates": [], "record_types": []}
+        return payload
+
+    payload["options"] = distinct_values(all_rows)
+    payload.update(build_summary(filtered))
+    payload["candidate_index"] = build_candidate_index(all_rows) if not candidate else []
     return payload
 
 

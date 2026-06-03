@@ -54,6 +54,7 @@ BULK_ROWS_LIMIT = 10000  # UI full-FY load (Excel Data sheets: ~626 rev + ~779 o
 VENDOR_PAGE_SIZE = 10000
 
 _REVSOURCE_TYPE_MAP: Optional[dict[str, str]] = None
+_REVSOURCE_DISPLAY_MAP: Optional[dict[str, str]] = None
 
 
 def utc_now_iso() -> str:
@@ -132,6 +133,34 @@ def _load_revsource_type_map(project_root: Path) -> dict[str, str]:
             pass
     _REVSOURCE_TYPE_MAP = {}
     return _REVSOURCE_TYPE_MAP
+
+
+def _load_revsource_display_map(project_root: Path) -> dict[str, str]:
+    """Cryptic revsource / rsrc account code → plain-language label for the UI."""
+    global _REVSOURCE_DISPLAY_MAP
+    if _REVSOURCE_DISPLAY_MAP is not None:
+        return _REVSOURCE_DISPLAY_MAP
+    path = (
+        project_root
+        / "dashboard"
+        / "static"
+        / "dallas-budget"
+        / "revsource-display-map.json"
+    )
+    if path.is_file():
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                _REVSOURCE_DISPLAY_MAP = {
+                    str(k).strip(): str(v).strip()
+                    for k, v in data.items()
+                    if k and v
+                }
+                return _REVSOURCE_DISPLAY_MAP
+        except Exception:
+            pass
+    _REVSOURCE_DISPLAY_MAP = {}
+    return _REVSOURCE_DISPLAY_MAP
 
 
 def _infer_revtype(revsource: str) -> str:
@@ -1159,6 +1188,7 @@ def get_bootstrap_payload(
         "operating_rows_prior": op_prev,
         "revenue_total": len(rev_fy),
         "operating_total": len(op_fy),
+        "revsource_display": _load_revsource_display_map(project_root),
         "meta": {
             "cache_warming": warming,
             "revenue_fetched_at": rev_cached.get("fetched_at"),

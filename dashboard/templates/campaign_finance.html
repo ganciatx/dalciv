@@ -839,6 +839,107 @@
     .member-card.active-member {
       border-color: rgba(74, 222, 128, 0.35);
     }
+
+    .lobby-teaser {
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1.25rem;
+      background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 12%, var(--panel)), var(--panel));
+    }
+
+    .lobby-teaser h2 {
+      margin: 0 0 0.35rem;
+      font-size: 1rem;
+    }
+
+    .lobby-teaser .teaser-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      align-items: center;
+    }
+
+    .overlap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 0.65rem;
+      margin-top: 0.75rem;
+    }
+
+    .overlap-card {
+      border: 1px solid var(--border);
+      border-radius: 0.45rem;
+      padding: 0.75rem 0.85rem;
+      background: var(--bg);
+    }
+
+    .overlap-card strong {
+      display: block;
+      font-size: 0.9rem;
+      line-height: 1.3;
+      margin-bottom: 0.35rem;
+    }
+
+    .overlap-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .overlap-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .overlap-badge.lobby {
+      background: color-mix(in oklab, var(--accent) 22%, transparent);
+      color: var(--accent);
+      border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+    }
+
+    .overlap-badge.money {
+      background: color-mix(in oklab, var(--good) 18%, transparent);
+      color: var(--good);
+      border-color: color-mix(in oklab, var(--good) 35%, var(--border));
+    }
+
+    .overlap-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .lobby-search-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: flex-end;
+      margin-bottom: 0.75rem;
+    }
+
+    .lobby-search-row label {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .lobby-search-row input {
+      width: 100%;
+      margin-top: 0.25rem;
+      padding: 0.4rem 0.55rem;
+      border-radius: 0.35rem;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+    }
   </style>
 </head>
 
@@ -846,7 +947,7 @@
   <header>
     <div>
       <h1>Council accountability</h1>
-      <p id="header-sub">Campaign finance + city council voting · Loading…</p>
+      <p id="header-sub">Campaign finance + voting + lobbyist registrations · Loading…</p>
     </div>
     <div class="nav-links">
       <span class="status-pill"><span class="spinner" id="refresh-spin" hidden></span> <span
@@ -856,7 +957,8 @@
       <a class="btn-link" href="/police">Police map</a>
       <a class="btn-link" href="/city-budget">City budget</a>
       <button type="button" id="btn-refresh-finance" class="btn-link">Refresh finance</button>
-      <button type="button" id="btn-refresh-voting" class="btn-link primary">Refresh voting</button>
+      <button type="button" id="btn-refresh-voting" class="btn-link">Refresh voting</button>
+      <button type="button" id="btn-refresh-lobbyist" class="btn-link primary">Refresh lobbying</button>
     </div>
   </header>
 
@@ -878,6 +980,7 @@
     <button type="button" class="tab-btn on" data-tab="overview">Overview</button>
     <button type="button" class="tab-btn" data-tab="money">Money</button>
     <button type="button" class="tab-btn" data-tab="voting">Voting</button>
+    <button type="button" class="tab-btn" data-tab="lobbying">Lobbying</button>
     <button type="button" class="tab-btn" data-tab="transactions">Transactions</button>
   </nav>
 
@@ -908,10 +1011,27 @@
         <div class="label">Council yes rate</div>
         <div class="value" id="kpi-yes-rate">—</div>
       </div>
+      <div class="kpi">
+        <div class="label">Lobby registrations</div>
+        <div class="value" id="kpi-lobby-regs">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Lobby + campaign overlap</div>
+        <div class="value warn" id="kpi-lobby-overlap">—</div>
+      </div>
     </section>
 
 
     <div id="tab-overview" class="tab-panel on">
+    <section class="lobby-teaser insight-section" id="lobby-teaser" hidden>
+      <h2>Influence radar</h2>
+      <p class="hint" id="lobby-teaser-copy">Organizations registered to lobby Dallas City Hall that also show up in campaign finance filings.</p>
+      <div class="overlap-grid" id="lobby-teaser-overlap"></div>
+      <div class="teaser-actions">
+        <button type="button" class="btn-link primary" id="btn-open-lobby-tab">Explore lobbying data</button>
+        <span class="hint" id="lobby-teaser-meta"></span>
+      </div>
+    </section>
     <section class="insight-section" id="member-index-section">
       <h2>Browse council members</h2>
       <p class="hint">Active councilmembers (with photos) are listed first by district. Click a card or photo for an in-app profile; on the profile, the photo links to the district City Hall page.</p>
@@ -943,6 +1063,11 @@
         </div>
       </div>
       <div id="profile-finance-wrap"></div>
+      <section class="insight-section" id="profile-lobby-block" hidden>
+        <h3 style="margin:.75rem 0 .35rem;font-size:.85rem">Lobbying overlap</h3>
+        <p class="hint">Campaign donors or vendors tied to this member who are also registered to lobby the city.</p>
+        <div class="overlap-grid" id="profile-lobby-overlap"></div>
+      </section>
     </section>
     </div>
 
@@ -1184,6 +1309,45 @@
     </section>
     </div>
 
+    <div id="tab-lobbying" class="tab-panel">
+    <section class="insight-section">
+      <h2>Who is lobbying City Hall?</h2>
+      <p class="hint">Dallas requires lobbyists to register clients with the city. This tab links those registrations to campaign money — same players, two channels of influence. Not legal advice; names are matched heuristically.</p>
+      <div class="overview-kpis" id="lobby-kpis"></div>
+      <h3 style="margin:1.25rem 0 .5rem;font-size:.9rem">Influence overlap</h3>
+      <p class="hint">Entities that both lobby and appear in campaign finance (contributions or expenditures).</p>
+      <div class="overlap-grid" id="lobby-overlap-grid"></div>
+      <h3 style="margin:1.25rem 0 .5rem;font-size:.9rem">Top lobbying clients</h3>
+      <div class="chart-wrap compact"><canvas id="chart-lobby-clients"></canvas></div>
+      <h3 style="margin:1.25rem 0 .5rem;font-size:.9rem">Search registrations</h3>
+      <div class="lobby-search-row">
+        <label>Filter
+          <input type="search" id="lobby-q" placeholder="Lobbyist or client name…" />
+        </label>
+        <button type="button" class="btn-link" id="btn-lobby-search">Search</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Sworn</th>
+              <th>Lobbyist</th>
+              <th>Client</th>
+              <th>Report</th>
+              <th>PDF</th>
+            </tr>
+          </thead>
+          <tbody id="lobby-table-body"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button type="button" id="lobby-prev" disabled>Previous</button>
+        <span id="lobby-pager-info">—</span>
+        <button type="button" id="lobby-next" disabled>Next</button>
+      </div>
+    </section>
+    </div>
+
     <div id="tab-transactions" class="tab-panel">
     <section class="table-section">
       <h2>Transactions <span id="table-count" style="font-weight:400;color:var(--muted)"></span></h2>
@@ -1217,7 +1381,9 @@
     <a href="https://www.dallasopendata.com/Services/Campaign-Finance/ndxz-gccx/data_preview" target="_blank" rel="noopener">Campaign Finance</a>
     ·
     <a href="https://www.dallasopendata.com/Services/Dallas-City-Council-Voting-Record/ts5d-gdq6/data_preview" target="_blank" rel="noopener">Council Voting Record</a>
-    · Cached locally (finance ~1h, voting ~24h). Not legal advice.
+    ·
+    <a href="https://www.dallasopendata.com/Services/Lobbyist-Registration/ffkm-63hd/about_data" target="_blank" rel="noopener">Lobbyist Registration</a>
+    · Cached locally (finance ~1h, voting & lobbying ~24h). Not legal advice.
   </footer>
 
   <script>
@@ -1229,6 +1395,10 @@
     let chartCandidateMonthly = null;
     let chartVoteYearly = null;
     let chartVotingYearly = null;
+    let chartLobbyClients = null;
+    let lobbyOffset = 0;
+    let lobbyTotal = 0;
+    const LOBBY_PAGE = 40;
     let tableOffset = 0;
     let tableTotal = 0;
     let tableRows = [];
@@ -1552,7 +1722,7 @@
       });
       if (tab === "money" && !tabsLoaded.has("money")) {
         tabsLoaded.add("money");
-        loadTransactions(false);
+        loadFinance(false);
       }
       if (tab === "voting" && !tabsLoaded.has("voting")) {
         tabsLoaded.add("voting");
@@ -1562,6 +1732,156 @@
           loadVotes(false);
         }
       }
+      if (tab === "lobbying" && !tabsLoaded.has("lobbying")) {
+        tabsLoaded.add("lobbying");
+        loadLobbyist(false);
+      }
+    }
+
+    function renderOverlapCards(containerId, rows, opts = {}) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      const compact = opts.compact === true;
+      if (!rows?.length) {
+        el.innerHTML = `<p class="hint" style="grid-column:1/-1">${escapeHtml(opts.empty || "No overlaps found.")}</p>`;
+        return;
+      }
+      el.innerHTML = rows.map((r) => {
+        const lobbyists = (r.lobbyists || []).slice(0, compact ? 1 : 2).join(", ");
+        const cands = (r.candidates || []).slice(0, 3).join(", ");
+        const contributed = r.campaign_contributed || 0;
+        const received = r.campaign_received || 0;
+        const memberAmt = r.campaign_amount;
+        return `<article class="overlap-card">
+          <div class="overlap-badges">
+            <span class="overlap-badge lobby">Lobbies city</span>
+            <span class="overlap-badge money">Campaign $</span>
+          </div>
+          <strong>${escapeHtml(r.entity)}</strong>
+          <div class="overlap-meta">
+            ${r.lobby_registrations ? `${r.lobby_registrations} registration(s)` : ""}
+            ${lobbyists ? ` · via ${escapeHtml(lobbyists)}` : ""}
+            ${memberAmt != null ? `<br/>To this member: ${money(memberAmt)} (${escapeHtml(r.campaign_kind || "")})` : ""}
+            ${contributed || received ? `<br/>Campaign finance: ${contributed ? `gave ${money(contributed)}` : ""}${contributed && received ? " · " : ""}${received ? `received ${money(received)}` : ""}` : ""}
+            ${cands && !compact ? `<br/>Candidates: ${escapeHtml(cands)}` : ""}
+          </div>
+        </article>`;
+      }).join("");
+    }
+
+    function renderLobbyTeaser(summary) {
+      const teaser = document.getElementById("lobby-teaser");
+      const s = summary || {};
+      const overlaps = s.influence_overlap || [];
+      if (!s.registration_count) {
+        teaser.hidden = true;
+        return;
+      }
+      teaser.hidden = document.getElementById("combined-overview")?.hidden === false;
+      document.getElementById("kpi-lobby-regs").textContent = s.registration_count ?? "—";
+      const overlapN = s.overlap_count ?? overlaps.length;
+      document.getElementById("kpi-lobby-overlap").textContent =
+        overlapN == null ? "—" : overlapN;
+      document.getElementById("lobby-teaser-meta").textContent =
+        `${s.lobbyist_firm_count ?? "—"} lobbyist firms · ${s.client_count ?? "—"} clients`;
+      renderOverlapCards("lobby-teaser-overlap", overlaps.slice(0, 4), {
+        compact: true,
+        empty: "No name matches between lobbying clients and campaign finance yet.",
+      });
+    }
+
+    function renderLobbyTab(body) {
+      const s = body.summary || {};
+      document.getElementById("kpi-lobby-regs").textContent = s.registration_count ?? "—";
+      document.getElementById("kpi-lobby-overlap").textContent = s.overlap_count ?? "—";
+      const kpis = document.getElementById("lobby-kpis");
+      kpis.innerHTML = `
+        <div class="overview-kpi"><div class="label">Registrations</div><div class="value">${s.registration_count ?? "—"}</div></div>
+        <div class="overview-kpi"><div class="label">Lobbyist firms</div><div class="value">${s.lobbyist_firm_count ?? "—"}</div></div>
+        <div class="overview-kpi"><div class="label">Clients</div><div class="value">${s.client_count ?? "—"}</div></div>
+        <div class="overview-kpi"><div class="label">New (30 days)</div><div class="value good">${s.registrations_last_30d ?? "—"}</div></div>`;
+      renderOverlapCards("lobby-overlap-grid", s.influence_overlap || [], {
+        empty: "No entities matched across both datasets.",
+      });
+      const clients = s.top_clients || [];
+      const ctx = document.getElementById("chart-lobby-clients");
+      if (chartLobbyClients) chartLobbyClients.destroy();
+      if (clients.length && ctx) {
+        chartLobbyClients = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: clients.map((c) => c.client),
+            datasets: [{
+              label: "Registrations",
+              data: clients.map((c) => c.registrations),
+              backgroundColor: cssVar("--accent"),
+              borderRadius: 4,
+            }],
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+          },
+        });
+      }
+      const tbody = document.getElementById("lobby-table-body");
+      const rows = body.registrations || [];
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted)">No registrations.</td></tr>`;
+      } else {
+        tbody.innerHTML = rows.map((r) => `<tr>
+          <td>${escapeHtml(formatDate(r.sworn_date))}</td>
+          <td>${escapeHtml(r.lobbyist_name)}</td>
+          <td>${escapeHtml(r.client_name)}</td>
+          <td>${escapeHtml(r.report_description || "—")}</td>
+          <td>${r.report_link ? `<a href="${escapeHtml(r.report_link)}" target="_blank" rel="noopener">PDF</a>` : "—"}</td>
+        </tr>`).join("");
+      }
+      lobbyTotal = body.registrations_total ?? 0;
+      const start = lobbyOffset + 1;
+      const end = Math.min(lobbyOffset + LOBBY_PAGE, lobbyTotal);
+      document.getElementById("lobby-pager-info").textContent =
+        lobbyTotal ? `Showing ${start}–${end} of ${lobbyTotal}` : "No rows";
+      document.getElementById("lobby-prev").disabled = lobbyOffset <= 0;
+      document.getElementById("lobby-next").disabled = lobbyOffset + LOBBY_PAGE >= lobbyTotal;
+    }
+
+    function lobbyParams(refresh) {
+      const p = new URLSearchParams();
+      if (refresh) p.set("refresh", "true");
+      const mid = selectedMemberId || document.getElementById("filter-member").value;
+      if (mid) p.set("member", mid);
+      const q = document.getElementById("lobby-q")?.value?.trim();
+      if (q) p.set("q", q);
+      p.set("limit", String(LOBBY_PAGE));
+      p.set("offset", String(lobbyOffset));
+      return p;
+    }
+
+    async function loadLobbyist(refresh) {
+      const res = await fetch(`/api/lobbyist-registration/summary?${lobbyParams(refresh)}`);
+      if (!res.ok) throw new Error(await res.text());
+      const body = await res.json();
+      renderLobbyTeaser(body.summary);
+      if (activeTab === "lobbying" || tabsLoaded.has("lobbying")) {
+        renderLobbyTab(body);
+      }
+      return body;
+    }
+
+    async function loadLobbyistSummaryOnly(refresh = false) {
+      const p = new URLSearchParams();
+      if (refresh) p.set("refresh", "true");
+      p.set("lightweight", "true");
+      p.set("limit", "1");
+      p.set("offset", "0");
+      const res = await fetch(`/api/lobbyist-registration/summary?${p}`);
+      if (!res.ok) throw new Error(await res.text());
+      const body = await res.json();
+      renderLobbyTeaser(body.summary);
+      return body;
     }
 
     function memberInitials(name) {
@@ -1801,6 +2121,18 @@
       } else {
         wrap.innerHTML = `<p class="hint">No campaign finance filings linked to this member.</p>`;
       }
+
+      const lobbyBlock = document.getElementById("profile-lobby-block");
+      const overlaps = body.lobbyist_overlap || [];
+      if (overlaps.length) {
+        lobbyBlock.hidden = false;
+        renderOverlapCards("profile-lobby-overlap", overlaps, {
+          compact: true,
+          empty: "No lobbying overlap for this member.",
+        });
+      } else {
+        lobbyBlock.hidden = true;
+      }
     }
 
     async function loadDirectory(refreshFinance, refreshVoting) {
@@ -1828,17 +2160,7 @@
       const res = await fetch(`/api/council-voting/summary?${p}`);
       if (!res.ok) throw new Error(await res.text());
       const body = await res.json();
-      fillVoteFilterOptions(body.vote_filter_options);
-      const g = body.global_kpis || {};
-      document.getElementById("kpi-vote-records").textContent = g.total_records ?? "—";
-      document.getElementById("kpi-yes-rate").textContent = pctRate(g.yes_rate);
-      const dr = body.date_range_defaults || {};
-      if (!document.getElementById("vote-from").value && dr.from) {
-        document.getElementById("vote-from").value = dr.from.slice(0, 10);
-      }
-      if (!document.getElementById("vote-to").value && dr.to) {
-        document.getElementById("vote-to").value = dr.to.slice(0, 10);
-      }
+      applyVotingOverview(body);
       return body;
     }
 
@@ -2111,7 +2433,7 @@
       }
     }
 
-    function applySummary(body) {
+    function applyFinanceKpis(body) {
       const meta = body.meta || {};
       const kpis = body.kpis || {};
       document.getElementById("kpi-raised").textContent = money(kpis.total_contributions);
@@ -2119,12 +2441,16 @@
       document.getElementById("kpi-txns").textContent =
         (kpis.contribution_transactions || 0) + (kpis.expenditure_transactions || 0);
       document.getElementById("kpi-candidates").textContent = kpis.unique_candidates ?? "—";
-
       const sub = [
         `${meta.filtered_count ?? 0} rows match filters (${meta.row_count ?? 0} total)`,
         meta.fetched_at ? `cached ${new Date(meta.fetched_at).toLocaleString()}` : null,
       ].filter(Boolean).join(" • ");
       document.getElementById("header-sub").textContent = sub;
+    }
+
+    function applySummary(body) {
+      applyFinanceKpis(body);
+      if (body.meta?.lightweight) return;
 
       const charts = body.charts || {};
       renderBarChart("chart-contrib", charts.top_contributions || [], "Contributions", cssVar("--good"));
@@ -2146,6 +2472,43 @@
         document.getElementById("candidate-overview").hidden = true;
         renderCandidateIndex(body.candidate_index || []);
       }
+    }
+
+    function applyVotingOverview(body) {
+      fillVoteFilterOptions(body.vote_filter_options);
+      const g = body.global_kpis || {};
+      document.getElementById("kpi-vote-records").textContent = g.total_records ?? "—";
+      document.getElementById("kpi-yes-rate").textContent = pctRate(g.yes_rate);
+      const dr = body.date_range_defaults || {};
+      if (!document.getElementById("vote-from").value && dr.from) {
+        document.getElementById("vote-from").value = dr.from.slice(0, 10);
+      }
+      if (!document.getElementById("vote-to").value && dr.to) {
+        document.getElementById("vote-to").value = dr.to.slice(0, 10);
+      }
+    }
+
+    async function loadBootstrap(refreshFinance, refreshVoting) {
+      const p = new URLSearchParams();
+      if (refreshFinance) p.set("refresh_finance", "true");
+      if (refreshVoting) p.set("refresh_voting", "true");
+      const res = await fetch(`/api/council-accountability/bootstrap?${p}`);
+      if (!res.ok) throw new Error(await res.text());
+      const body = await res.json();
+      const dir = body.directory || {};
+      renderMemberDirectory(dir.members || []);
+      const dr = (dir.meta || {}).date_range_defaults || {};
+      if (!document.getElementById("vote-from").value && dr.from) {
+        document.getElementById("vote-from").value = dr.from.slice(0, 10);
+      }
+      if (!document.getElementById("vote-to").value && dr.to) {
+        document.getElementById("vote-to").value = dr.to.slice(0, 10);
+      }
+      applyVotingOverview(body.voting || {});
+      applyFinanceKpis(body.finance || {});
+      const lobby = body.lobbyist || {};
+      renderLobbyTeaser(lobby.summary || {});
+      return body;
     }
 
     function sortRows(rows) {
@@ -2204,8 +2567,9 @@
       renderTable(body.transactions || [], tableTotal);
     }
 
-    async function loadFinanceSummaryOnly(refresh = false) {
+    async function loadFinanceSummaryOnly(refresh = false, lightweight = false) {
       const p = filterParams(refresh);
+      if (lightweight) p.set("lightweight", "true");
       const res = await fetch(`/api/campaign-finance/summary?${p}`);
       if (!res.ok) throw new Error(await res.text());
       applySummary(await res.json());
@@ -2224,11 +2588,7 @@
       try {
         tabsLoaded.clear();
         tabsLoaded.add("overview");
-        await Promise.all([
-          loadDirectory(refreshFinance, refreshVoting),
-          loadVotingSummary(refreshVoting),
-          loadFinanceSummaryOnly(refreshFinance),
-        ]);
+        await loadBootstrap(refreshFinance, refreshVoting);
         if (selectedMemberId || document.getElementById("filter-member").value) {
           await loadMemberProfile(refreshFinance || refreshVoting);
         }
@@ -2243,6 +2603,10 @@
           } else {
             await loadVotes(false);
           }
+        }
+        if (activeTab === "lobbying") {
+          tabsLoaded.add("lobbying");
+          await loadLobbyist(refreshFinance || refreshVoting);
         }
         document.getElementById("refresh-text").textContent =
           `Updated ${new Date().toLocaleTimeString()}`;
@@ -2319,6 +2683,38 @@
 
     document.getElementById("btn-refresh-finance").addEventListener("click", () => bootstrap(true, false));
     document.getElementById("btn-refresh-voting").addEventListener("click", () => bootstrap(false, true));
+    document.getElementById("btn-refresh-lobbyist").addEventListener("click", async () => {
+      setRefreshing(true);
+      try {
+        await loadLobbyist(true);
+        document.getElementById("refresh-text").textContent =
+          `Updated ${new Date().toLocaleTimeString()}`;
+      } catch (err) {
+        console.error(err);
+        document.getElementById("header-sub").textContent = String(err);
+      } finally {
+        setRefreshing(false);
+      }
+    });
+    document.getElementById("btn-open-lobby-tab")?.addEventListener("click", () => setActiveTab("lobbying"));
+    document.getElementById("btn-lobby-search")?.addEventListener("click", () => {
+      lobbyOffset = 0;
+      loadLobbyist(false);
+    });
+    document.getElementById("lobby-q")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        lobbyOffset = 0;
+        loadLobbyist(false);
+      }
+    });
+    document.getElementById("lobby-prev")?.addEventListener("click", () => {
+      lobbyOffset = Math.max(0, lobbyOffset - LOBBY_PAGE);
+      loadLobbyist(false);
+    });
+    document.getElementById("lobby-next")?.addEventListener("click", () => {
+      lobbyOffset += LOBBY_PAGE;
+      loadLobbyist(false);
+    });
     document.getElementById("btn-prev").addEventListener("click", () => {
       tableOffset = Math.max(0, tableOffset - PAGE_SIZE);
       loadTransactions(false);

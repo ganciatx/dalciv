@@ -19,6 +19,7 @@ from fastapi.templating import Jinja2Templates
 
 from .campaign_finance import get_summary_payload, get_transactions_payload
 from .council_accountability import (
+    get_bootstrap_payload as get_council_bootstrap_payload,
     get_directory_payload,
     get_member_profile_payload,
 )
@@ -26,10 +27,11 @@ from .council_voting import get_agenda_item_payload
 from .council_voting import get_agenda_items_payload
 from .council_voting import get_summary_payload as get_voting_summary_payload
 from .council_voting import get_votes_payload
+from .lobbyist_registration import get_summary_payload as get_lobbyist_summary_payload
 from .command_center import ApiUsageTracker, build_command_payload
 from .city_budget import (
     BULK_ROWS_LIMIT,
-    get_bootstrap_payload,
+    get_bootstrap_payload as get_city_budget_bootstrap_payload,
     get_operating_payload,
     get_revenue_payload,
     get_rows_payload,
@@ -75,6 +77,31 @@ app = FastAPI(
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 API_USAGE = ApiUsageTracker()
 _static_dir = Path(__file__).parent / "static"
+_city_budget_sim_js = _static_dir / "city-budget-simulator/assets/index.js"
+CITY_BUDGET_SIM_ASSET_VERSION = (
+    int(_city_budget_sim_js.stat().st_mtime) if _city_budget_sim_js.is_file() else 0
+)
+_time_timer_js = _static_dir / "time-timer/assets/index.js"
+TIME_TIMER_ASSET_VERSION = (
+    int(_time_timer_js.stat().st_mtime) if _time_timer_js.is_file() else 0
+)
+
+
+def _city_budget_asset_version() -> int:
+    """Cache-bust Dallas budget JS when build or display-map changes."""
+    stamps: list[int] = []
+    for rel in (
+        "dallas-budget/budget-build.js",
+        "dallas-budget/data-live.js",
+        "dallas-budget/revsource-display-map.json",
+    ):
+        path = _static_dir / rel
+        if path.is_file():
+            stamps.append(int(path.stat().st_mtime))
+    return max(stamps) if stamps else 0
+
+
+CITY_BUDGET_ASSET_VERSION = _city_budget_asset_version()
 if _static_dir.is_dir():
     app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 
@@ -118,6 +145,7 @@ async def api_campaign_finance_summary(
     kind: Optional[str] = None,
     record_type: Optional[str] = None,
     q: Optional[str] = None,
+    lightweight: bool = False,
 ) -> dict[str, Any]:
     """KPIs, chart series, and filter options (optional filters narrow charts)."""
     try:
@@ -128,6 +156,7 @@ async def api_campaign_finance_summary(
             kind=kind,
             record_type=record_type,
             q=q,
+            lightweight=lightweight,
         )
     except requests.HTTPError as exc:
         raise HTTPException(
@@ -282,6 +311,27 @@ async def api_council_voting_agenda_item(
     return payload
 
 
+@app.get("/api/council-accountability/bootstrap")
+async def api_council_accountability_bootstrap(
+    refresh_finance: bool = False,
+    refresh_voting: bool = False,
+) -> dict[str, Any]:
+    """Overview load: directory + lightweight finance, voting, and lobby summaries."""
+    try:
+        return get_council_bootstrap_payload(
+            PROJECT_ROOT,
+            force_refresh_finance=refresh_finance,
+            force_refresh_voting=refresh_voting,
+        )
+    except requests.HTTPError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Upstream Socrata error: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
 @app.get("/api/council-accountability/directory")
 async def api_council_accountability_directory(
     refresh_finance: bool = False,
@@ -336,13 +386,62 @@ async def api_council_accountability_member(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
+@app.get("/api/lobbyist-registration/summary")
+async def api_lobbyist_registration_summary(
+    refresh: bool = False,
+    member: Optional[str] = None,
+    q: Optional[str] = None,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    lightweight: bool = False,
+) -> dict[str, Any]:
+    """Lobbyist registrations + campaign-finance influence overlap."""
+    try:
+        return get_lobbyist_summary_payload(
+            PROJECT_ROOT,
+            force_refresh=refresh,
+            member_id=member,
+            q=q,
+            limit=limit,
+            offset=offset,
+            lightweight=lightweight,
+        )
+    except requests.HTTPError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Upstream Socrata error: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
 @app.get("/city-budget", response_class=HTMLResponse)
 async def city_budget_page(request: Request) -> HTMLResponse:
     """City Budget: revenue + operating budget dashboards (Socrata)."""
     return templates.TemplateResponse(
         request=request,
         name="city_budget.html",
-        context={},
+        context={"asset_version": CITY_BUDGET_ASSET_VERSION},
+    )
+
+
+@app.get("/city-budget-simulator", response_class=HTMLResponse)
+async def city_budget_simulator_page(request: Request) -> HTMLResponse:
+    """Turn-based city budget game (client-side simulation)."""
+    return templates.TemplateResponse(
+        request=request,
+        name="city_budget_simulator.html",
+        context={"asset_version": CITY_BUDGET_SIM_ASSET_VERSION},
+    )
+
+
+@app.get("/time-timer", response_class=HTMLResponse)
+async def time_timer_page(request: Request) -> HTMLResponse:
+    """Visual countdown timer (Time Timer-style red disk)."""
+    return templates.TemplateResponse(
+        request=request,
+        name="time_timer.html",
+        context={"asset_version": TIME_TIMER_ASSET_VERSION},
     )
 
 
@@ -353,7 +452,7 @@ async def api_city_budget_bootstrap(
 ) -> dict[str, Any]:
     """Summary + full FY revenue/operating rows in one response (cache-backed)."""
     try:
-        return get_bootstrap_payload(
+        return get_city_budget_bootstrap_payload(
             PROJECT_ROOT,
             force_refresh=refresh,
             bfy=bfy,

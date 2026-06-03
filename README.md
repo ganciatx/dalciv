@@ -8,6 +8,8 @@ Four capabilities:
 4. **Police active-calls map** — **`/police`** page: Leaflet map of [Dallas Police Active Calls](https://www.dallasopendata.com/Public-Safety/Dallas-Police-Active-Calls/9fxf-t2tr/data_preview) via Socrata + cached Nominatim geocoding.
 5. **Council accountability** — **`/council-accountability`**: campaign finance + council voting (see plans).
 6. **City budget** — **`/city-budget`**: interactive revenue and operating budget dashboards from Dallas Open Data.
+7. **City budget simulator** — **`/city-budget-simulator`**: turn-based fiscal policy game (client-side; see `city-budget-simulator-spec.md`).
+8. **Time Timer** — **`/time-timer`**: visual 60-minute countdown (Time Timer®-style shrinking red disk; client-side).
 
 Plans: **`plans/`** (e.g. **`CAMPAIGN_FINANCE_PLAN.md`**, **`COUNCIL_ACCOUNTABILITY_PLAN.md`**). Further manifest fields: **`issues/ISSUE-more-file-identifying-metadata.md`**.
 
@@ -58,7 +60,7 @@ python dallas_legistar_scraper.py
 python -m dashboard
 ```
 
-Open **http://127.0.0.1:8765** (app portal), **http://127.0.0.1:8765/council-meetings** (Legistar), **http://127.0.0.1:8765/police** (active calls), **http://127.0.0.1:8765/council-accountability** (finance + voting), or **http://127.0.0.1:8765/city-budget** (revenue + operating budget).
+Open **http://127.0.0.1:8765** (app portal), **http://127.0.0.1:8765/council-meetings** (Legistar), **http://127.0.0.1:8765/police** (active calls), **http://127.0.0.1:8765/council-accountability** (finance + voting), **http://127.0.0.1:8765/city-budget** (revenue + operating budget), **http://127.0.0.1:8765/city-budget-simulator** (budget game), or **http://127.0.0.1:8765/time-timer** (visual countdown).
 
 | Control | Action |
 |---------|--------|
@@ -118,18 +120,42 @@ Interactive dashboard for **revenue**, **operating** adopted budgets, and **vend
 
 ---
 
+## City budget simulator (`/city-budget-simulator`)
+
+Educational turn-based game: balance revenue and spending, manage delayed consequences (maintenance, pensions, taxes), and survive elections over a 30-year term.
+
+- **Scenarios**: Sun Belt Boom, Rust Belt Reckoning, Coastal Squeeze, Fiscal Precipice, Greenfield — plus **sandbox** (15 years) and **hard** difficulty.
+- **Systems**: Credit-rated bond caps, random shocks, housing policies, pension reforms, **3 city districts**, **named council voices**, **achievements & challenge runs**, weighted elections, newspaper feed, history charts, policy explainer toggle, end-of-term letter grades.
+- **Simulation**: Pure TypeScript in `city-budget-simulator/src/simulation/` (`simulateTurn`, event queue). Vitest: `cd city-budget-simulator && npm test`.
+- **UI**: React 18 + Zustand, built with Vite into `dashboard/static/city-budget-simulator/`.
+- **Build** (after UI changes): `cd city-budget-simulator && npm install && npm run build`.
+- **Save**: Browser `localStorage` (no server API).
+
+---
+
+## Time Timer (`/time-timer`)
+
+Digital version of the [Time Timer® Original 12″](https://www.timetimer.com/collections/all-1/products/time-timer-12-inch): a red disk on a 60-minute dial shrinks clockwise from 12 o'clock as time elapses. Silent while running; optional tone at zero.
+
+- **UI**: React 18, Vite bundle in `dashboard/static/time-timer/`.
+- **Build** (after UI changes): `cd time-timer && npm install && npm run build`.
+
+---
+
 ## Council accountability (`/council-accountability`)
 
-Unified dashboard for **campaign finance** and **city council voting**:
+Unified dashboard for **campaign finance**, **city council voting**, and **lobbyist registration**:
 
 | Dataset | Socrata ID | Cache file | TTL |
 |---------|------------|------------|-----|
 | [Campaign Finance](https://www.dallasopendata.com/Services/Campaign-Finance/ndxz-gccx/data_preview) | `ndxz-gccx` | `scraper_dashboard_data/campaign_finance_cache.json` | ~1h |
 | [Council Voting Record](https://www.dallasopendata.com/Services/Dallas-City-Council-Voting-Record/ts5d-gdq6/data_preview) | `ts5d-gdq6` | `scraper_dashboard_data/council_voting_cache.json` | ~24h |
+| [Lobbyist Registration](https://www.dallasopendata.com/Services/Lobbyist-Registration/ffkm-63hd/about_data) | `ffkm-63hd` | `scraper_dashboard_data/lobbyist_registration_cache.json` | ~24h |
 
 - **Member-centric UI**: merged directory links finance `candidate_name` ↔ voting `voter_name` (normalized + alias map).
-- **Tabs**: Overview (combined profile) · Money (KPIs, charts, insights) · Voting (roll-call table, yes/participation stats) · Transactions (PDF links).
-- **Refresh finance** / **Refresh voting** buttons re-fetch each dataset independently (first voting refresh may take several minutes — ~189k rows).
+- **Influence overlap**: entities that both lobby the city (registered clients) and appear in campaign finance (heuristic name match).
+- **Tabs**: Overview (combined profile + influence radar teaser) · Money · Voting · **Lobbying** (registrations, overlap, search) · Transactions (PDF links).
+- **Refresh finance** / **Refresh voting** / **Refresh lobbying** buttons re-fetch each dataset independently (first voting refresh may take several minutes — ~189k rows).
 - Chart.js for money and yes/no-by-year charts.
 
 ---
@@ -143,6 +169,8 @@ Unified dashboard for **campaign finance** and **city council voting**:
 | GET | `/police` | Police active-calls map |
 | GET | `/api/police/active-calls` | Socrata proxy + geocoded calls |
 | GET | `/city-budget` | City budget UI |
+| GET | `/city-budget-simulator` | City budget simulator game (static bundle) |
+| GET | `/time-timer` | Visual countdown timer (static bundle) |
 | GET | `/api/city-budget/summary` | Overview KPIs + fund comparison; `bfy`, `ftyp`, `fundtype`, `refresh`, `refresh_revenue`, `refresh_operating` |
 | GET | `/api/city-budget/revenue` | Revenue chart series; `refresh`, filters |
 | GET | `/api/city-budget/operating` | Operating chart series; `refresh`, filters |
@@ -157,6 +185,7 @@ Unified dashboard for **campaign finance** and **city council voting**:
 | GET | `/api/council-voting/agenda-item` | One roll call + member votes; `roll_call_id` |
 | GET | `/api/council-accountability/directory` | Merged member list (`refresh_finance`, `refresh_voting`) |
 | GET | `/api/council-accountability/member` | Combined profile for one `member` id |
+| GET | `/api/lobbyist-registration/summary` | Lobbyist KPIs, overlap, registrations; `refresh`, `member`, `q`, `limit`, `offset` |
 | GET | `/api/campaign-finance/transactions` | Paginated rows; same filters + `limit` / `offset` |
 | GET | `/api/state` | Scrape running / PID |
 | POST | `/api/start` \| `/api/stop` | Control scraper |
@@ -238,6 +267,7 @@ dashboard/
   campaign_finance.py     # Campaign finance Socrata + cache + aggregates
   council_voting.py       # Council voting record (~189k rows) + cache
   council_accountability.py  # Member directory + combined profiles
+  lobbyist_registration.py   # Lobbyist registrations + finance overlap
   city_budget.py           # Revenue + operating budget Socrata + cache
   templates/index.html
   templates/city_budget.html

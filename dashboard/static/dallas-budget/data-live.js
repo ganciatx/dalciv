@@ -41,10 +41,23 @@
       );
     }
 
+    let displayMap = boot.revsource_display;
+    if (!displayMap || typeof displayMap !== "object") {
+      try {
+        displayMap = await fetchJson(
+          "/static/dallas-budget/revsource-display-map.json"
+        );
+      } catch (_) {
+        displayMap = {};
+      }
+    }
+    window.REVSOURCE_DISPLAY_MAP = displayMap;
+
     window.BUDGET_DATA = window.buildBudgetData(revRows, opRows, revPrev, opPrev, {
       fy,
       population: POP,
       households: HOUSEHOLDS,
+      displayMap,
       source: "dallas-opendata-live",
       fetchedAt:
         boot.meta?.revenue_fetched_at ||

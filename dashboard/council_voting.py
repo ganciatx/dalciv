@@ -319,8 +319,113 @@ def summary_sidecar_matches_cache(
     )
 
 
+def _voting_cache_mtime(project_root: Path) -> Optional[float]:
+    path = cache_path(project_root)
+    if not path.is_file():
+        return None
+    return path.stat().st_mtime
+
+
+def sidecar_matches_voting_cache_file(
+    sidecar: dict[str, Any], project_root: Path
+) -> bool:
+    """Fast staleness check without parsing the full voting cache."""
+    stored = sidecar.get("voting_cache_mtime")
+    current = _voting_cache_mtime(project_root)
+    if stored is not None and current is not None:
+        return abs(float(stored) - float(current)) < 0.001
+    path = cache_path(project_root)
+    if not path.is_file():
+        return False
+    try:
+        head = path.read_text(encoding="utf-8")[:4096]
+        marker = '"fetched_at":'
+        if marker not in head:
+            return False
+        frag = head.split(marker, 1)[1].strip()
+        if frag.startswith('"'):
+            fetched = frag.split('"', 2)[1]
+            return str(sidecar.get("source_fetched_at") or "") == fetched
+    except Exception:
+        pass
+    return False
+
+
+def build_directory_voting_index(
+    rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """
+    Single-pass voting metadata for the council member directory.
+
+    Avoids loading the full voting cache on every ``/directory`` request.
+    """
+    voting_members: dict[str, dict[str, Any]] = {}
+    member_summaries: list[dict[str, Any]] = []
+    buckets: dict[str, dict[str, Any]] = {}
+
+    for row in rows:
+        mid = str(row.get("member_id") or "").strip().lower()
+        if not mid:
+            continue
+        if mid not in voting_members:
+            voting_members[mid] = {
+                "member_id": mid,
+                "display_name": row.get("member_canonical") or row.get("member_name") or "",
+                "voting_names": [],
+                "districts": [],
+            }
+            buckets[mid] = {
+                "yes": 0,
+                "no": 0,
+                "total": 0,
+                "display_name": voting_members[mid]["display_name"],
+                "districts": set(),
+                "voting_names": set(),
+            }
+        bucket = buckets[mid]
+        meta = voting_members[mid]
+        if row.get("member_name"):
+            bucket["voting_names"].add(str(row["member_name"]))
+        if row.get("district"):
+            bucket["districts"].add(str(row["district"]))
+        bucket["total"] += 1
+        cat = row.get("vote_category")
+        if cat == "cast_yes":
+            bucket["yes"] += 1
+        elif cat == "cast_no":
+            bucket["no"] += 1
+
+    for mid, bucket in buckets.items():
+        cast = bucket["yes"] + bucket["no"]
+        total = bucket["total"]
+        districts = sorted(bucket["districts"], key=lambda x: (len(x), x))
+        names = sorted(n for n in bucket["voting_names"] if n)
+        voting_members[mid] = {
+            "member_id": mid,
+            "display_name": bucket["display_name"] or mid,
+            "voting_names": names,
+            "districts": districts,
+        }
+        member_summaries.append(
+            {
+                "member_id": mid,
+                "display_name": bucket["display_name"] or mid,
+                "districts": districts,
+                "yes_rate": round(bucket["yes"] / cast, 3) if cast else None,
+                "participation_rate": round(cast / total, 3) if total else None,
+                "records": total,
+            }
+        )
+
+    member_summaries.sort(key=lambda x: x.get("records", 0), reverse=True)
+    return {
+        "voting_members": voting_members,
+        "member_summaries": member_summaries,
+    }
+
+
 def refresh_voting_summary_sidecar(project_root: Path) -> None:
-    """Persist lightweight overview KPIs so Overview avoids scanning all rows."""
+    """Persist lightweight overview KPIs + directory voting index."""
     cached = load_cache(project_root)
     rows: list[dict[str, Any]] = (cached or {}).get("rows") or []
     if not rows:
@@ -328,8 +433,11 @@ def refresh_voting_summary_sidecar(project_root: Path) -> None:
     dr = default_date_range(rows)
     f = dr.get("from")
     t = dr.get("to")
+    directory_index = build_directory_voting_index(rows)
+    cache_mtime = _voting_cache_mtime(project_root)
     payload = {
         "source_fetched_at": cached.get("fetched_at"),
+        "voting_cache_mtime": cache_mtime,
         "built_at": utc_now_iso(),
         "meta": {
             "fetched_at": cached.get("fetched_at"),
@@ -346,8 +454,27 @@ def refresh_voting_summary_sidecar(project_root: Path) -> None:
         "global_kpis": global_voting_kpis(
             filter_vote_rows(rows, from_date=f, to_date=t)
         ),
+        "directory_index": directory_index,
     }
     save_summary_sidecar(project_root, payload)
+
+
+def ensure_voting_directory_sidecar(project_root: Path) -> Optional[dict[str, Any]]:
+    """Return sidecar with ``directory_index``; rebuild once if missing or stale."""
+    sidecar = load_summary_sidecar(project_root)
+    if (
+        sidecar
+        and sidecar.get("directory_index")
+        and sidecar_matches_voting_cache_file(sidecar, project_root)
+    ):
+        return sidecar
+
+    cached = load_cache(project_root)
+    if not cached or not cached.get("rows"):
+        return sidecar
+
+    refresh_voting_summary_sidecar(project_root)
+    return load_summary_sidecar(project_root)
 
 
 def _parse_date(iso: str) -> Optional[datetime]:
@@ -614,19 +741,25 @@ def get_summary_payload(
         and not to_date
     ):
         sidecar = load_summary_sidecar(project_root)
-        cached_disk = load_cache(project_root)
-        if (
-            sidecar
-            and cached_disk
-            and cached_disk.get("rows")
-            and summary_sidecar_matches_cache(sidecar, cached_disk)
-        ):
+        if sidecar and sidecar_matches_voting_cache_file(sidecar, project_root):
             out = dict(sidecar)
             out.pop("source_fetched_at", None)
             out.pop("built_at", None)
+            out.pop("voting_cache_mtime", None)
+            out.pop("directory_index", None)
             meta = out.setdefault("meta", {})
             if isinstance(meta, dict):
-                meta["cache_stale"] = cache_is_stale(cached_disk)
+                fetched = str(sidecar.get("source_fetched_at") or "")
+                meta["cache_stale"] = False
+                if fetched:
+                    try:
+                        ts = datetime.fromisoformat(fetched.replace("Z", "+00:00"))
+                        if ts.tzinfo is None:
+                            ts = ts.replace(tzinfo=UTC)
+                        age = (datetime.now(tz=UTC) - ts).total_seconds()
+                        meta["cache_stale"] = age >= CACHE_TTL_SEC
+                    except Exception:
+                        pass
             return out
 
     cached = get_cached_rows(project_root, force_refresh=force_refresh)

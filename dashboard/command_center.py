@@ -344,6 +344,11 @@ def build_page_api_catalog(
             "dashboard_endpoints": [
                 ep(
                     "GET",
+                    "/api/council-accountability/bootstrap",
+                    "Overview: directory + lightweight summaries (one request)",
+                ),
+                ep(
+                    "GET",
                     "/api/council-accountability/directory",
                     "Member directory (finance + voting merge)",
                 ),
@@ -382,10 +387,29 @@ def build_page_api_catalog(
                     "/api/campaign-finance/transactions",
                     "Paginated transactions table",
                 ),
+                ep(
+                    "GET",
+                    "/api/lobbyist-registration/summary",
+                    "Lobbyist registrations + finance overlap",
+                ),
             ],
             "upstream_endpoints": _merge_upstream_defs(
                 council_upstream_defs, council_tracked
             ),
+        },
+        {
+            "id": "budget-simulator",
+            "title": "City budget simulator",
+            "ui_path": "/city-budget-simulator",
+            "dashboard_endpoints": [],
+            "upstream_endpoints": [],
+        },
+        {
+            "id": "time-timer",
+            "title": "Time Timer",
+            "ui_path": "/time-timer",
+            "dashboard_endpoints": [],
+            "upstream_endpoints": [],
         },
         {
             "id": PAGE_BUDGET,

@@ -22,6 +22,7 @@ JOB_POLICE = "police_active_calls"
 JOB_FINANCE = "campaign_finance"
 JOB_VOTING = "council_voting"
 JOB_BUDGET = "city_budget"
+JOB_LOBBYIST = "lobbyist_registration"
 
 SYNC_STATE_FILE = "sync_state.json"
 DEFAULT_TICK_SEC = 15
@@ -139,6 +140,13 @@ def _run_budget(project_root: Path) -> dict[str, Any]:
     return refresh_all_budget_caches(project_root)
 
 
+def _run_lobbyist(project_root: Path) -> dict[str, Any]:
+    from .lobbyist_registration import refresh_cache
+
+    doc = refresh_cache(project_root)
+    return {"row_count": len(doc.get("rows") or [])}
+
+
 def build_jobs() -> list[SyncJob]:
     return [
         SyncJob(
@@ -160,6 +168,11 @@ def build_jobs() -> list[SyncJob]:
             JOB_BUDGET,
             _env_int("BUDGET_SYNC_INTERVAL_SEC", 86400),
             _run_budget,
+        ),
+        SyncJob(
+            JOB_LOBBYIST,
+            _env_int("LOBBYIST_SYNC_INTERVAL_SEC", 86400),
+            _run_lobbyist,
         ),
     ]
 

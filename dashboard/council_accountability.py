@@ -114,10 +114,17 @@ def _voting_members(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
 
 def build_member_directory(
     finance_rows: list[dict[str, Any]],
-    voting_rows: list[dict[str, Any]],
+    voting_rows: Optional[list[dict[str, Any]]] = None,
+    *,
+    voting_members: Optional[dict[str, dict[str, Any]]] = None,
 ) -> list[dict[str, Any]]:
     finance_map = _finance_candidates(finance_rows)
-    voting_map = _voting_members(voting_rows)
+    if voting_members is not None:
+        voting_map = voting_members
+    elif voting_rows is not None:
+        voting_map = _voting_members(voting_rows)
+    else:
+        voting_map = {}
     all_ids = set(finance_map) | set(voting_map)
 
     directory: list[dict[str, Any]] = []
@@ -154,12 +161,55 @@ def get_directory_payload(
     force_refresh_voting: bool = False,
 ) -> dict[str, Any]:
     fin = get_finance_cache(project_root, force_refresh=force_refresh_finance)
-    vote = council_voting.get_cached_rows(
-        project_root, force_refresh=force_refresh_voting
-    )
     finance_rows = fin.get("rows") or []
-    voting_rows = vote.get("rows") or []
-    directory = build_member_directory(finance_rows, voting_rows)
+
+    voting_rows: list[dict[str, Any]] = []
+    voting_fetched_at: Optional[str] = None
+    voting_row_count = 0
+    date_range_defaults: dict[str, str] = {"from": "", "to": ""}
+    vote_index: dict[str, dict[str, Any]] = {}
+    voting_members: Optional[dict[str, dict[str, Any]]] = None
+
+    if force_refresh_voting:
+        vote = council_voting.get_cached_rows(project_root, force_refresh=True)
+        voting_rows = vote.get("rows") or []
+        voting_fetched_at = vote.get("fetched_at")
+        voting_row_count = len(voting_rows)
+        date_range_defaults = council_voting.default_date_range(voting_rows)
+        directory = build_member_directory(finance_rows, voting_rows)
+        vote_index = {
+            m["member_id"]: m for m in council_voting.member_index(voting_rows)
+        }
+    else:
+        sidecar = council_voting.ensure_voting_directory_sidecar(project_root)
+        if sidecar:
+            voting_fetched_at = str(
+                (sidecar.get("meta") or {}).get("fetched_at")
+                or sidecar.get("source_fetched_at")
+                or ""
+            )
+            voting_row_count = int((sidecar.get("meta") or {}).get("row_count") or 0)
+            date_range_defaults = sidecar.get("date_range_defaults") or date_range_defaults
+            directory_index = sidecar.get("directory_index") or {}
+            voting_members = directory_index.get("voting_members") or {}
+            vote_index = {
+                m["member_id"]: m
+                for m in (directory_index.get("member_summaries") or [])
+            }
+            directory = build_member_directory(
+                finance_rows, voting_members=voting_members
+            )
+        else:
+            vote = council_voting.get_cached_rows(project_root)
+            voting_rows = vote.get("rows") or []
+            voting_fetched_at = vote.get("fetched_at")
+            voting_row_count = len(voting_rows)
+            date_range_defaults = council_voting.default_date_range(voting_rows)
+            directory = build_member_directory(finance_rows, voting_rows)
+            vote_index = {
+                m["member_id"]: m for m in council_voting.member_index(voting_rows)
+            }
+
     fin_index = {c["candidate"]: c for c in build_candidate_index(finance_rows)}
 
     for entry in directory:
@@ -168,9 +218,6 @@ def get_directory_payload(
             entry["finance_summary"] = fin_index[fc]
         else:
             entry["finance_summary"] = None
-
-    vote_index = {m["member_id"]: m for m in council_voting.member_index(voting_rows)}
-    for entry in directory:
         entry["voting_summary"] = vote_index.get(entry["id"])
 
     enrich_directory(directory, project_root=project_root)
@@ -178,12 +225,52 @@ def get_directory_payload(
     return {
         "meta": {
             "finance_fetched_at": fin.get("fetched_at"),
-            "voting_fetched_at": vote.get("fetched_at"),
+            "voting_fetched_at": voting_fetched_at,
             "finance_row_count": len(finance_rows),
-            "voting_row_count": len(voting_rows),
-            "date_range_defaults": council_voting.default_date_range(voting_rows),
+            "voting_row_count": voting_row_count,
+            "date_range_defaults": date_range_defaults,
         },
         "members": directory,
+    }
+
+
+def get_bootstrap_payload(
+    project_root: Path,
+    *,
+    force_refresh_finance: bool = False,
+    force_refresh_voting: bool = False,
+) -> dict[str, Any]:
+    """
+    One round-trip for Overview: directory + lightweight finance/voting/lobby summaries.
+    """
+    from .campaign_finance import get_summary_payload as get_finance_summary
+    from .lobbyist_registration import get_summary_payload as get_lobby_summary
+
+    directory = get_directory_payload(
+        project_root,
+        force_refresh_finance=force_refresh_finance,
+        force_refresh_voting=force_refresh_voting,
+    )
+    voting = council_voting.get_summary_payload(
+        project_root,
+        force_refresh=force_refresh_voting,
+        lightweight=True,
+    )
+    finance = get_finance_summary(
+        project_root,
+        force_refresh=force_refresh_finance,
+        lightweight=True,
+    )
+    lobby = get_lobby_summary(
+        project_root,
+        force_refresh=force_refresh_finance or force_refresh_voting,
+        lightweight=True,
+    )
+    return {
+        "directory": directory,
+        "voting": voting,
+        "finance": finance,
+        "lobbyist": lobby,
     }
 
 
@@ -241,12 +328,25 @@ def get_member_profile_payload(
             to_date=to_date,
         )
 
+    lobbyist_overlap: list[dict[str, Any]] = []
+    try:
+        from .lobbyist_registration import get_cached_rows as get_lobby_cached
+        from .lobbyist_registration import member_lobby_overlap
+
+        lobby_rows = (get_lobby_cached(project_root).get("rows")) or []
+        fc = entry.get("finance_candidate_name")
+        if fc and lobby_rows:
+            lobbyist_overlap = member_lobby_overlap(lobby_rows, finance_rows, fc)
+    except Exception:
+        lobbyist_overlap = []
+
     return {
         "found": True,
         "member": entry,
         "finance_overview": finance_overview,
         "voting_stats": voting_stats,
         "recent_votes": recent,
+        "lobbyist_overlap": lobbyist_overlap,
     }
 
 

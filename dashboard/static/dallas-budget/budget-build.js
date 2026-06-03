@@ -434,6 +434,58 @@
 "Zoning/Lndmk Sign Applic Fees": "Permits & Licenses"
 };
 
+  /** Expand chart-of-accounts abbreviations when plain-language field is absent. */
+  function humanizeRevsource(raw) {
+    const s = String(raw || "").trim();
+    if (!s) return s;
+    if (/^[A-Z][a-z]/.test(s) && s.includes(" ") && !/\.[A-Z]/.test(s)) return s;
+    return s
+      .replace(/^Prop\.Taxs-/i, "Property taxes — ")
+      .replace(/^Chgs Serv-/i, "Service charges — ")
+      .replace(/^Intfd-/i, "Interfund — ")
+      .replace(/^Fines\/For-/i, "Fines and forfeitures — ")
+      .replace(/^Fines\/Fro-/i, "Fines — ")
+      .replace(/^Taxes-/i, "Taxes — ")
+      .replace(/Real Est/gi, "real estate")
+      .replace(/Rl Est/gi, "real estate")
+      .replace(/\bTxs\b/gi, "taxes")
+      .replace(/Est-/gi, "estate — ")
+      .replace(/\bRev\b/gi, "revenue")
+      .replace(/-/g, " · ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function isAccountCode(s) {
+    return /^\d+[A-Za-z]?$/.test(String(s || "").trim());
+  }
+
+  function revsourceLabel(r) {
+    const displayMap = window.REVSOURCE_DISPLAY_MAP || {};
+    let pl = String(r.revsource_pl || "").trim();
+    if (isAccountCode(pl)) pl = "";
+    const src = String(r.revsource || r.src || "").trim();
+    const code = String(r.rsrc || r.code || "").trim();
+    return pl
+      || displayMap[src]
+      || displayMap[code]
+      || humanizeRevsource(src)
+      || src
+      || (isAccountCode(code) ? "" : code);
+  }
+
+  /** Prefer friendly labels; never show bare account codes in the UI. */
+  function revsourceLineLabel(r) {
+    const src = String(r.src || r.revsource || "").trim();
+    const code = String(r.code || r.rsrc || "").trim();
+    let pl = String(r.pl || r.revsource_pl || "").trim();
+    if (isAccountCode(pl)) pl = "";
+    if (pl) return pl;
+    return revsourceLabel({ revsource: src, revsource_pl: "", rsrc: code, src, code });
+  }
+
+  window.revsourceLineLabel = revsourceLineLabel;
+
   function inferRevType(src) {
     const s = String(src || "").toLowerCase();
     if (/property|tax rate|ad valorem/.test(s)) return "Property Taxes";
@@ -452,19 +504,22 @@
 
   function mapRevRow(r) {
     const src = String(r.revsource || "").trim();
-    const pl = String(r.revsource_pl || "").trim();
-    return {
+    const plRaw = String(r.revsource_pl || "").trim();
+    const code = String(r.rsrc || "").trim();
+    const mapped = {
       type: r.revtype
         || REVSOURCE_TYPE_MAP[src]
-        || REVSOURCE_TYPE_MAP[pl]
-        || inferRevType(src || pl),
+        || REVSOURCE_TYPE_MAP[plRaw]
+        || inferRevType(src || plRaw),
       fund: String(r.fundtype || "").trim(),
       dept: String(r.department || "").trim(),
       src,
+      code,
       bud: Number(r.amount_budget) || 0,
       rev: Number(r.amount_revenue_fy) || 0,
-      pl: String(r.rsrc || "").trim(),
     };
+    mapped.pl = revsourceLineLabel(mapped);
+    return mapped;
   }
 
   function mapOpRow(r) {
@@ -483,6 +538,10 @@
     const POP = opts?.population ?? 1302868;
     const HOUSEHOLDS = opts?.households ?? 533450;
     const FY = String(opts?.fy ?? "2026");
+
+    if (opts?.displayMap && typeof opts.displayMap === "object") {
+      window.REVSOURCE_DISPLAY_MAP = opts.displayMap;
+    }
 
     const revRows = (apiRevRows || []).map(mapRevRow);
     const opRows = (apiOpRows || []).map(mapOpRow);

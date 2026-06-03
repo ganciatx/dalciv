@@ -403,7 +403,7 @@ function DetailPanel({ active, label, emptyTitle, emptyBody, mode = "income" }) 
                   fontSize: 12.5,
                 }}>
                   <span style={{ flex: 1, color: "var(--ink)", textWrap: "pretty" }}>
-                    {r.pl || r.src}
+                    {(window.revsourceLineLabel || ((row) => row.pl || row.src))(r)}
                   </span>
                   <span style={{ color: "var(--sub)", fontVariantNumeric: "tabular-nums" }}>
                     {fmt.shortDollar(r.bud)}
@@ -729,7 +729,9 @@ function DeptDrillDown({ dept, onClose }) {
               }}>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)",
-                    lineHeight: 1.3, textWrap: "pretty" }}>{r.pl || r.name}</div>
+                    lineHeight: 1.3, textWrap: "pretty" }}>
+                    {(window.revsourceLineLabel || ((row) => row.pl || row.name || row.src))(r)}
+                  </div>
                   <div style={{ fontSize: 11, color: "var(--sub)", marginTop: 2 }}>{r.type}</div>
                 </div>
                 <div style={{ position: "relative", height: 16 }}>
