@@ -13,6 +13,8 @@ services:
     depends_on:
       sivic:
         condition: service_healthy
+      tally:
+        condition: service_started
 
   sivic:
     build: .
@@ -35,6 +37,12 @@ services:
       timeout: 5s
       retries: 3
       start_period: 40s
+
+  tally:
+    build: ./deploy/tally
+    expose:
+      - "80"
+    restart: unless-stopped
 
 volumes:
   sivic_data:
