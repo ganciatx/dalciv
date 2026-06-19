@@ -1,0 +1,29 @@
+# After pushing to main, redeploy the DalCiv stack on Hostinger so the tally
+# service rebuilds from the latest ganciatx/tally.git (see docker-compose in ganciatx/dalciv).
+#
+# One-time: copy HOSTINGER_API_KEY (secret) and HOSTINGER_VM_ID (variable) from ganciatx/dalciv.
+name: Deploy via DalCiv stack
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Redeploy DalCiv stack (rebuilds tally image)
+        uses: hostinger/deploy-on-vps@v2
+        with:
+          api-key: ${{ secrets.HOSTINGER_API_KEY }}
+          virtual-machine: ${{ vars.HOSTINGER_VM_ID }}
+          project-name: dalciv
+          environment-variables: |
+            SCRAPER_ENABLED=0
+            DASHBOARD_HOST=0.0.0.0
+            DASHBOARD_PORT=8765
+            ACME_EMAIL=${{ vars.ACME_EMAIL }}
+            FORWARDED_ALLOW_IPS=127.0.0.1,172.16.0.0/12

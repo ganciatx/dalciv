@@ -1,0 +1,39 @@
+.generic-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.generic-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid var(--color-border-strong);
+}
+
+.generic-row:hover {
+  border-left-color: var(--color-primary);
+}
+
+.generic-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.generic-score {
+  font-size: 1.35rem;
+  min-width: 2.5rem;
+  text-align: right;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.generic-hint {
+  color: var(--color-on-dark-muted);
+  margin-bottom: 1rem;
+}

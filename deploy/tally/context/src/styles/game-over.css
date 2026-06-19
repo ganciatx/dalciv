@@ -1,0 +1,85 @@
+.game-over-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.game-over-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-on-dark-muted);
+  margin: 0 0 0.35rem;
+}
+
+.game-over-header h1 {
+  font-family: var(--font-display);
+  margin: 0;
+  font-size: 2rem;
+  color: var(--color-on-dark);
+  text-shadow: 0 2px 8px rgb(45 45 45 / 30%);
+}
+
+.game-over-game {
+  margin: 0.35rem 0 0;
+  color: var(--color-on-dark-muted);
+  font-size: 0.95rem;
+}
+
+.standings-list {
+  list-style: none;
+  padding: 0.5rem 0;
+  margin: 0;
+}
+
+.standing-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.standing-row:last-child {
+  border-bottom: none;
+}
+
+.standing-row.winner {
+  background: var(--palette-gold);
+  border-left: 4px solid var(--palette-charcoal);
+  margin: 0 -0.05rem;
+  padding-left: calc(1rem - 4px);
+}
+
+.standing-rank {
+  width: 1.5rem;
+  color: var(--color-muted);
+  font-weight: 700;
+  font-family: var(--font-display);
+}
+
+.standing-row.winner .standing-rank {
+  color: var(--palette-charcoal);
+}
+
+.standing-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.standing-score {
+  font-size: 1.25rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.game-over-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 2rem;
+}
+
+.game-icon-inline {
+  margin-right: 0.25rem;
+}

@@ -1,0 +1,181 @@
+.lp-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lp-progress {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.85rem 1rem;
+}
+
+.lp-progress-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.lp-progress-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-primary);
+}
+
+.lp-player-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.lp-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--palette-charcoal);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lp-tab.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.lp-tab-count {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.lp-section {
+  padding: 0.85rem 1rem 1rem;
+}
+
+.lp-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.lp-section-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.lp-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.45rem;
+}
+
+.lp-cell {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.lp-cell:hover {
+  border-color: var(--color-primary);
+}
+
+.lp-cell.checked {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--lp-tint, var(--color-primary)) 18%, var(--color-surface));
+}
+
+.lp-check {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-border-strong);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.lp-cell.checked .lp-check {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.lp-label {
+  line-height: 1.2;
+}
+
+.lp-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.lp-safety {
+  font-size: 0.8rem;
+  text-align: center;
+  margin: 0.25rem 0 0;
+}
+
+.lp-mobile-standings {
+  padding: 0.85rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.lp-standings-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+}
+
+.lp-standings-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lp-standings-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  font-size: 0.9rem;
+}
+
+.lp-standings-list strong {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.setup-option-note {
+  margin: 0.5rem 0 1rem;
+  font-size: 0.85rem;
+}

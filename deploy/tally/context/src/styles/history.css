@@ -1,0 +1,56 @@
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.history-item {
+  overflow: hidden;
+  border-left: 3px solid var(--color-border-strong);
+}
+
+.history-item:hover {
+  border-left-color: var(--game-accent, var(--color-primary));
+}
+
+.history-summary {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.history-summary strong {
+  font-family: var(--font-display);
+}
+
+.history-meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+}
+
+.history-scores {
+  border-top: 1px dashed var(--color-border);
+  padding: 0.5rem 1rem 0.85rem;
+  background: rgb(212 212 184 / 20%);
+}
+
+.history-score-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+}
+
+.history-score-row strong {
+  font-family: var(--font-display);
+}

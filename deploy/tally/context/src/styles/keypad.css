@@ -1,0 +1,91 @@
+.keypad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.keypad-display {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  padding: 0.85rem;
+  background: var(--color-surface);
+  border: 2px solid var(--palette-charcoal);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+.keypad-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.keypad-quick-btn {
+  flex: 1;
+  min-width: 3.5rem;
+  padding: 0.55rem;
+  border: 2px solid var(--palette-charcoal);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  font-weight: 700;
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  box-shadow: var(--shadow-inset);
+}
+
+.keypad-quick-btn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.keypad-quick-set {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.keypad-quick-set .keypad-quick-btn {
+  min-width: 0;
+  padding: 0.85rem 0.5rem;
+  font-size: 1.15rem;
+}
+
+.keypad-quick-btn.selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.keypad-key {
+  padding: 0.85rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.keypad-key:hover {
+  background: var(--color-surface-elevated);
+}
+
+.keypad-enter {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.banner-actions {
+  display: flex;
+  gap: 0.5rem;
+}

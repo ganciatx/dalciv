@@ -1,0 +1,318 @@
+/* Scoring screens: plain sans-serif for fast scanning */
+.scoring-readable,
+.scoring-readable .yahtzee-grid,
+.scoring-header-bar {
+  font-family: var(--font-body);
+}
+
+.scoring-title,
+.modal-sheet h2,
+.yahtzee-section-title {
+  font-family: var(--font-body);
+}
+
+.yahtzee-player-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.yahtzee-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--palette-charcoal);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+  box-shadow: var(--shadow-paper);
+}
+
+.yahtzee-tab.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.yahtzee-total-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 1rem 1.1rem;
+  margin-bottom: 0.75rem;
+  background: var(--color-surface);
+  border: 2px solid var(--palette-charcoal);
+  border-radius: var(--radius-md);
+}
+
+.yahtzee-total-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.yahtzee-total-num {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.yahtzee-upper-progress {
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  background: var(--color-surface);
+  border: 2px solid var(--palette-charcoal);
+  border-radius: var(--radius-md);
+}
+
+.yahtzee-progress-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.progress-track {
+  height: 10px;
+  background: var(--color-border);
+  border-radius: 999px;
+  margin-top: 0.6rem;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 999px;
+}
+
+.yahtzee-section-pad {
+  padding: 0.85rem 1rem 1rem;
+  margin-bottom: 0.75rem;
+  background: var(--color-surface);
+  background-image: none;
+}
+
+.yahtzee-section-title {
+  margin: 0 0 0.65rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.yahtzee-section-note {
+  margin: -0.35rem 0 0.65rem;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+.yahtzee-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 0.65rem;
+  margin-bottom: 0.35rem;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.yahtzee-row.empty:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.yahtzee-row.filled {
+  background: var(--color-surface-elevated);
+  border-color: var(--color-border-strong);
+  cursor: default;
+  opacity: 1;
+}
+
+.yahtzee-row-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.yahtzee-row.filled .yahtzee-row-label {
+  color: var(--color-muted);
+}
+
+.yahtzee-cell-value {
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.5rem;
+  text-align: right;
+  color: var(--color-text);
+}
+
+.yahtzee-add-btn {
+  display: inline-block;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+}
+
+.yahtzee-auto-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0.65rem;
+  margin-top: 0.35rem;
+  background: var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.yahtzee-auto-row strong {
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.yahtzee-bonus-chips {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  margin-top: 0.75rem;
+  border: 2px solid var(--palette-charcoal);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.bonus-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bonus-controls strong {
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.yahtzee-hint {
+  font-size: 0.8rem;
+  margin: 0.75rem 0 0;
+  text-align: center;
+}
+
+.yahtzee-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.yahtzee-single {
+  padding: 0.25rem 0;
+}
+
+.yahtzee-grid-wrap {
+  overflow-x: auto;
+  padding: 0;
+  background-image: none;
+}
+
+.yahtzee-grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.yahtzee-grid th,
+.yahtzee-grid td {
+  padding: 0.55rem 0.45rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.yahtzee-grid th:first-child,
+.yahtzee-grid td:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+
+.section-row td {
+  background: var(--color-border);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.auto-row td {
+  background: var(--color-border);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.total-row td {
+  font-weight: 700;
+  border-top: 2px solid var(--palette-charcoal);
+  background: var(--color-surface-elevated);
+}
+
+.total-row strong {
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-primary);
+}
+
+.grid-cell {
+  min-width: 2.75rem;
+  padding: 0.45rem 0.55rem;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.grid-cell:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.grid-cell:disabled {
+  cursor: default;
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+}
+
+.validation-error {
+  margin: 0.5rem 0 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: 0.875rem;
+  font-weight: 600;
+}

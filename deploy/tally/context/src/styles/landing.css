@@ -1,0 +1,128 @@
+.landing-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100dvh;
+  padding-top: 2rem;
+}
+
+.landing-hero {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.landing-title {
+  font-family: var(--font-brand);
+  font-size: 3.25rem;
+  font-weight: 800;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.03em;
+  color: var(--color-on-dark);
+  text-shadow: 0 2px 12px rgb(45 45 45 / 35%);
+}
+
+.landing-title::after {
+  content: '';
+  display: block;
+  width: 3rem;
+  height: 3px;
+  background: var(--palette-terracotta);
+  margin: 0.5rem auto 0;
+  border-radius: 2px;
+}
+
+.landing-tagline {
+  margin: 0;
+  color: var(--color-on-dark-muted);
+}
+
+.landing-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin: 0 0 0.5rem;
+}
+
+.landing-resume {
+  padding: 1rem 1.15rem;
+  margin-bottom: 1rem;
+  transform: rotate(-0.4deg);
+  border-left: 4px solid var(--palette-terracotta);
+}
+
+.landing-resume h2 {
+  font-family: var(--font-display);
+  margin: 0 0 0.25rem;
+  font-size: 1.2rem;
+}
+
+.landing-section-label--on-dark {
+  color: var(--color-on-dark-muted);
+}
+
+.landing-resume-players {
+  margin: 0 0 0.35rem;
+}
+
+.landing-games {
+  margin-bottom: 1.5rem;
+}
+
+.landing-game-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+}
+
+.landing-game-tile {
+  text-decoration: none;
+  color: inherit;
+  border-radius: 14px;
+  transition: transform 0.2s ease;
+}
+
+.landing-game-tile:hover {
+  transform: translateY(-3px);
+}
+
+.landing-game-tile:active {
+  transform: translateY(-1px);
+}
+
+.landing-game-face {
+  min-height: 10.5rem;
+  padding: 0.75rem 0.65rem 0.8rem;
+}
+
+.landing-game-medallion {
+  width: 2.85rem;
+  height: 2.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.landing-game-medallion .game-icon {
+  font-size: 1.45rem;
+}
+
+.landing-game-time {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-muted);
+}
+
+.landing-game-time--active {
+  margin: 0 0 0.75rem;
+  color: var(--palette-teal);
+  font-size: 0.75rem;
+}
+
+.landing-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: auto;
+}
