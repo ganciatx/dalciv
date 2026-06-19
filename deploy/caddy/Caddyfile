@@ -1,5 +1,6 @@
 # TLS termination for ganciatx.com (see plans/HOSTINGER_DEPLOY_PLAN.md).
 # Set ACME_EMAIL in docker-compose when you want a Let's Encrypt account contact.
+# tally.ganciatx.com — Tally scorekeeper SPA (nginx service)
 
 ganciatx.com, www.ganciatx.com {
 	reverse_proxy sivic:8765
