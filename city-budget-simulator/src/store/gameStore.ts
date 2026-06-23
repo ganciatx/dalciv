@@ -84,6 +84,8 @@ interface GameStore {
   game: GameState;
   draft: PlayerDecisions;
   view: GameView;
+  showLandingPage: boolean;
+  hasSavedGame: boolean;
   showScenarioPicker: boolean;
   unlockedAchievements: Set<string>;
   lastUnlockedAchievements: string[];
@@ -95,6 +97,9 @@ interface GameStore {
     challengeId?: ChallengeId,
   ) => void;
   loadSaved: () => boolean;
+  continueSavedGame: () => void;
+  startNewGameFlow: () => void;
+  openLandingPage: () => void;
   saveGame: () => void;
   setView: (view: GameView) => void;
   setShowScenarioPicker: (show: boolean) => void;
@@ -123,6 +128,8 @@ export const useGameStore = create<GameStore>((set, get) => {
     game: initial.game,
     draft: initial.draft,
     view: "dashboard",
+    showLandingPage: true,
+    hasSavedGame: false,
     showScenarioPicker: false,
     unlockedAchievements: loadGlobalAchievements(),
     lastUnlockedAchievements: [],
@@ -140,6 +147,8 @@ export const useGameStore = create<GameStore>((set, get) => {
         game,
         draft,
         view: "dashboard",
+        showLandingPage: false,
+        hasSavedGame: true,
         showScenarioPicker: false,
         lastUnlockedAchievements: [],
         yearSummary: null,
@@ -165,8 +174,7 @@ export const useGameStore = create<GameStore>((set, get) => {
         set({
           game: parsed.game,
           draft: parsed.draft,
-          view: "dashboard",
-          showScenarioPicker: false,
+          hasSavedGame: true,
           unlockedAchievements: loadGlobalAchievements(),
         });
         return true;
@@ -174,6 +182,25 @@ export const useGameStore = create<GameStore>((set, get) => {
         return false;
       }
     },
+
+    continueSavedGame: () =>
+      set({
+        showLandingPage: false,
+        showScenarioPicker: false,
+        view: "dashboard",
+      }),
+
+    startNewGameFlow: () =>
+      set({
+        showLandingPage: false,
+        showScenarioPicker: true,
+      }),
+
+    openLandingPage: () =>
+      set({
+        showLandingPage: true,
+        showScenarioPicker: false,
+      }),
 
     saveGame: () => {
       const { game, draft } = get();
@@ -238,6 +265,8 @@ export const useGameStore = create<GameStore>((set, get) => {
     resetGame: () => {
       localStorage.removeItem(STORAGE_KEY);
       set({
+        hasSavedGame: false,
+        showLandingPage: false,
         showScenarioPicker: true,
         view: "dashboard",
         lastUnlockedAchievements: [],

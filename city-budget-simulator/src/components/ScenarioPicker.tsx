@@ -7,6 +7,7 @@ import type { ChallengeId, Difficulty, ScenarioId } from "../simulation/types";
 export function ScenarioPicker({
   onStart,
   unlockedAchievements,
+  onBack,
 }: {
   onStart: (
     scenarioId: ScenarioId,
@@ -14,32 +15,31 @@ export function ScenarioPicker({
     challengeId: ChallengeId,
   ) => void;
   unlockedAchievements: Set<string>;
+  onBack?: () => void;
 }) {
   const [challengeId, setChallengeId] = useState<ChallengeId>("none");
 
   return (
     <div className="scenario-overlay">
       <div className="scenario-modal panel">
-        <h2>Choose your city</h2>
-        <p style={{ color: "var(--ink-muted)", marginTop: 0 }}>
-          Each scenario starts from a different fiscal and political reality.
+        {onBack && (
+          <button type="button" className="link-btn scenario-back" onClick={onBack}>
+            ← Back to home
+          </button>
+        )}
+        <h2 className="scenario-heading">Choose your city</h2>
+        <p className="scenario-intro">
+          Each scenario starts from a different fiscal and political reality. Pick
+          the challenge that fits your style.
         </p>
 
         <div className="challenge-picker">
           <label htmlFor="challenge-select">Challenge modifier</label>
           <select
             id="challenge-select"
+            className="challenge-select"
             value={challengeId}
             onChange={(e) => setChallengeId(e.target.value as ChallengeId)}
-            style={{
-              width: "100%",
-              padding: "8px",
-              background: "var(--bg-deep)",
-              color: "var(--ink)",
-              border: "1px solid var(--hair)",
-              borderRadius: "6px",
-              marginTop: 6,
-            }}
           >
             {CHALLENGES.map((c) => (
               <option key={c.id} value={c.id}>

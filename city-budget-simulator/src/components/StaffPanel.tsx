@@ -1,4 +1,5 @@
 import { electionThreshold } from "../simulation/achievements";
+import staffCrisisImage from "../assets/staff-crisis.png";
 import {
   CAMPAIGN_MANAGER,
   generateStaffAdvice,
@@ -52,13 +53,24 @@ export function StaffPanel({
 
   return (
     <div>
-      <div className="panel">
-        <h2>Mayor&apos;s office</h2>
-        <p style={{ margin: 0, color: "var(--ink-muted)", fontSize: "0.9rem" }}>
-          Policy advisors analyze your draft budget; Jordan Kim runs the re-election
-          war room. Following urgent counsel builds trust and moves approvals.
-          Ignoring it has a political cost.
-        </p>
+      <div className="panel staff-office-intro">
+        <div className="staff-office-copy">
+          <h2>Mayor&apos;s office</h2>
+          <p>
+            Policy advisors analyze your draft budget; Jordan Kim runs the re-election
+            war room. Following urgent counsel builds trust and moves approvals.
+            Ignoring it has a political cost.
+          </p>
+        </div>
+        <figure className="staff-office-figure">
+          <img
+            src={staffCrisisImage}
+            alt="Stressed aide and mayor in a heated city hall moment"
+            className="staff-office-illustration"
+            width={320}
+            height={240}
+          />
+        </figure>
       </div>
 
       <div className="panel staff-campaign-panel">

@@ -10,6 +10,7 @@ import { DistrictsPanel } from "./components/DistrictsPanel";
 import { EventTimeline } from "./components/EventTimeline";
 import { FinalScorecard } from "./components/FinalScorecard";
 import { HistoryCharts } from "./components/HistoryCharts";
+import { LandingPage } from "./components/LandingPage";
 import { PoliticalPanel } from "./components/PoliticalPanel";
 import { StaffPanel } from "./components/StaffPanel";
 import { PolicyExplainer } from "./components/PolicyExplainer";
@@ -34,11 +35,16 @@ export default function App() {
   const game = useGameStore((s) => s.game);
   const draft = useGameStore((s) => s.draft);
   const view = useGameStore((s) => s.view);
+  const showLandingPage = useGameStore((s) => s.showLandingPage);
+  const hasSavedGame = useGameStore((s) => s.hasSavedGame);
   const showScenarioPicker = useGameStore((s) => s.showScenarioPicker);
   const unlockedAchievements = useGameStore((s) => s.unlockedAchievements);
   const lastUnlockedAchievements = useGameStore((s) => s.lastUnlockedAchievements);
   const initNewGame = useGameStore((s) => s.initNewGame);
   const loadSaved = useGameStore((s) => s.loadSaved);
+  const continueSavedGame = useGameStore((s) => s.continueSavedGame);
+  const startNewGameFlow = useGameStore((s) => s.startNewGameFlow);
+  const openLandingPage = useGameStore((s) => s.openLandingPage);
   const setView = useGameStore((s) => s.setView);
   const setShowScenarioPicker = useGameStore((s) => s.setShowScenarioPicker);
   const togglePolicyExplainer = useGameStore((s) => s.togglePolicyExplainer);
@@ -50,11 +56,25 @@ export default function App() {
   const dismissYearSummary = useGameStore((s) => s.dismissYearSummary);
 
   useEffect(() => {
-    if (!loadSaved()) setShowScenarioPicker(true);
+    loadSaved();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const ended = game.phase === "ended";
+
+  if (showLandingPage) {
+    return (
+      <div className="app-shell app-shell-landing">
+        <LandingPage
+          hasSavedGame={hasSavedGame}
+          savedCityName={hasSavedGame ? game.city.name : undefined}
+          savedYear={hasSavedGame ? game.year : undefined}
+          onContinue={continueSavedGame}
+          onStartNew={startNewGameFlow}
+        />
+      </div>
+    );
+  }
 
   if (showScenarioPicker) {
     return (
@@ -62,6 +82,7 @@ export default function App() {
         <ScenarioPicker
           onStart={initNewGame}
           unlockedAchievements={unlockedAchievements}
+          onBack={hasSavedGame ? openLandingPage : undefined}
         />
       </div>
     );
@@ -71,15 +92,33 @@ export default function App() {
     <div className="app-shell">
       <header className="app-header">
         <div className="brand">
-          <h1>City Budget Simulator</h1>
-          <p>
+          <div className="brand-lockup">
+            <span className="brand-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="28" height="28">
+                <path
+                  d="M12 2L4 7v2h2v11h12V9h2V7l-8-5zm-1 16H9v-6h2v6zm4 0h-2v-6h2v6z"
+                  fill="currentColor"
+                />
+              </svg>
+            </span>
+            <div>
+              <h1>City Budget Simulator</h1>
+              <p className="brand-tagline">Balance today. Build tomorrow.</p>
+            </div>
+          </div>
+          <p className="brand-meta">
             {game.city.name} · {game.city.population.toLocaleString()} residents ·{" "}
             {scenarioTitle(game.city.scenarioId)} · {game.settings.difficulty}
           </p>
           <ChallengeLegend challengeId={game.settings.challengeId} />
-          <a className="portal-link" href="/">
-            ← Dallas civic data portal
-          </a>
+          <div className="brand-links">
+            <button type="button" className="link-btn" onClick={openLandingPage}>
+              About the game
+            </button>
+            <a className="portal-link" href="/">
+              ← Civic data portal
+            </a>
+          </div>
         </div>
         <nav className="nav-tabs" aria-label="Views">
           {(
@@ -149,10 +188,10 @@ export default function App() {
       {ended ? (
         <div className="end-screen">
           <h2>Game over</h2>
-          <p style={{ color: "var(--ink-muted)" }}>
+          <p className="end-screen-reason">
             {game.endReason ? END_LABELS[game.endReason] : "Campaign ended."}
           </p>
-          <p className="headline-bar" style={{ maxWidth: 560, margin: "24px auto" }}>
+          <p className="headline-bar end-headline">
             {game.lastHeadline}
           </p>
           <FinalScorecard game={game} />
@@ -160,13 +199,18 @@ export default function App() {
             unlocked={unlockedAchievements}
             newlyUnlocked={lastUnlockedAchievements}
           />
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => setShowScenarioPicker(true)}
-          >
-            Play again
-          </button>
+          <div className="end-screen-actions">
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => setShowScenarioPicker(true)}
+            >
+              Play again
+            </button>
+            <button type="button" className="btn" onClick={openLandingPage}>
+              Back to home
+            </button>
+          </div>
         </div>
       ) : (
         <>

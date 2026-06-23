@@ -3,7 +3,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 /** Build into the FastAPI static tree for production serving. */
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // Production assets must resolve under /static/city-budget-simulator/ (FastAPI mount).
+  base: command === "serve" ? "/" : "/static/city-budget-simulator/",
   plugins: [react()],
   resolve: {
     alias: {
@@ -21,4 +23,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
