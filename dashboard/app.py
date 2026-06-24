@@ -46,6 +46,7 @@ from .portfolio_site import (
     portfolio_blog_post,
     portfolio_enabled,
     portfolio_index,
+    portfolio_root_asset,
     portfolio_side_projects_redirect,
 )
 from .summaries import SummaryJob, join_manifest_summaries
@@ -909,3 +910,20 @@ async def api_overview(limit_audit: int = 80, file_limit: int = 600) -> dict[str
             "summaries_store": str(PROJECT_ROOT / "scraper_dashboard_data" / "summaries.json"),
         },
     }
+
+
+# Portfolio public assets — registered last so DalCiv routes take precedence.
+@app.get("/public/{asset:path}", include_in_schema=False)
+async def portfolio_public_asset(asset: str) -> FileResponse:
+    """Alias for markdown paths that reference /public/..."""
+    if not portfolio_enabled():
+        raise HTTPException(status_code=404, detail="Not found")
+    return portfolio_asset(asset)
+
+
+@app.get("/{filename}", include_in_schema=False)
+async def portfolio_root_file(filename: str) -> FileResponse:
+    """Blog images and other files exported from portfolio/public/."""
+    if not portfolio_enabled():
+        raise HTTPException(status_code=404, detail="Not found")
+    return portfolio_root_asset(filename)

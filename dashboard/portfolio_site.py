@@ -61,3 +61,11 @@ def portfolio_asset(path: str) -> FileResponse:
     if not safe or ".." in safe:
         raise HTTPException(status_code=404, detail="Not found")
     return FileResponse(_portfolio_file(*safe.split("/")))
+
+
+def portfolio_root_asset(filename: str) -> FileResponse:
+    """Serve a single file from the export root (Next.js public/ folder)."""
+    safe = filename.strip("/")
+    if not safe or "/" in safe or ".." in safe or "." not in safe:
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(_portfolio_file(safe))
