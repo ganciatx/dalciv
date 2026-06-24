@@ -77,12 +77,12 @@ export const services: Service[] = [
       "Identifying the right problems to solve through interviews, surveys, and behavioral research.",
   },
   {
-    title: "No-Code & Rapid Prototyping",
+    title: "Rapid Prototyping",
     description:
       "Shipping functional prototypes in days, not months, to test assumptions with real users.",
   },
   {
-    title: "Website & UX Design",
+    title: "Scrum Certified ",
     description:
       "Designing user-centric experiences that convert — from landing pages to full product flows.",
   },
