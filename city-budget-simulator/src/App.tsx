@@ -11,6 +11,7 @@ import { EventTimeline } from "./components/EventTimeline";
 import { FinalScorecard } from "./components/FinalScorecard";
 import { HistoryCharts } from "./components/HistoryCharts";
 import { LandingPage } from "./components/LandingPage";
+import { CityHallFloorplan } from "./components/CityHallFloorplan";
 import { PoliticalPanel } from "./components/PoliticalPanel";
 import { StaffPanel } from "./components/StaffPanel";
 import { PolicyExplainer } from "./components/PolicyExplainer";
@@ -120,36 +121,6 @@ export default function App() {
             </a>
           </div>
         </div>
-        <nav className="nav-tabs" aria-label="Views">
-          {(
-            [
-              ["dashboard", "Dashboard"],
-              ["budget", "Budget"],
-              ["development", "Development"],
-              ["districts", "Districts"],
-              ["timeline", "Timeline"],
-              ["history", "History"],
-              ["politics", "Politics"],
-              ["staff", "Staff"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              className={view === id ? "active" : ""}
-              onClick={() => setView(id)}
-              disabled={
-                ended &&
-                (id === "budget" ||
-                  id === "development" ||
-                  id === "districts" ||
-                  id === "staff")
-              }
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
         <div className="header-actions">
           <button
             type="button"
@@ -170,85 +141,97 @@ export default function App() {
         </div>
       </header>
 
-      {lastUnlockedAchievements.length > 0 &&
-        !ended &&
-        !yearSummary && (
-          <div className="achievement-toast">
-            Achievement unlocked:{" "}
-            {lastUnlockedAchievements
-              .map((id) => ACHIEVEMENTS.find((a) => a.id === id)?.title ?? id)
-              .join(" · ")}
-          </div>
+      <div className="game-layout">
+        {!ended && (
+          <aside className="game-sidebar">
+            <CityHallFloorplan
+              activeView={view}
+              gameEnded={ended}
+              onSelect={setView}
+            />
+          </aside>
         )}
 
-      {yearSummary && (
-        <YearSummaryModal summary={yearSummary} onDismiss={dismissYearSummary} />
-      )}
+        <main className="game-main">
+          {lastUnlockedAchievements.length > 0 &&
+            !ended &&
+            !yearSummary && (
+              <div className="achievement-toast">
+                Achievement unlocked:{" "}
+                {lastUnlockedAchievements
+                  .map((id) => ACHIEVEMENTS.find((a) => a.id === id)?.title ?? id)
+                  .join(" · ")}
+              </div>
+            )}
 
-      {ended ? (
-        <div className="end-screen">
-          <h2>Game over</h2>
-          <p className="end-screen-reason">
-            {game.endReason ? END_LABELS[game.endReason] : "Campaign ended."}
-          </p>
-          <p className="headline-bar end-headline">
-            {game.lastHeadline}
-          </p>
-          <FinalScorecard game={game} />
-          <AchievementsPanel
-            unlocked={unlockedAchievements}
-            newlyUnlocked={lastUnlockedAchievements}
-          />
-          <div className="end-screen-actions">
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={() => setShowScenarioPicker(true)}
-            >
-              Play again
-            </button>
-            <button type="button" className="btn" onClick={openLandingPage}>
-              Back to home
-            </button>
-          </div>
-        </div>
-      ) : (
-        <>
-          {view === "dashboard" && <Dashboard game={game} />}
-          {view === "budget" && (
-            <>
-              <BudgetEditor
-                game={game}
-                draft={draft}
-                onPatch={patchDraft}
-                onPatchExpenditure={patchDraftExpenditure}
+          {yearSummary && (
+            <YearSummaryModal summary={yearSummary} onDismiss={dismissYearSummary} />
+          )}
+
+          {ended ? (
+            <div className="end-screen">
+              <h2>Game over</h2>
+              <p className="end-screen-reason">
+                {game.endReason ? END_LABELS[game.endReason] : "Campaign ended."}
+              </p>
+              <p className="headline-bar end-headline">{game.lastHeadline}</p>
+              <FinalScorecard game={game} />
+              <AchievementsPanel
+                unlocked={unlockedAchievements}
+                newlyUnlocked={lastUnlockedAchievements}
               />
-              <PolicyExplainer game={game} draft={draft} />
+              <div className="end-screen-actions">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => setShowScenarioPicker(true)}
+                >
+                  Play again
+                </button>
+                <button type="button" className="btn" onClick={openLandingPage}>
+                  Back to home
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {view === "dashboard" && <Dashboard game={game} />}
+              {view === "budget" && (
+                <>
+                  <BudgetEditor
+                    game={game}
+                    draft={draft}
+                    onPatch={patchDraft}
+                    onPatchExpenditure={patchDraftExpenditure}
+                  />
+                  <PolicyExplainer game={game} draft={draft} />
+                </>
+              )}
+              {view === "development" && (
+                <DevelopmentPanel
+                  game={game}
+                  draft={draft}
+                  onPatch={patchDraft}
+                  onPatchExpenditure={patchDraftExpenditure}
+                />
+              )}
+              {view === "districts" && (
+                <DistrictsPanel
+                  game={game}
+                  draftPriority={draft.districtPriority}
+                  onPriorityChange={(p) => patchDraft({ districtPriority: p })}
+                />
+              )}
+              {view === "timeline" && <EventTimeline game={game} />}
+              {view === "history" && <HistoryCharts game={game} />}
+              {view === "politics" && <PoliticalPanel game={game} />}
+              {view === "staff" && (
+                <StaffPanel game={game} draft={draft} onPatch={patchDraft} />
+              )}
             </>
           )}
-          {view === "development" && (
-            <DevelopmentPanel
-              game={game}
-              draft={draft}
-              onPatch={patchDraft}
-              onPatchExpenditure={patchDraftExpenditure}
-            />
-          )}
-          {view === "districts" && (
-            <DistrictsPanel
-              game={game}
-              draftPriority={draft.districtPriority}
-              onPriorityChange={(p) => patchDraft({ districtPriority: p })}
-            />
-          )}
-          {view === "timeline" && <EventTimeline game={game} />}
-          {view === "history" && <HistoryCharts game={game} />}
-          {view === "politics" && <PoliticalPanel game={game} />}
-          {view === "staff" && (
-            <StaffPanel game={game} draft={draft} onPatch={patchDraft} />
-          )}
-        </>
-      )}
+        </main>
+      </div>
     </div>
   );
 }
