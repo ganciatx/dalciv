@@ -1,6 +1,6 @@
 # City Budget Simulator — UI Redesign Plan
 
-**Overall Progress:** `100%`
+**Overall Progress:** `100%` (accessibility contrast pass complete)
 
 ## TLDR
 
@@ -22,3 +22,4 @@ Redesign the City Budget Simulator to match the vibrant civic cartoon aesthetic 
 - [x] 🟩 **Step 5: Scenario picker** — Restyled to match landing aesthetic
 - [x] 🟩 **Step 6: Skyline** — Light-theme city hall silhouette
 - [x] 🟩 **Step 7: Build + deploy bundle** — `npm run build` → `dashboard/static/city-budget-simulator/`
+- [x] 🟩 **Step 8: Accessibility contrast pass** — WCAG AA tokens, focus rings, darker muted text, readable warnings, `prefers-contrast: more`

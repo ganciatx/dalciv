@@ -17,26 +17,32 @@
   --wood: #6b4423;
   --gold: #d4a017;
 
-  /* Semantic tokens */
-  --bg-deep: #e8f4fc;
+  /* Semantic tokens — tuned for WCAG AA contrast on light surfaces */
+  --bg-deep: #ddeef8;
   --bg-panel: #ffffff;
-  --bg-elevated: #f4f9fd;
-  --ink: #1a2b3c;
-  --ink-muted: rgba(26, 43, 60, 0.68);
-  --hair: rgba(26, 91, 180, 0.14);
+  --bg-elevated: #eef4f9;
+  --ink: #121d28;
+  --ink-muted: #3d4f63;
+  --ink-subtle: #556575;
+  --hair: rgba(15, 61, 122, 0.24);
+  --hair-strong: rgba(15, 61, 122, 0.4);
   --accent: var(--action-orange);
-  --accent-dim: rgba(232, 93, 44, 0.12);
-  --good: #1f9d55;
-  --warn: #e6a817;
-  --bad: #d63b2a;
+  --accent-dim: rgba(232, 93, 44, 0.14);
+  --good: #157a40;
+  --good-soft: #1f9d55;
+  --warn: #9a6f00;
+  --warn-text: #7a5500;
+  --bad: #b82e22;
   --blue: var(--civic-blue);
-  --shadow-sm: 0 2px 8px rgba(15, 61, 122, 0.08);
-  --shadow-md: 0 6px 24px rgba(15, 61, 122, 0.12);
-  --shadow-lg: 0 12px 40px rgba(15, 61, 122, 0.16);
+  --shadow-sm: 0 2px 8px rgba(15, 61, 122, 0.1);
+  --shadow-md: 0 6px 24px rgba(15, 61, 122, 0.14);
+  --shadow-lg: 0 12px 40px rgba(15, 61, 122, 0.18);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
   --outline: 2.5px solid var(--civic-blue-dark);
+  --focus-ring: 3px solid var(--civic-blue-dark);
+  --focus-glow: 0 0 0 4px rgba(26, 91, 180, 0.28);
 
   --font-display: "Fredoka", system-ui, sans-serif;
   --font-body: "Nunito Sans", system-ui, sans-serif;
@@ -57,19 +63,69 @@ body,
 
 body {
   font-family: var(--font-body);
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 16px;
+  line-height: 1.6;
   color: var(--ink);
   background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 35%, var(--sky-bottom) 100%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   font-variant-numeric: tabular-nums;
+  color-scheme: light;
 }
 
 button,
 input,
 select {
   font: inherit;
+}
+
+/* ── Accessibility: focus, contrast, motion ─────────── */
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  box-shadow: var(--focus-glow);
+}
+
+a:focus-visible,
+button:focus-visible,
+.city-hall-room:focus-visible,
+.scenario-card:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  box-shadow: var(--focus-glow);
+}
+
+input:focus-visible,
+select:focus-visible,
+input[type="range"]:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  box-shadow: var(--focus-glow);
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --ink-muted: #2a3642;
+    --ink-subtle: #3d4f63;
+    --hair: rgba(15, 61, 122, 0.42);
+    --hair-strong: rgba(15, 61, 122, 0.55);
+    --outline: 3px solid var(--civic-blue-dark);
+  }
+
+  .nav-tabs button,
+  .btn,
+  .metric-tile,
+  .panel,
+  .city-hall-room {
+    border-width: 2px;
+    border-color: var(--hair-strong);
+  }
 }
 
 /* ── App shell ───────────────────────────────────────── */
@@ -152,28 +208,31 @@ select {
 .link-btn {
   border: none;
   background: none;
-  padding: 0;
-  color: var(--civic-blue);
-  font-size: 0.88rem;
-  font-weight: 600;
+  padding: 2px 0;
+  color: var(--civic-blue-dark);
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 .link-btn:hover {
-  color: var(--civic-blue-dark);
+  color: var(--ink);
 }
 
 .portal-link {
-  color: var(--civic-blue);
-  text-decoration: none;
-  font-size: 0.88rem;
-  font-weight: 600;
+  color: var(--civic-blue-dark);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .portal-link:hover {
-  text-decoration: underline;
+  color: var(--ink);
 }
 
 /* ── Navigation & buttons ────────────────────────────── */
@@ -185,20 +244,21 @@ select {
 }
 
 .nav-tabs button {
-  border: 2px solid var(--hair);
+  border: 2px solid var(--hair-strong);
   background: var(--bg-elevated);
-  color: var(--ink-muted);
+  color: var(--ink);
   padding: 8px 14px;
   border-radius: 999px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
 }
 
 .nav-tabs button:hover:not(:disabled) {
   color: var(--civic-blue-dark);
-  border-color: var(--civic-blue-light);
+  border-color: var(--civic-blue);
+  background: #fff;
   transform: translateY(-1px);
 }
 
@@ -310,11 +370,11 @@ select {
   writing-mode: vertical-rl;
   text-orientation: mixed;
   transform: rotate(180deg);
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--ink-muted);
+  letter-spacing: 0.1em;
+  color: var(--ink-subtle);
 }
 
 .city-hall-room {
@@ -324,9 +384,9 @@ select {
   justify-content: center;
   gap: 2px;
   padding: 6px 4px;
-  border: 2px solid var(--hair);
+  border: 2px solid var(--hair-strong);
   border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
+  background: var(--bg-panel);
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
   color: var(--ink);
@@ -370,9 +430,9 @@ select {
 
 .city-hall-room-label {
   font-family: var(--font-display);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  line-height: 1.15;
+  line-height: 1.2;
   color: var(--ink);
 }
 
@@ -400,7 +460,7 @@ select {
 }
 
 .btn {
-  border: 2px solid var(--hair);
+  border: 2px solid var(--hair-strong);
   background: var(--bg-elevated);
   color: var(--ink);
   padding: 8px 16px;
@@ -461,17 +521,17 @@ select {
 
 .metric-tile {
   background: var(--bg-panel);
-  border: 2px solid var(--hair);
+  border: 2px solid var(--hair-strong);
   border-radius: var(--radius-md);
   padding: 14px 16px;
   box-shadow: var(--shadow-sm);
 }
 
 .metric-tile .label {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-muted);
+  letter-spacing: 0.06em;
+  color: var(--ink-subtle);
   font-weight: 700;
 }
 
@@ -491,7 +551,7 @@ select {
 
 .panel {
   background: var(--bg-panel);
-  border: 2px solid var(--hair);
+  border: 2px solid var(--hair-strong);
   border-radius: var(--radius-lg);
   padding: 18px 20px;
   margin-bottom: 16px;
@@ -524,13 +584,13 @@ select {
 }
 
 .alert {
-  background: rgba(214, 59, 42, 0.1);
-  border: 2px solid rgba(214, 59, 42, 0.35);
+  background: rgba(184, 46, 34, 0.12);
+  border: 2px solid rgba(184, 46, 34, 0.5);
   color: var(--bad);
   padding: 10px 14px;
   border-radius: var(--radius-sm);
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 /* ── Skyline ─────────────────────────────────────────── */
@@ -578,7 +638,9 @@ select {
 
 .slider-row input[type="range"] {
   width: 100%;
-  accent-color: var(--civic-blue);
+  accent-color: var(--civic-blue-dark);
+  min-height: 24px;
+  cursor: pointer;
 }
 
 /* ── Events ──────────────────────────────────────────── */
@@ -613,7 +675,7 @@ select {
 }
 
 .severity-mid {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .severity-low {
@@ -644,7 +706,7 @@ select {
 
 .approval-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--civic-blue), var(--park-green));
+  background: linear-gradient(90deg, var(--civic-blue-dark), var(--good-soft));
   border-radius: 999px;
   transition: width 0.3s ease;
 }
@@ -762,9 +824,9 @@ select {
 }
 
 .scenario-challenge {
-  font-size: 0.78rem;
-  color: var(--warn);
-  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--warn-text);
+  font-weight: 700;
 }
 
 .difficulty-row {
@@ -789,9 +851,9 @@ select {
 .challenge-select {
   width: 100%;
   padding: 10px 12px;
-  background: var(--bg-elevated);
+  background: var(--bg-panel);
   color: var(--ink);
-  border: 2px solid var(--hair);
+  border: 2px solid var(--hair-strong);
   border-radius: var(--radius-sm);
   margin-top: 6px;
 }
@@ -897,8 +959,8 @@ select {
 }
 
 .newspaper-list li.latest .paper-headline {
-  color: var(--action-orange);
-  font-weight: 600;
+  color: var(--action-orange-dark);
+  font-weight: 700;
 }
 
 .paper-year {
@@ -933,8 +995,9 @@ select {
 }
 
 .explainer-real {
-  font-size: 0.82rem !important;
-  color: var(--civic-blue) !important;
+  font-size: 0.875rem !important;
+  color: var(--civic-blue-dark) !important;
+  font-weight: 600;
 }
 
 /* ── Scorecard ───────────────────────────────────────── */
@@ -1016,10 +1079,11 @@ select {
 
 .district-stats .label {
   display: block;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ink-muted);
+  letter-spacing: 0.05em;
+  color: var(--ink-subtle);
+  font-weight: 700;
 }
 
 .district-value {
@@ -1031,7 +1095,7 @@ select {
   color: var(--good);
 }
 .road-mid {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 .road-bad {
   color: var(--bad);
@@ -1127,8 +1191,8 @@ select {
 .challenge-active {
   margin: 6px 0 0;
   font-size: 0.85rem;
-  color: var(--warn);
-  font-weight: 600;
+  color: var(--warn-text);
+  font-weight: 700;
 }
 
 /* ── Achievements ────────────────────────────────────── */
@@ -1145,7 +1209,7 @@ select {
   gap: 10px;
   padding: 10px 0;
   border-bottom: 1px solid var(--hair);
-  opacity: 0.55;
+  opacity: 0.72;
 }
 
 .achievement-item.unlocked {
@@ -1239,8 +1303,8 @@ select {
 .year-summary-callout {
   margin-bottom: 12px;
   font-size: 0.88rem;
-  color: var(--warn);
-  font-weight: 600;
+  color: var(--warn-text);
+  font-weight: 700;
 }
 
 .year-summary-section {
@@ -1476,7 +1540,7 @@ select {
 }
 
 .staff-tone-urgent {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .staff-tone-upbeat {
@@ -1615,13 +1679,12 @@ select {
   font-weight: 700;
   line-height: 1.05;
   margin: 0;
-  color: #fff;
+  color: var(--civic-blue-dark);
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  text-shadow:
-    2px 2px 0 var(--civic-blue-dark),
-    3px 3px 0 var(--civic-blue),
-    4px 4px 0 rgba(15, 61, 122, 0.3);
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.95);
+  paint-order: stroke fill;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.5);
 }
 
 .landing-tagline-ribbon {
@@ -1801,8 +1864,8 @@ select {
 }
 
 .landing-dept-card span {
-  font-size: 0.75rem;
-  opacity: 0.88;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .landing-tips-grid {
@@ -1848,8 +1911,8 @@ select {
 
 .landing-tip p {
   margin: 0;
-  font-size: 0.85rem;
-  color: var(--ink-muted);
+  font-size: 0.9rem;
+  color: var(--ink);
 }
 
 .landing-footer {
