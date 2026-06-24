@@ -22,7 +22,7 @@ On top of it, there is a problem of leadership alignment. A 2026 Grant Thornton 
 ## Who Will Be Promoted?
 One of the interesting findings of AI productivity researches is that in some cases, the role of AI in closing the skill gap is greater than that of accelerating the performance. In controlled conditions, AI increases performance regardless of the skill level of the worker but reduces the gaps between the performance of low-skilled and high-skilled workers the most. In other words, the difference between the poor analyst and the skilled one would decrease the most. The evidence for this is provided by the 2025 Stanford AI Index, which shows that AI helps close the skill gaps in most cases.
 
-![The legibility trap](/legibilitytrap.png)
+![The legibility trap](/public/legibilitytrap.png)
 
 At first glance, it is a good news for individuals. However, it is a dangerous development for the organization as a whole. According to the 2025 AI Productivity Paradox Report, developers working in teams using high amounts of AI technology accomplished 21% more tasks and merged 98% more pull requests. However, the time of code review increased by 91%, since the human approval became the bottleneck. An individual output increased, but the total throughput stopped.
 
