@@ -77,4 +77,4 @@ The economics of litter point in a consistent direction. Clean streets are a pub
 Clean cities are not wealthy cities. They are cities that have decided to act like the problem is solvable — and have built the institutions to prove it.
 
 
-*Primary source: Keep America Beautiful 2026 National Litter Study Summary Report (KAB, 2026). Additional sources: Ong & Sovacool, Resources, Conservation & Recycling (2012); O'Brien et al., Annual Review of Criminology (2019); Overflowing Disparities, BMC Public Health (2022); NYC Council budget documents (2024–2025); SMDP / LA Sanitation reporting (2025).*
+*Sources: Keep America Beautiful 2026 National Litter Study Summary Report (KAB, 2026). Additional sources: Ong & Sovacool, Resources, Conservation & Recycling (2012); O'Brien et al., Annual Review of Criminology (2019); Overflowing Disparities, BMC Public Health (2022); NYC Council budget documents (2024–2025); SMDP / LA Sanitation reporting (2025).*
