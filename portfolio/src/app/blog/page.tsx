@@ -5,7 +5,7 @@ import { getAllPosts } from "@/lib/blog";
 
 export const metadata: Metadata = {
   title: "Blog",
-  description: "Articles on product management, validation, and building digital products.",
+  description: "Articles on...",
 };
 
 /** Blog index — lists all posts sorted by date */
