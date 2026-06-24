@@ -8,17 +8,20 @@ emoji: ""
 
 Here is a paradox hiding in plain sight on American streets. Between 2020 and 2025, the total quantity of litter along the nation's roadways and waterways fell by 34 percent. Cigarette butts — for decades the single most littered item in the country — dropped by 62 percent. By the numbers, America's streets are meaningfully cleaner than they were five years ago.  
 
+And yet: only 17 percent of Americans believe litter in their community has improved. Fifty-five percent say it feels about the same. Many would say it feels worse.  
 
-
-And yet: only 17 percent of Americans believe litter in their community has improved. Fifty-five percent say it feels about the same. Many would say it feels worse. That gap between the data and the lived experience is not a trick of perception. It is an economic story — about what kinds of litter are growing, who bears the costs of disorder, why enforcement rarely works, and what it actually takes to make a city feel clean. The 2026 Keep America Beautiful National Litter Study, the most comprehensive assessment of its kind, gives us the numbers. Economics gives us the explanation.
+That gap between the data and the lived experience is not a trick of perception. It is an economic story — about what kinds of litter are growing, who bears the costs of disorder, why enforcement rarely works, and what it actually takes to make a city feel clean. The 2026 Keep America Beautiful National Litter Study, the most comprehensive assessment of its kind, gives us the numbers. Economics gives us the explanation.
 
 ## The Free-Rider Problem, Scattered Across Every Block
 
-Start with the most fundamental question: why do people litter at all?
-The economic answer is not that litterers are bad people. It is that clean streets are a public good — non-excludable and non-rival, available to everyone regardless of who contributes to their upkeep. That structure creates a near-perfect free-rider problem. Every person who disposes of their trash properly bears a small private cost (the effort of finding a bin) while producing a diffuse public benefit (a slightly cleaner street). Every person who litters captures a private benefit (convenience) while imposing a tiny cost on everyone else. Individually rational; collectively ruinous.
-"If your community regularly cleans up trash from public spaces, there is no incentive not to litter, since you assume someone else will pick it up."
-The 2026 KAB public attitudes survey makes this mechanism visible at national scale. A remarkable 90 percent of Americans say it is their personal responsibility to help reduce litter. And yet 74 percent admit to having littered at some point in their lives, with 13 percent having done so in the past month. The gap between what people believe and what they do is not hypocrisy — it is the free-rider problem operating exactly as economic theory predicts.
-The same survey found that people are significantly more likely to litter when they assume someone else will clean it up, and when no disposal option is nearby. Forty percent of self-reported recent litterers cited the absence of a trash or recycling bin as their primary reason. Fifty-eight percent cited pure convenience. This is the economics of marginal cost: when the cost of compliance rises — no bin in sight, full hands, nowhere obvious to put it — the rate of defection rises too.
+Start with the most fundamental question: why do people litter at all?  
+
+The economic answer is not that litterers are bad people. It is that clean streets are a public good — non-excludable and non-rival, available to everyone regardless of who contributes to their upkeep. That structure creates a near-perfect free-rider problem. Every person who disposes of their trash properly bears a small private cost (the effort of finding a bin) while producing a diffuse public benefit (a slightly cleaner street). Every person who litters captures a private benefit (convenience) while imposing a tiny cost on everyone else. Individually rational; collectively ruinous.  
+  
+The 2026 KAB public attitudes survey makes this mechanism visible at national scale. A remarkable 90 percent of Americans say it is their personal responsibility to help reduce litter. And yet 74 percent admit to having littered at some point in their lives, with 13 percent having done so in the past month. The gap between what people believe and what they do is not hypocrisy — it is the free-rider problem operating exactly as economic theory predicts.  
+
+The same survey found that people are significantly more likely to litter when they assume someone else will clean it up, and when no disposal option is nearby. Forty percent of self-reported recent litterers cited the absence of a trash or recycling bin as their primary reason. Fifty-eight percent cited pure convenience. This is the economics of marginal cost: when the cost of compliance rises — no bin in sight, full hands, nowhere obvious to put it — the rate of defection rises too.  
+
 The implication is important. Appealing to people's values, while not useless, runs directly against the incentive structure of a public good. What actually changes behavior is lowering the compliance cost — more bins, better placement, cleaner and more accessible infrastructure — or raising the cost of defection through credible enforcement. On both counts, American cities have a long way to go.
 
 ## Why the Numbers Improve but the Streets Don't Feel Like It
