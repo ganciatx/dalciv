@@ -13,7 +13,7 @@ from urllib.parse import unquote
 
 import requests
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -39,6 +39,15 @@ from .city_budget import (
     get_vendor_payload,
 )
 from .police_calls import get_active_calls_payload
+from .portfolio_site import (
+    portfolio_apps,
+    portfolio_asset,
+    portfolio_blog_index,
+    portfolio_blog_post,
+    portfolio_enabled,
+    portfolio_index,
+    portfolio_side_projects_redirect,
+)
 from .summaries import SummaryJob, join_manifest_summaries
 from .supervisor import (
     ScraperSupervisor,
@@ -104,6 +113,16 @@ def _city_budget_asset_version() -> int:
 CITY_BUDGET_ASSET_VERSION = _city_budget_asset_version()
 if _static_dir.is_dir():
     app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
+
+_portfolio_root = _static_dir / "portfolio-site"
+if portfolio_enabled():
+    _portfolio_next = _portfolio_root / "_next"
+    if _portfolio_next.is_dir():
+        app.mount(
+            "/_next",
+            StaticFiles(directory=str(_portfolio_next)),
+            name="portfolio-next",
+        )
 
 _council_images = PROJECT_ROOT / "images"
 if _council_images.is_dir():
@@ -634,9 +653,65 @@ async def api_police_active_calls(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request) -> HTMLResponse:
-    """App portal — links to council meetings, police, council accountability."""
+@app.get("/", response_model=None)
+async def home(request: Request):
+    """Portfolio landing page when built; legacy DalCiv portal otherwise."""
+    if portfolio_enabled():
+        return portfolio_index()
+    return templates.TemplateResponse(
+        request=request,
+        name="home.html",
+        context={},
+    )
+
+
+@app.get("/apps", response_class=HTMLResponse)
+async def portfolio_apps_page() -> FileResponse:
+    """Side projects catalog (static Next.js export)."""
+    if not portfolio_enabled():
+        raise HTTPException(status_code=404, detail="Not found")
+    return portfolio_apps()
+
+
+@app.get("/apps/{asset:path}", response_class=HTMLResponse)
+async def portfolio_apps_asset(asset: str) -> FileResponse:
+    """App screenshots under /apps/*.png; /apps alone is the catalog page."""
+    if not portfolio_enabled():
+        raise HTTPException(status_code=404, detail="Not found")
+    if asset in ("", "index.html"):
+        return portfolio_apps()
+    return portfolio_asset(f"apps/{asset}")
+
+
+@app.get("/side-projects", include_in_schema=False)
+async def portfolio_side_projects_alias() -> RedirectResponse:
+    return portfolio_side_projects_redirect()
+
+
+@app.get("/blog", response_class=HTMLResponse)
+async def portfolio_blog_page() -> FileResponse:
+    if not portfolio_enabled():
+        raise HTTPException(status_code=404, detail="Not found")
+    return portfolio_blog_index()
+
+
+@app.get("/blog/{slug}", response_class=HTMLResponse)
+async def portfolio_blog_article(slug: str) -> FileResponse:
+    if not portfolio_enabled():
+        raise HTTPException(status_code=404, detail="Not found")
+    return portfolio_blog_post(slug)
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def portfolio_favicon() -> FileResponse:
+    if not portfolio_enabled():
+        raise HTTPException(status_code=404, detail="Not found")
+    return portfolio_asset("favicon.ico")
+
+
+@app.get("/dalciv", response_class=HTMLResponse)
+async def dalciv_portal(request: Request) -> HTMLResponse:
+    """Legacy app grid — bookmark for direct access to all civic tools."""
     return templates.TemplateResponse(
         request=request,
         name="home.html",

@@ -10,16 +10,28 @@
 | 4 | Apps & blog pages | ✅ Complete |
 | 5 | Layout, nav, footer, styling | ✅ Complete |
 | 6 | Build verification | ✅ Complete |
+| 7 | Static export + FastAPI root | ✅ Complete |
+| 8 | DalCiv apps as side projects | ✅ Complete |
 
 ## What's Built
 
-- **Landing page** (`/`) — Hero, services grid, featured apps, latest blog posts, contact CTA
-- **Apps catalog** (`/apps`) — Full grid of all apps with links to live URLs
+- **Landing page** (`/`) — Hero, services grid, featured side projects, latest blog posts, contact CTA
+- **Side projects** (`/apps`) — DalCiv civic tools with on-site links; Tally opens externally
 - **Blog** (`/blog`) — Post index with category tags and dates
 - **Blog posts** (`/blog/[slug]`) — Markdown-powered articles with static generation
+- **Legacy portal** (`/dalciv`) — Previous DalCiv app grid for direct bookmarks
+
+## Deploy
+
+```bash
+cd portfolio && npm run build   # exports to dashboard/static/portfolio-site/
+python -m dashboard             # serves portfolio at /
+```
+
+Docker production build runs the portfolio step automatically (see root `Dockerfile`).
 
 ## Customize
 
 1. Edit `src/lib/content.ts` — name, bio, email, social links, services, and apps
 2. Add blog posts as `.md` files in `content/blog/` with frontmatter
-3. Run `npm run dev` to preview locally
+3. Run `npm run dev` in `portfolio/` to preview Next.js locally on port 3000

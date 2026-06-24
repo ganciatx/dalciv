@@ -1,22 +1,20 @@
 ---
-title: "Can I build an online shoe retailer with no shoes?"
-excerpt: "Turns out you can — or 'could,' should I say. This is Part 1 in my series of concierge MVP examples from well-known tech startups."
-date: "2025-10-20"
-category: "Product"
-emoji: "👟"
+title: "America's Dirty Secret"
+excerpt: "Why litter feels worse even as the numbers improve and what economics tells us about why cities can't seem to get clean."
+date: "2026-05-18"
+category: "Economic"
+emoji: ""
 ---
 
-Zappos didn't start with a warehouse full of inventory. Neither should you — at least not on day one.
+Here is a paradox hiding in plain sight on American streets. Between 2020 and 2025, the total quantity of litter along the nation's roadways and waterways fell by 34 percent. Cigarette butts — for decades the single most littered item in the country — dropped by 62 percent. By the numbers, America's streets are meaningfully cleaner than they were five years ago.
+And yet: only 17 percent of Americans believe litter in their community has improved. Fifty-five percent say it feels about the same. Many would say it feels worse.
+That gap between the data and the lived experience is not a trick of perception. It is an economic story — about what kinds of litter are growing, who bears the costs of disorder, why enforcement rarely works, and what it actually takes to make a city feel clean. The 2026 Keep America Beautiful National Litter Study, the most comprehensive assessment of its kind, gives us the numbers. Economics gives us the explanation.
 
-## The concierge MVP approach
+## The Free-Rider Problem, Scattered Across Every Block
 
-A concierge MVP means you manually fulfill the service your product would eventually automate. For a shoe retailer, that means:
+Start with the most fundamental question: why do people litter at all?
+The economic answer is not that litterers are bad people. It is that clean streets are a public good — non-excludable and non-rival, available to everyone regardless of who contributes to their upkeep. That structure creates a near-perfect free-rider problem. Every person who disposes of their trash properly bears a small private cost (the effort of finding a bin) while producing a diffuse public benefit (a slightly cleaner street). Every person who litters captures a private benefit (convenience) while imposing a tiny cost on everyone else. Individually rational; collectively ruinous.
 
-1. Build a simple website showcasing shoes (photos from manufacturers)
-2. When someone orders, you manually buy the shoes and ship them
-3. Learn what people actually buy, return, and complain about
-
-You're not trying to be profitable. You're trying to **learn**.
 
 ## What Zappos actually did
 

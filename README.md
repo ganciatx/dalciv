@@ -164,7 +164,11 @@ Unified dashboard for **campaign finance**, **city council voting**, and **lobby
 
 | Method | Path | Notes |
 |--------|------|--------|
-| GET | `/` | App portal (home) |
+| GET | `/` | Portfolio home (static export when built; legacy portal otherwise) |
+| GET | `/apps` | Side projects catalog (DalCiv apps) |
+| GET | `/blog` | Blog index |
+| GET | `/blog/{slug}` | Blog article |
+| GET | `/dalciv` | Legacy DalCiv app grid |
 | GET | `/council-meetings` | Legistar scrape dashboard UI |
 | GET | `/police` | Police active-calls map |
 | GET | `/api/police/active-calls` | Socrata proxy + geocoded calls |
@@ -240,7 +244,7 @@ Your connected account has **Business Web Hosting** plus a **VPS** running the f
 
 | URL | Role |
 |-----|------|
-| **[https://ganciatx.com/](https://ganciatx.com/)** | App portal; council meetings, police, council accountability (HTTPS via Caddy) |
+| **[https://ganciatx.com/](https://ganciatx.com/)** | Portfolio home; DalCiv side projects at `/apps` (HTTPS via Caddy) |
 | [mediumturquoise-giraffe-322901.hostingersite.com](https://mediumturquoise-giraffe-322901.hostingersite.com) | Landing page (links to VPS) |
 
 **Publish updates:** push to `main` on [github.com/ganciatx/dalciv](https://github.com/ganciatx/dalciv), then redeploy via GitHub Actions (if `HOSTINGER_API_KEY` + `HOSTINGER_VM_ID` are set) or hPanel → VPS → Docker Manager → project `dalciv` → Update.

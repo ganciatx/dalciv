@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { App } from "@/lib/content";
+import { isExternalApp } from "@/lib/content";
 
 interface AppCardProps {
   app: App;
@@ -56,11 +57,12 @@ export function AppCard({ app, compact = false }: AppCardProps) {
 
         <a
           href={app.url}
-          target="_blank"
-          rel="noopener noreferrer"
+          {...(isExternalApp(app)
+            ? { target: "_blank", rel: "noopener noreferrer" }
+            : {})}
           className="mt-6 inline-flex items-center text-sm font-medium text-stone-900 transition-colors hover:text-stone-600"
         >
-          Open
+          {isExternalApp(app) ? "Open" : "Try it"}
           <span className="ml-1 transition-transform group-hover:translate-x-0.5">
             &rarr;
           </span>
@@ -92,7 +94,7 @@ export function AppGrid({
             href="/apps"
             className="inline-flex items-center rounded-full border border-stone-300 px-6 py-3 text-sm font-medium text-stone-700 transition-colors hover:border-stone-400 hover:bg-stone-100"
           >
-            View all apps
+            View all side projects
           </Link>
         </div>
       )}

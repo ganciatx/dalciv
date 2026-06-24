@@ -18,12 +18,12 @@ export default function HomePage() {
 
       <Services />
 
-      <section id="apps" className="px-6 py-20">
+      <section id="side-projects" className="px-6 py-20">
         <div className="mx-auto max-w-5xl">
           <SectionHeading
-            label="Products"
-            title="Apps I've Built"
-            description="Side projects, experiments, and tools I've shipped. Each one started as a hypothesis — click through to try them."
+            label=""
+            title="Side Projects"
+            description="Civic tools and experiments I've built. Each one started as a hypothesis — click through to try them."
           />
           <AppGrid apps={featuredApps} showViewAll />
         </div>

@@ -5,7 +5,7 @@ import { getAllApps } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Side Projects",
-  description: "Projects I enjoyed building and some I didn't.",
+  description: "DalCiv civic tools, games, and experiments built by Jackson Echols.",
 };
 
 /** Full catalog of apps and side projects */
@@ -18,7 +18,7 @@ export default function AppsPage() {
         <SectionHeading
           label=""
           title="Side Projects"
-          description="Click through to try them out."
+          description="Civic data tools and experiments hosted on this site. External apps open in a new tab."
         />
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

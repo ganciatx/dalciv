@@ -3,7 +3,7 @@ import { siteConfig } from "@/lib/content";
 
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/side-projects", label: "Side Projects" },
+  { href: "/apps", label: "Side Projects" },
   { href: "/blog", label: "Blog" },
 ];
 

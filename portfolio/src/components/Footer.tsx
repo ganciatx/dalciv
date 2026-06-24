@@ -47,7 +47,7 @@ export function Footer() {
             href="/apps"
             className="text-sm text-stone-500 transition-colors hover:text-stone-900"
           >
-            Apps
+            Side Projects
           </Link>
           <Link
             href="/blog"

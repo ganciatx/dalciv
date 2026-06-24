@@ -26,6 +26,7 @@ export interface App {
   slug: string;
   name: string;
   description: string;
+  /** Absolute path on this site or full URL for external apps */
   url: string;
   /** Fallback icon when no image is provided */
   emoji: string;
@@ -33,6 +34,8 @@ export interface App {
   image?: string;
   tags: string[];
   featured: boolean;
+  /** Opens in a new tab when true (auto-set for https:// links) */
+  external?: boolean;
 }
 
 /** Personal info — update with your details */
@@ -85,70 +88,78 @@ export const services: Service[] = [
   },
 ];
 
-/** Apps and products you've built — add new entries here */
+/**
+ * DalCiv side projects — live on this domain except Tally (subdomain).
+ * URLs are site-relative so links work locally and in production.
+ */
 export const apps: App[] = [
   {
     slug: "city-budget-simulator",
     name: "City Budget Simulator",
     description:
       "Turn-based game: balance the budget, delay consequences, and survive 30 years in office.",
-    url: "https://ganciatx.com/city-budget-simulator",
+    url: "/city-budget-simulator",
     emoji: "🏛️",
     image: "/apps/city-budget-simulator.png",
-    tags: ["Game", "Simulator"],
+    tags: ["Game", "Civic"],
+    featured: true,
+  },
+  {
+    slug: "city-budget",
+    name: "City Budget Explorer",
+    description:
+      "Interactive Dallas city budget — revenue sources, operating departments, and vendor spending.",
+    url: "/city-budget",
+    emoji: "📊",
+    tags: ["Civic", "Data"],
+    featured: true,
+  },
+  {
+    slug: "council-accountability",
+    name: "Council Accountability",
+    description:
+      "Campaign finance, council voting records, and lobbyist registration for Dallas.",
+    url: "/council-accountability",
+    emoji: "⚖️",
+    tags: ["Civic", "Data"],
     featured: true,
   },
   {
     slug: "tally",
     name: "Tally",
     description:
-      "Keep track of your game scores and track your friendly competitions.",
+      "Keep track of game scores and friendly competitions with your group.",
     url: "https://tally.ganciatx.com/",
     emoji: "🔥",
     tags: ["Game", "Scoring"],
     featured: true,
+    external: true,
   },
   {
-    slug: "notion-pack",
-    name: "Notion Component Pack",
+    slug: "police",
+    name: "Police Active Calls",
     description:
-      "A customizable Notion template pack for portfolios, landing pages, and personal sites.",
-    url: "https://example.com/notion-pack",
-    emoji: "📦",
-    tags: ["Templates", "Design"],
-    featured: true,
-  },
-  {
-    slug: "feedback-loop",
-    name: "Feedback Loop",
-    description:
-      "Collect and organize user feedback from multiple channels into actionable product insights.",
-    url: "https://example.com/feedback-loop",
-    emoji: "💬",
-    tags: ["Research", "SaaS"],
+      "Live map of Dallas police active calls with geocoded incident locations.",
+    url: "/police",
+    emoji: "🗺️",
+    tags: ["Civic", "Map"],
     featured: false,
   },
   {
-    slug: "launchpad",
-    name: "LaunchPad",
+    slug: "time-timer",
+    name: "Time Timer",
     description:
-      "Pre-launch waitlist builder with referral mechanics and analytics for early-stage products.",
-    url: "https://example.com/launchpad",
-    emoji: "🚀",
-    tags: ["Growth", "Marketing"],
-    featured: false,
-  },
-  {
-    slug: "metric-dash",
-    name: "Metric Dash",
-    description:
-      "Simple analytics dashboard that connects to your product data and surfaces the metrics that matter.",
-    url: "https://example.com/metric-dash",
-    emoji: "📊",
-    tags: ["Analytics", "Dashboard"],
+      "Visual countdown timer for meetings, focus sessions, and classroom transitions.",
+    url: "/time-timer",
+    emoji: "⏱️",
+    tags: ["Utility"],
     featured: false,
   },
 ];
+
+export function isExternalApp(app: App): boolean {
+  return app.external ?? /^https?:\/\//i.test(app.url);
+}
 
 export function getFeaturedApps(): App[] {
   return apps.filter((app) => app.featured);
