@@ -11,13 +11,19 @@ interface AppCardProps {
 
 /** Card component for displaying a single app/product */
 export function AppCard({ app, compact = false }: AppCardProps) {
+  const external = isExternalApp(app);
+
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white transition-all hover:border-stone-300 hover:shadow-lg">
+    <a
+      href={app.url}
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      className="group flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white transition-all hover:border-stone-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400"
+    >
       {app.image ? (
         <div className="relative aspect-[16/10] w-full overflow-hidden bg-stone-100">
           <Image
             src={app.image}
-            alt={app.name}
+            alt=""
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -55,20 +61,14 @@ export function AppCard({ app, compact = false }: AppCardProps) {
           ))}
         </div>
 
-        <a
-          href={app.url}
-          {...(isExternalApp(app)
-            ? { target: "_blank", rel: "noopener noreferrer" }
-            : {})}
-          className="mt-6 inline-flex items-center text-sm font-medium text-stone-900 transition-colors hover:text-stone-600"
-        >
-          {isExternalApp(app) ? "Open" : "Try it"}
+        <span className="mt-6 inline-flex items-center text-sm font-medium text-stone-900 transition-colors group-hover:text-stone-600">
+          {external ? "Open" : "Try it"}
           <span className="ml-1 transition-transform group-hover:translate-x-0.5">
             &rarr;
           </span>
-        </a>
+        </span>
       </div>
-    </article>
+    </a>
   );
 }
 

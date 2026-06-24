@@ -95,6 +95,12 @@ _time_timer_js = _static_dir / "time-timer/assets/index.js"
 TIME_TIMER_ASSET_VERSION = (
     int(_time_timer_js.stat().st_mtime) if _time_timer_js.is_file() else 0
 )
+_crossword_constructor_js = _static_dir / "crossword-constructor/assets/index.js"
+CROSSWORD_CONSTRUCTOR_ASSET_VERSION = (
+    int(_crossword_constructor_js.stat().st_mtime)
+    if _crossword_constructor_js.is_file()
+    else 0
+)
 
 
 def _city_budget_asset_version() -> int:
@@ -462,6 +468,16 @@ async def time_timer_page(request: Request) -> HTMLResponse:
         request=request,
         name="time_timer.html",
         context={"asset_version": TIME_TIMER_ASSET_VERSION},
+    )
+
+
+@app.get("/crossword-constructor", response_class=HTMLResponse)
+async def crossword_constructor_page(request: Request) -> HTMLResponse:
+    """NYT/WSJ-compliant crossword puzzle builder (client-side)."""
+    return templates.TemplateResponse(
+        request=request,
+        name="crossword_constructor.html",
+        context={"asset_version": CROSSWORD_CONSTRUCTOR_ASSET_VERSION},
     )
 
 

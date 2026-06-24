@@ -105,6 +105,17 @@ export const apps: App[] = [
     featured: true,
   },
   {
+    slug: "crossword-constructor",
+    name: "Crossword Constructor",
+    description:
+      "Build NYT- and WSJ-compliant crossword puzzles with live validation, word fill, and export.",
+    url: "/crossword-constructor",
+    emoji: "🧩",
+    image: "/apps/crossword-constructor.png",
+    tags: ["Game", "Utility"],
+    featured: true,
+  },
+  {
     slug: "city-budget",
     name: "City Budget Explorer",
     description:

@@ -412,6 +412,13 @@ def build_page_api_catalog(
             "upstream_endpoints": [],
         },
         {
+            "id": "crossword-constructor",
+            "title": "Crossword Constructor",
+            "ui_path": "/crossword-constructor",
+            "dashboard_endpoints": [],
+            "upstream_endpoints": [],
+        },
+        {
             "id": PAGE_BUDGET,
             "title": "City budget",
             "ui_path": "/city-budget",

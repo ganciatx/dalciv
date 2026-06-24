@@ -10,6 +10,7 @@ Four capabilities:
 6. **City budget** — **`/city-budget`**: interactive revenue and operating budget dashboards from Dallas Open Data.
 7. **City budget simulator** — **`/city-budget-simulator`**: turn-based fiscal policy game (client-side; see `city-budget-simulator-spec.md`).
 8. **Time Timer** — **`/time-timer`**: visual 60-minute countdown (Time Timer®-style shrinking red disk; client-side).
+9. **Crossword Constructor** — **`/crossword-constructor`**: NYT/WSJ-compliant crossword builder with validation, word fill, and export (client-side).
 
 Plans: **`plans/`** (e.g. **`CAMPAIGN_FINANCE_PLAN.md`**, **`COUNCIL_ACCOUNTABILITY_PLAN.md`**). Further manifest fields: **`issues/ISSUE-more-file-identifying-metadata.md`**.
 
@@ -60,7 +61,7 @@ python dallas_legistar_scraper.py
 python -m dashboard
 ```
 
-Open **http://127.0.0.1:8765** (app portal), **http://127.0.0.1:8765/council-meetings** (Legistar), **http://127.0.0.1:8765/police** (active calls), **http://127.0.0.1:8765/council-accountability** (finance + voting), **http://127.0.0.1:8765/city-budget** (revenue + operating budget), **http://127.0.0.1:8765/city-budget-simulator** (budget game), or **http://127.0.0.1:8765/time-timer** (visual countdown).
+Open **http://127.0.0.1:8765** (app portal), **http://127.0.0.1:8765/council-meetings** (Legistar), **http://127.0.0.1:8765/police** (active calls), **http://127.0.0.1:8765/council-accountability** (finance + voting), **http://127.0.0.1:8765/city-budget** (revenue + operating budget), **http://127.0.0.1:8765/city-budget-simulator** (budget game), **http://127.0.0.1:8765/time-timer** (visual countdown), or **http://127.0.0.1:8765/crossword-constructor** (crossword builder).
 
 | Control | Action |
 |---------|--------|
@@ -142,6 +143,17 @@ Digital version of the [Time Timer® Original 12″](https://www.timetimer.com/c
 
 ---
 
+## Crossword Constructor (`/crossword-constructor`)
+
+Desktop-oriented crossword builder for NYT- and WSJ-compliant puzzles: grid editor with symmetry, live compliance checks, word fill from a curated list, clue management, and export to `.puz`, plain text, PDF, and JSON.
+
+- **UI**: React 19 + Zustand + Tailwind, Vite bundle in `dashboard/static/crossword-constructor/`.
+- **Build** (after UI changes): `cd crossword-constructor && npm install && npm run build`.
+- **Tests**: `cd crossword-constructor && npm test`.
+- **Persistence**: IndexedDB in the browser (no server API). OAuth is optional and not wired in production v1.
+
+---
+
 ## Council accountability (`/council-accountability`)
 
 Unified dashboard for **campaign finance**, **city council voting**, and **lobbyist registration**:
@@ -175,6 +187,7 @@ Unified dashboard for **campaign finance**, **city council voting**, and **lobby
 | GET | `/city-budget` | City budget UI |
 | GET | `/city-budget-simulator` | City budget simulator game (static bundle) |
 | GET | `/time-timer` | Visual countdown timer (static bundle) |
+| GET | `/crossword-constructor` | Crossword puzzle builder (static bundle) |
 | GET | `/api/city-budget/summary` | Overview KPIs + fund comparison; `bfy`, `ftyp`, `fundtype`, `refresh`, `refresh_revenue`, `refresh_operating` |
 | GET | `/api/city-budget/revenue` | Revenue chart series; `refresh`, filters |
 | GET | `/api/city-budget/operating` | Operating chart series; `refresh`, filters |
