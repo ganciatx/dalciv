@@ -38,6 +38,7 @@ from .city_budget import (
     get_summary_payload as get_city_budget_summary_payload,
     get_vendor_payload,
 )
+from .breach_check import get_email_breach_payload
 from .police_calls import get_active_calls_payload
 from .portfolio_site import (
     portfolio_apps,
@@ -100,6 +101,10 @@ CROSSWORD_CONSTRUCTOR_ASSET_VERSION = (
     int(_crossword_constructor_js.stat().st_mtime)
     if _crossword_constructor_js.is_file()
     else 0
+)
+_breach_check_js = _static_dir / "breach-check/assets/index.js"
+BREACH_CHECK_ASSET_VERSION = (
+    int(_breach_check_js.stat().st_mtime) if _breach_check_js.is_file() else 0
 )
 
 
@@ -479,6 +484,31 @@ async def crossword_constructor_page(request: Request) -> HTMLResponse:
         name="crossword_constructor.html",
         context={"asset_version": CROSSWORD_CONSTRUCTOR_ASSET_VERSION},
     )
+
+
+@app.get("/breach-check", response_class=HTMLResponse)
+async def breach_check_page(request: Request) -> HTMLResponse:
+    """Tax Identity Shield trade-show demo — email breach exposure scan."""
+    return templates.TemplateResponse(
+        request=request,
+        name="breach_check.html",
+        context={"asset_version": BREACH_CHECK_ASSET_VERSION},
+    )
+
+
+@app.get("/api/breach-check/email")
+async def api_breach_check_email(
+    email: str = Query(..., min_length=3, max_length=254),
+) -> dict[str, Any]:
+    """Check whether an email appears in known public data breaches."""
+    try:
+        return get_email_breach_payload(email)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.get("/api/city-budget/bootstrap")

@@ -122,6 +122,7 @@ export const apps: App[] = [
       "Interactive Dallas city budget — revenue sources, operating departments, and vendor spending.",
     url: "/city-budget",
     emoji: "📊",
+    image: "/apps/budget-visual.png",
     tags: ["Civic", "Data"],
     featured: true,
   },
@@ -132,6 +133,7 @@ export const apps: App[] = [
       "Campaign finance, council voting records, and lobbyist registration for Dallas.",
     url: "/council-accountability",
     emoji: "⚖️",
+    image: "/apps/council-accountability.png",
     tags: ["Civic", "Data"],
     featured: true,
   },
@@ -153,6 +155,7 @@ export const apps: App[] = [
       "Live map of Dallas police active calls with geocoded incident locations.",
     url: "/police",
     emoji: "🗺️",
+    image: "/apps/police-map.png",
     tags: ["Civic", "Map"],
     featured: false,
   },
@@ -162,8 +165,19 @@ export const apps: App[] = [
     description:
       "Visual countdown timer for meetings, focus sessions, and classroom transitions.",
     url: "/time-timer",
+    image: "/apps/timer.png",
     emoji: "⏱️",
     tags: ["Utility"],
+    featured: false,
+  },
+  {
+    slug: "breach-check",
+    name: "Tax Identity Shield",
+    description:
+      "Trade-show demo: scan your email for breach exposure and learn how H&R Block protects your tax identity.",
+    url: "/breach-check",
+    emoji: "🛡️",
+    tags: ["Demo", "Privacy"],
     featured: false,
   },
 ];

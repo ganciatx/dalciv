@@ -44,6 +44,16 @@ Open http://localhost:5173
 | F1 / Ctrl+? | Guidance sidebar |
 | Ctrl+G (in clue field) | Jump to grid cell |
 
+## Clue database (SQLite)
+
+Constructor clue/answer bank for pattern fill, per-venue difficulty, themes, and reuse tracking. Lives in [`database/`](./database/) — open `database/crossword.db` in **DB Browser for SQLite** or see [`database/QUERY_GUIDE.md`](./database/QUERY_GUIDE.md).
+
+```bash
+cd database && ./setup.sh   # full curated dataset (~120 answers)
+```
+
+A CRUD GUI for this database is planned; the app’s in-browser word list (IndexedDB) remains separate for grid fill.
+
 ## Documentation
 
 - [Marketing & website brief](docs/MARKETING-BRIEF.md) — product overview for designers and copywriters
