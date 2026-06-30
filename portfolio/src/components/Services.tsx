@@ -1,4 +1,4 @@
-import { siteConfig, services } from "@/lib/content";
+import { sections, services } from "@/lib/content";
 
 interface SectionHeadingProps {
   label: string;
@@ -29,9 +29,9 @@ export function Services() {
     <section className="border-t border-stone-200 bg-white px-6 py-20">
       <div className="mx-auto max-w-5xl">
         <SectionHeading
-          label="Who am I?"
-          title="What I Do"
-          description={siteConfig.bio}
+          label={sections.services.label}
+          title={sections.services.title}
+          description={sections.services.description}
         />
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -24,14 +24,17 @@
 ## Deploy
 
 ```bash
-cd portfolio && npm run build   # exports to dashboard/static/portfolio-site/
+cd portfolio && npm run publish-site   # exports to dashboard/static/portfolio-site/
 python -m dashboard             # serves portfolio at /
 ```
+
+Or from repo root: `./scripts/publish-portfolio-site.sh`
 
 Docker production build runs the portfolio step automatically (see root `Dockerfile`).
 
 ## Customize
 
-1. Edit `src/lib/content.ts` — name, bio, email, social links, services, and apps
+1. Edit `content/site.yaml` — name, bio, email, social links, section headings, services, and apps
 2. Add blog posts as `.md` files in `content/blog/` with frontmatter
 3. Run `npm run dev` in `portfolio/` to preview Next.js locally on port 3000
+4. Run `npm run publish-site` to update what the dashboard serves at `/`

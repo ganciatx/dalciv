@@ -1,4 +1,4 @@
-import { siteConfig } from "@/lib/content";
+import { sections, siteConfig } from "@/lib/content";
 
 /** Landing page hero — bold intro inspired by PM portfolio sites */
 export function Hero() {
@@ -26,13 +26,13 @@ export function Hero() {
             href={`mailto:${siteConfig.email}`}
             className="inline-flex items-center rounded-full bg-stone-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-stone-700"
           >
-            Get in touch
+            {sections.hero.primaryCta}
           </a>
           <a
-            href="#apps"
+            href={sections.hero.secondaryHref}
             className="inline-flex items-center rounded-full border border-stone-300 px-6 py-3 text-sm font-medium text-stone-700 transition-colors hover:border-stone-400 hover:bg-stone-100"
           >
-            View my apps
+            {sections.hero.secondaryCta}
           </a>
         </div>
       </div>

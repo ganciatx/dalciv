@@ -1,4 +1,4 @@
-import { siteConfig } from "@/lib/content";
+import { sections, siteConfig } from "@/lib/content";
 
 /** Call-to-action section for booking / contact */
 export function ContactCTA() {
@@ -6,14 +6,13 @@ export function ContactCTA() {
     <section className="border-t border-stone-200 bg-stone-900 px-6 py-20 text-white">
       <div className="mx-auto max-w-5xl text-center">
         <p className="text-sm font-medium uppercase tracking-widest text-stone-400">
-          Let&apos;s talk
+          {sections.contact.label}
         </p>
         <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
-          Looking for product advice?
+          {sections.contact.title}
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-lg text-stone-300">
-          Need help validating an idea, building an MVP, or shaping product
-          strategy? Drop me a line and let&apos;s figure out how I can help.
+          {sections.contact.description}
         </p>
         <a
           href={`mailto:${siteConfig.email}`}

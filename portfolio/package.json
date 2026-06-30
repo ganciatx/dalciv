@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build && node scripts/sync-site-export.mjs",
+    "publish-site": "npm run build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -15,7 +16,8 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-markdown": "^10.1.0",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

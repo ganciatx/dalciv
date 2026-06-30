@@ -4,7 +4,7 @@ import { AppGrid } from "@/components/AppCard";
 import { BlogGrid } from "@/components/BlogCard";
 import { ContactCTA } from "@/components/ContactCTA";
 import { SectionHeading } from "@/components/Services";
-import { getFeaturedApps } from "@/lib/content";
+import { getFeaturedApps, sections } from "@/lib/content";
 import { getLatestPosts } from "@/lib/blog";
 
 /** Landing page — hero, services, featured apps, latest blog posts, contact CTA */
@@ -21,9 +21,9 @@ export default function HomePage() {
       <section id="side-projects" className="px-6 py-20">
         <div className="mx-auto max-w-5xl">
           <SectionHeading
-            label=""
-            title="Side Projects"
-            description="Civic tools and experiments I've built. Each one started as a hypothesis — click through to try them."
+            label={sections.sideProjects.label}
+            title={sections.sideProjects.title}
+            description={sections.sideProjects.description}
           />
           <AppGrid apps={featuredApps} showViewAll />
         </div>
@@ -32,9 +32,9 @@ export default function HomePage() {
       <section className="border-t border-stone-200 bg-white px-6 py-20">
         <div className="mx-auto max-w-5xl">
           <SectionHeading
-            label="Writing"
-            title="Latest Content"
-            description="Thoughts on product management, validation, and building things people want."
+            label={sections.blog.label}
+            title={sections.blog.title}
+            description={sections.blog.description}
           />
           <BlogGrid posts={latestPosts} showViewAll />
         </div>

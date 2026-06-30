@@ -20,13 +20,16 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Customization
 
-### Personal info, services, and apps
+### Site copy (hero, services, apps, section headings)
 
-Edit `src/lib/content.ts`:
+Edit **`content/site.yaml`** — see [`content/SITE_CONTENT_GUIDE.md`](content/SITE_CONTENT_GUIDE.md).
 
-- `siteConfig` — name, title, tagline, bio, email, social links
-- `services` — expertise areas on the landing page
-- `apps` — your products (set `featured: true` to show on the homepage)
+```bash
+npm run dev            # preview at localhost:3000
+npm run publish-site   # rebuild + sync to dashboard/static/portfolio-site/
+```
+
+From the repo root: `./scripts/publish-portfolio-site.sh`
 
 ### Blog posts
 
