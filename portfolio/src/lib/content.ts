@@ -72,9 +72,9 @@ export const services: Service[] = [
       "Running lean experiments and smoke tests to validate ideas before investing in full builds.",
   },
   {
-    title: "Customer Development",
+    title: "Simplifying Complexity",
     description:
-      "Identifying the right problems to solve through interviews, surveys, and behavioral research.",
+      "Tax law, compliance workflows, B2B onboarding — my specialty is taking the stuff nobody wants to deal with and making it slightly less painful.",
   },
   {
     title: "Rapid Prototyping",
@@ -82,9 +82,9 @@ export const services: Service[] = [
       "Shipping functional prototypes in days, not months, to test assumptions with real users.",
   },
   {
-    title: "Scrum Certified ",
+    title: "Reading the Business",
     description:
-      "Designing user-centric experiences that convert — from landing pages to full product flows.",
+      "I have an accounting degree, which mostly means I ask annoying questions about what we're actually measuring before we build anything.",
   },
 ];
 
