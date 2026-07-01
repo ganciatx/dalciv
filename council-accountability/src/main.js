@@ -60,6 +60,7 @@ const tabsLoaded = new Set(["overview"]);
 let memberDirectory = [];
 let selectedMemberId = "";
 let memberSort = "district";
+let cityWatchList = [];
 
 const money = (n) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n || 0);
@@ -132,12 +133,24 @@ function syncHeroStats() {
 
 function updateViewChrome() {
   const on = isMemberFiltered();
-  document.getElementById("overview-chrome")?.toggleAttribute("hidden", on);
+  const citywideDataTab = !on && activeTab !== "overview";
+  document.getElementById("overview-chrome")?.toggleAttribute("hidden", on || citywideDataTab);
   document.getElementById("member-chrome")?.toggleAttribute("hidden", !on);
-  document.getElementById("btn-sidebar-overview")?.classList.toggle("on", !on);
+  document.getElementById("btn-sidebar-overview")?.classList.toggle("on", !on && activeTab === "overview");
   document.querySelectorAll(".ca-sidebar-member").forEach((btn) => {
     btn.classList.toggle("on", btn.dataset.member === activeMemberId());
   });
+}
+
+function syncOverviewSections() {
+  const on = isMemberFiltered();
+  const onOverviewTab = activeTab === "overview";
+  document.getElementById("lobby-teaser")?.toggleAttribute("hidden", on || !onOverviewTab);
+  document.getElementById("member-index-section")?.toggleAttribute("hidden", on || !onOverviewTab);
+  document.getElementById("combined-overview")?.toggleAttribute("hidden", !on || !onOverviewTab);
+  if (on || !onOverviewTab) {
+    document.getElementById("overview-watch-section")?.toggleAttribute("hidden", true);
+  }
 }
 
 function updateMemberFilterChrome() {
@@ -146,12 +159,10 @@ function updateMemberFilterChrome() {
   const memberName = entry?.display_name || "selected member";
 
   updateViewChrome();
+  syncOverviewSections();
 
   document.querySelector(".voting-view-toggle")?.toggleAttribute("hidden", on);
-  document.getElementById("lobby-teaser")?.toggleAttribute("hidden", on);
   document.getElementById("candidate-index-section")?.toggleAttribute("hidden", on);
-  document.getElementById("member-index-section")?.toggleAttribute("hidden", on && activeTab === "overview");
-  document.getElementById("overview-watch-section")?.toggleAttribute("hidden", on);
 
   document.querySelectorAll("#tab-money .money-global-only").forEach((el) => {
     el.hidden = on;
@@ -180,7 +191,6 @@ function applyMemberHeaderKpis(profileBody) {
   if (!profileBody?.found) return;
   const fin = profileBody.finance_overview?.financials;
   const vote = profileBody.voting_stats?.totals;
-  const memberName = profileBody.member?.display_name || "member";
 
   if (fin) {
     document.getElementById("kpi-raised").textContent = money(fin.total_raised);
@@ -193,7 +203,6 @@ function applyMemberHeaderKpis(profileBody) {
     document.getElementById("kpi-vote-records").textContent = vote.records ?? "—";
     document.getElementById("kpi-yes-rate").textContent = pctRate(vote.yes_rate);
   }
-  document.getElementById("header-sub").textContent = `Showing data for ${memberName}`;
   syncHeroStats();
 }
 
@@ -432,6 +441,130 @@ function radarCardHtml(r, opts = {}) {
     </article>`;
   }
   return overlapCardHtml(r, opts);
+}
+
+function flagMatchesMember(flag, candidateName) {
+  if (!candidateName) return false;
+  if (flag.candidate === candidateName) return true;
+  const matchName = (entry) => {
+    if (typeof entry === "string") return entry === candidateName;
+    return entry?.candidate === candidateName;
+  };
+  return (
+    flag.candidates?.some(matchName) ||
+    flag.gave_to?.some(matchName) ||
+    flag.paid_by?.some(matchName)
+  );
+}
+
+function memberFlagCount(m) {
+  const name = m.finance_candidate_name;
+  if (!name) return 0;
+  return cityWatchList.filter((f) => flagMatchesMember(f, name)).length;
+}
+
+function overlapRoleChipHtml(role) {
+  const map = {
+    contributor: { cls: "donor", label: "Donor" },
+    donor: { cls: "donor", label: "Donor" },
+    recipient: { cls: "vendor", label: "Vendor" },
+    vendor: { cls: "vendor", label: "Vendor" },
+    both: { cls: "both", label: "Both" },
+  };
+  const key = role === "contributor" ? "contributor" : role === "recipient" ? "recipient" : role;
+  const { cls, label } = map[key] || map.vendor;
+  return `<span class="ca-role-chip ${cls}">${label}</span>`;
+}
+
+function overlapTableHtml(rows) {
+  if (!rows?.length) {
+    return `<p class="ca-empty-row">No overlap entities on file for this member.</p>`;
+  }
+  return `<table class="ca-overlap-table">
+    <thead>
+      <tr>
+        <th>Entity</th>
+        <th>Interest</th>
+        <th class="center">Role</th>
+        <th class="right">Lobby filings</th>
+        <th class="right">Amount</th>
+      </tr>
+    </thead>
+    <tbody>${rows.map((r) => {
+      const role = r.campaign_role || overlapRole(r);
+      const interest = (r.lobbyists || []).slice(0, 2).join(", ") || "Registered lobbyist client";
+      const amount = r.campaign_amount != null ? r.campaign_amount : Math.max(r.campaign_contributed || 0, r.campaign_received || 0);
+      const sworn = r.latest_lobby_sworn ? formatDate(r.latest_lobby_sworn) : "";
+      return `<tr>
+        <td>
+          <div class="entity-cell">${escapeHtml(r.entity)}</div>
+          ${sworn ? `<div class="entity-sub">Registered ${escapeHtml(sworn)}</div>` : ""}
+        </td>
+        <td class="muted">${escapeHtml(interest)}</td>
+        <td class="center">${overlapRoleChipHtml(role)}</td>
+        <td class="right tabular muted">${r.lobby_registrations ?? "—"}</td>
+        <td class="right tabular">${money(amount)}</td>
+      </tr>`;
+    }).join("")}</tbody>
+  </table>`;
+}
+
+function renderOverlapTable(containerId, rows) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = overlapTableHtml(rows);
+}
+
+function voteRowHtml(r) {
+  const v = String(r.vote || "").toUpperCase();
+  let tone = "abstain";
+  let label = "Other";
+  if (v === "YES" || v === "Y") {
+    tone = "yes";
+    label = "Yes";
+  } else if (v === "NO" || v === "N") {
+    tone = "no";
+    label = "No";
+  } else if (v === "ABST") {
+    tone = "abstain";
+    label = "Abstain";
+  }
+  const outcome = r.final_action_taken || "";
+  const dateStr = formatDate(r.date);
+  const district = r.district ? ` · Dist ${r.district}` : "";
+  return `<div class="ca-vote-row ${tone}">
+    <div class="ca-vote-row-main">
+      <p class="ca-vote-row-meta">${label} · <span class="muted">${escapeHtml(dateStr)}${escapeHtml(district)}</span></p>
+      <p class="ca-vote-row-title">${escapeHtml(r.description || "—")}</p>
+    </div>
+    ${outcome ? `<div class="ca-vote-row-outcome"><span class="label">Outcome</span><span class="value">${escapeHtml(outcome)}</span></div>` : ""}
+  </div>`;
+}
+
+function donorListItemHtml(d, lobbyEntities = new Set()) {
+  const name = d.name || d.entity || "Unknown";
+  const lobbyMatch = lobbyEntities.has(name.toLowerCase());
+  return `<li>
+    <div class="donor-main">
+      <p class="donor-name">${escapeHtml(name)}${lobbyMatch ? '<span class="lobby-dot" title="Also in lobbying registrations"></span>' : ""}</p>
+      ${d.share != null ? `<p class="donor-sub">${Math.round(d.share * 100)}% of contributions</p>` : ""}
+    </div>
+    <span class="tabular donor-amt">${money(d.total ?? d.amount)}</span>
+  </li>`;
+}
+
+function profileFlagItemHtml(f) {
+  const sev = String(f.severity || "low").toLowerCase();
+  const severityText = sev === "high" ? "Elevated" : "For review";
+  const entity = f.counterparty || f.title || "Flag";
+  const reason = f.detail || f.reason || "";
+  const amount = f.amount ?? f.total ?? f.contributed ?? f.received;
+  return `<li class="ca-flag-item">
+    <div class="ca-flag-sev">${severityText}</div>
+    <p class="ca-flag-entity">${escapeHtml(entity)}</p>
+    <p class="ca-flag-reason">${escapeHtml(reason)}</p>
+    ${amount != null ? `<p class="ca-flag-amt tabular">${money(amount)}</p>` : ""}
+  </li>`;
 }
 
 function overlapCardHtml(r, opts = {}) {
@@ -742,20 +875,10 @@ function setActiveTab(tab) {
   document.querySelectorAll(".tab-panel").forEach((p) => {
     p.classList.toggle("on", p.id === `tab-${tab}`);
   });
+  updateViewChrome();
+  syncOverviewSections();
+
   const memberReload = isMemberFiltered();
-  if (tab === "overview" && memberReload) {
-    document.getElementById("combined-overview").hidden = false;
-    document.getElementById("member-index-section").hidden = true;
-    document.getElementById("overview-watch-section")?.toggleAttribute("hidden", true);
-  } else if (tab === "overview" && !memberReload) {
-    document.getElementById("combined-overview").hidden = true;
-    document.getElementById("member-index-section").hidden = false;
-    document.getElementById("lobby-teaser")?.toggleAttribute("hidden", false);
-  } else if (!memberReload) {
-    document.getElementById("member-index-section").hidden = true;
-    document.getElementById("lobby-teaser")?.toggleAttribute("hidden", true);
-    document.getElementById("overview-watch-section")?.toggleAttribute("hidden", true);
-  }
   if (tab === "money" && (memberReload || !tabsLoaded.has("money"))) {
     tabsLoaded.add("money");
     loadFinance(false);
@@ -1033,8 +1156,10 @@ function sortMembers(rows) {
       return list.sort((a, b) => (b.finance_summary?.total_raised || 0) - (a.finance_summary?.total_raised || 0));
     case "yes":
       return list.sort((a, b) => (b.voting_summary?.yes_rate || 0) - (a.voting_summary?.yes_rate || 0));
+    case "flags":
+      return list.sort((a, b) => memberFlagCount(b) - memberFlagCount(a));
     default:
-      return list;
+      return list.sort((a, b) => (a.district_num || a.district || 0) - (b.district_num || b.district || 0));
   }
 }
 
@@ -1138,7 +1263,12 @@ function renderMemberDirectory(members) {
         </div>`
       : "";
 
-    const flagHtml = `<span class="no-flags">No flags</span>`;
+    const flags = memberFlagCount(m);
+    const flagHtml = flags > 0
+      ? `<span class="has-flags"><svg class="ca-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg> ${flags} flag${flags > 1 ? "s" : ""}</span>`
+      : `<span class="no-flags">No flags</span>`;
+
+    const neighborhood = m.neighborhoods || (distNum ? `District ${distNum}` : "Dallas City Council");
 
     return `<button type="button"
       class="info-card is-clickable member-card${isSelected}"
@@ -1152,13 +1282,14 @@ function renderMemberDirectory(members) {
           <div>
             <p class="card-district">District ${escapeHtml(dist || "—")}</p>
             <h3 class="card-title">${escapeHtml(m.display_name)}</h3>
+            <p class="card-neighborhood">${escapeHtml(neighborhood)}</p>
           </div>
           <div class="data-flags">${financeBadges}</div>
         </div>
         ${statsHtml}
         ${yesMeter}
         <div class="card-footer">
-          <span>${vs ? `${vs.records || 0} votes` : "—"}</span>
+          <span>${m.committee ? escapeHtml(String(m.committee).split("(")[0].trim()) : "City Council"}</span>
           ${flagHtml}
         </div>
       </div>
@@ -1248,17 +1379,13 @@ function renderVotingKpis(containerId, stats) {
 }
 
 function renderRecentVotes(rows) {
-  const body = document.getElementById("profile-recent-votes");
-  if (!body) return;
+  const list = document.getElementById("profile-recent-votes-list");
+  if (!list) return;
   if (!rows?.length) {
-    body.innerHTML = `<tr><td colspan="3" style="color:var(--muted)">No votes in range.</td></tr>`;
+    list.innerHTML = `<p class="ca-empty-row">No votes in range.</p>`;
     return;
   }
-  body.innerHTML = rows.map((r) => `<tr>
-    <td>${escapeHtml(formatDate(r.date))}</td>
-    <td>${voteTagHtml(r.vote)}</td>
-    <td class="vote-desc">${escapeHtml(r.description || "—")}</td>
-  </tr>`).join("");
+  list.innerHTML = `<div class="ca-vote-rows">${rows.slice(0, 5).map((r) => voteRowHtml(r)).join("")}</div>`;
 }
 
 function renderMemberProfile(body) {
@@ -1268,6 +1395,7 @@ function renderMemberProfile(body) {
     panel.hidden = true;
     idx.hidden = false;
     updateViewChrome();
+    syncOverviewSections();
     return;
   }
   panel.hidden = false;
@@ -1288,16 +1416,16 @@ function renderMemberProfile(body) {
   }
   const headSlot = document.getElementById("profile-headshot-slot");
   if (headSlot) headSlot.innerHTML = memberHeadshotHtml(m, "profile-size", { districtLink: true });
-  const tags = [];
-  if (m.has_finance) tags.push("campaign finance");
-  if (m.has_voting) tags.push("voting record");
-  if (distNum) tags.push(`district ${distNum}`);
-  document.getElementById("profile-meta").textContent = tags.join(" · ") || "";
+  const metaEl = document.getElementById("profile-meta");
+  if (metaEl) {
+    const loc = distNum ? `District ${distNum} representative` : "Dallas City Council";
+    metaEl.innerHTML = `<svg class="ca-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> ${escapeHtml(loc)}`;
+  }
 
   const termEl = document.getElementById("profile-term-ends");
   if (termEl) termEl.textContent = m.term_ends || "—";
   const committeeEl = document.getElementById("profile-committee");
-  if (committeeEl) committeeEl.textContent = m.committee || "—";
+  if (committeeEl) committeeEl.textContent = m.committee || "City Council";
   const badgesEl = document.getElementById("profile-data-badges");
   if (badgesEl) {
     badgesEl.innerHTML = `<span class="data-flag money${m.has_finance ? " on" : ""}">$</span>
@@ -1306,57 +1434,63 @@ function renderMemberProfile(body) {
 
   const fin = body.finance_overview;
   const vote = body.voting_stats;
+  const memberFlags = fin?.watch_list || [];
+  const flagCount = memberFlags.length;
   const pk = document.getElementById("profile-kpis");
   let kpiHtml = "";
   if (fin?.found) {
     const f = fin.financials || {};
+    const avgGift = f.contribution_count ? f.total_raised / f.contribution_count : null;
     kpiHtml += `
       <div class="overview-kpi"><div class="label">Raised · cycle</div><div class="value good">${money(f.total_raised)}</div><div class="hint">${money(f.total_spent)} spent</div></div>
-      <div class="overview-kpi"><div class="label">Cash on hand</div><div class="value">${money(f.net_cash)}</div></div>`;
+      <div class="overview-kpi"><div class="label">Cash on hand</div><div class="value">${money(f.net_cash)}</div>${avgGift ? `<div class="hint">Avg gift ${money(avgGift)}</div>` : ""}</div>`;
   }
   if (vote?.totals) {
     kpiHtml += `
-      <div class="overview-kpi"><div class="label">Yes-rate</div><div class="value">${pctRate(vote.totals.yes_rate)}</div><div class="hint">${vote.totals.records || 0} recorded votes</div></div>
-      <div class="overview-kpi"><div class="label">Participation</div><div class="value">${pctRate(vote.totals.participation_rate)}</div></div>`;
+      <div class="overview-kpi"><div class="label">Yes-rate</div><div class="value">${pctRate(vote.totals.yes_rate)}</div><div class="hint">${vote.totals.records || 0} recorded votes</div></div>`;
   }
+  kpiHtml += `
+    <div class="overview-kpi"><div class="label">Watch-list flags</div><div class="value${flagCount ? " warn" : ""}">${flagCount}</div><div class="hint">${flagCount ? "Review below" : "No open flags"}</div></div>`;
   pk.innerHTML = kpiHtml;
 
-  const vBlock = document.getElementById("profile-voting-block");
-  if (vote?.found !== false && vote?.totals) {
-    vBlock.hidden = false;
-    renderVotingKpis("vote-stats-kpis", vote);
-    renderVoteYearChart("chart-vote-yearly", vote.by_year || []);
-    renderRecentVotes(body.recent_votes || []);
-  } else {
-    vBlock.hidden = true;
-  }
-
-  const wrap = document.getElementById("profile-finance-wrap");
-  if (fin?.found) {
-    const f = fin.fiscal_responsibility || {};
-    wrap.innerHTML = `
-      <h3 style="margin:.75rem 0 .35rem;font-size:.85rem">Campaign finance</h3>
-      <div class="fiscal-card ${escapeHtml(f.status || "")}">
-        <div class="fiscal-label">${escapeHtml(f.label || "—")}</div>
-        <p>${escapeHtml(f.summary || "")}</p>
-      </div>
-      <p class="hint">Major donors, vendors, and charts are on the <strong>Money</strong> tab.</p>`;
-    wrap.innerHTML = wrap.innerHTML.replace(/<div /g, "<div ");
-  } else {
-    wrap.innerHTML = `<p class="hint">No campaign finance filings linked to this member.</p>`;
-  }
-
-  const lobbyBlock = document.getElementById("profile-lobby-block");
   const overlaps = body.lobbyist_overlap || [];
-  if (overlaps.length) {
+  const lobbyBlock = document.getElementById("profile-lobby-block");
+  if (lobbyBlock) {
     lobbyBlock.hidden = false;
-    renderOverlapCards("profile-lobby-overlap", overlaps, {
-      compact: true,
-      roleFilter: "all",
-      empty: "No lobbying overlap for this member.",
-    });
-  } else {
-    lobbyBlock.hidden = true;
+    renderOverlapTable("profile-lobby-overlap", overlaps);
+  }
+
+  const vBlock = document.getElementById("profile-voting-block");
+  const recent = body.recent_votes || [];
+  if (vBlock) {
+    vBlock.hidden = !recent.length && !vote?.totals;
+    renderRecentVotes(recent);
+  }
+
+  const lobbyNames = new Set(overlaps.map((o) => (o.entity || "").toLowerCase()).filter(Boolean));
+  const donorsPanel = document.getElementById("profile-donors-panel");
+  const donorsList = document.getElementById("profile-donors-list");
+  const majorDonors = fin?.major_donors || [];
+  if (donorsPanel && donorsList) {
+    if (majorDonors.length) {
+      donorsPanel.hidden = false;
+      donorsList.innerHTML = majorDonors.slice(0, 5).map((d) => donorListItemHtml(d, lobbyNames)).join("");
+    } else {
+      donorsPanel.hidden = true;
+      donorsList.innerHTML = "";
+    }
+  }
+
+  const flagsPanel = document.getElementById("profile-flags-panel");
+  const flagsList = document.getElementById("profile-flags-list");
+  if (flagsPanel && flagsList) {
+    if (memberFlags.length) {
+      flagsPanel.hidden = false;
+      flagsList.innerHTML = memberFlags.slice(0, 6).map((f) => profileFlagItemHtml(f)).join("");
+    } else {
+      flagsPanel.hidden = true;
+      flagsList.innerHTML = "";
+    }
   }
 
   applyMemberHeaderKpis(body);
@@ -1631,6 +1765,7 @@ function renderInsights(insights) {
   if (!insights) return;
 
   const flags = insights.watch_list || [];
+  cityWatchList = flags;
   renderOverviewWatchList(flags);
 
   const wl = document.getElementById("watch-list");
@@ -1672,6 +1807,10 @@ function renderInsights(insights) {
       <td class="amt">${money(v.total)}</td>
       <td>${formatSupportList(v.candidates)}</td>
     </tr>`).join("")}</tbody></table>`;
+  }
+
+  if (memberDirectory.length && !isMemberFiltered()) {
+    renderMemberDirectory(memberDirectory);
   }
 }
 

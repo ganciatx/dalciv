@@ -64,7 +64,8 @@
         <div class="ca-container">
           <p class="ca-eyebrow">City of Dallas · Municipal Session 2024–2025</p>
           <h1 class="ca-page-title">Council accountability, in one place.</h1>
-          <p class="ca-page-lede" id="header-sub">Campaign finance, roll-call voting, and lobbyist registrations · Loading…</p>
+          <p class="ca-page-lede">Campaign finance, roll-call voting, and lobbyist registrations for the 14 Dallas City Council districts — connected around the people you recognize.</p>
+          <p class="ca-header-status" id="header-sub" aria-live="polite"></p>
 
           <dl class="ca-hero-stats">
             <div class="ca-stat-tile">
@@ -90,13 +91,6 @@
           </dl>
         </div>
       </header>
-      <nav class="ca-tab-bar ca-tab-bar-global" id="global-tab-bar" role="tablist" aria-label="Dashboard sections">
-        <button type="button" class="tab-btn on" data-tab="overview">Overview</button>
-        <button type="button" class="tab-btn" data-tab="money">Money</button>
-        <button type="button" class="tab-btn" data-tab="voting">Voting</button>
-        <button type="button" class="tab-btn" data-tab="lobbying">Lobbying</button>
-        <button type="button" class="tab-btn" data-tab="transactions">Transactions</button>
-      </nav>
     </div>
 
     <!-- Member profile chrome -->
@@ -131,7 +125,6 @@
           <button type="button" class="tab-btn" data-tab="money">Money</button>
           <button type="button" class="tab-btn" data-tab="voting">Voting</button>
           <button type="button" class="tab-btn" data-tab="lobbying">Lobbying</button>
-          <button type="button" class="tab-btn" data-tab="transactions">Transactions</button>
         </nav>
       </header>
     </div>
@@ -175,6 +168,7 @@
                   <button type="button" class="on" data-member-sort="district">District</button>
                   <button type="button" data-member-sort="raised">Raised</button>
                   <button type="button" data-member-sort="yes">Yes-rate</button>
+                  <button type="button" data-member-sort="flags">Flags</button>
                 </div>
               </div>
             </div>
@@ -196,7 +190,7 @@
         </section>
 
         <section class="ca-section" id="combined-overview" hidden>
-          <div class="ca-container">
+          <div class="ca-container ca-tab-inner">
             <div class="ca-kpi-grid" id="profile-kpis"></div>
             <div class="ca-profile-layout">
               <div class="ca-profile-main">
@@ -206,23 +200,31 @@
                     <h3 class="ca-panel-title">Lobbying overlap</h3>
                     <p class="ca-panel-sub">Entities that appear in both this member's finance record and active lobbying registrations.</p>
                   </header>
-                  <div class="overlap-grid" id="profile-lobby-overlap"></div>
+                  <div id="profile-lobby-overlap"></div>
                 </div>
                 <div class="ca-panel" id="profile-voting-block" hidden>
                   <header class="ca-panel-head">
                     <p class="ca-eyebrow">Voting record</p>
                     <h3 class="ca-panel-title">Recent significant votes</h3>
                   </header>
-                  <div class="overview-kpis" id="vote-stats-kpis"></div>
-                  <div class="chart-wrap compact"><canvas id="chart-vote-yearly"></canvas></div>
-                  <table class="ca-table">
-                    <thead><tr><th>Date</th><th>Vote</th><th>Item</th></tr></thead>
-                    <tbody id="profile-recent-votes"></tbody>
-                  </table>
+                  <div id="profile-recent-votes-list"></div>
                 </div>
               </div>
               <aside class="ca-profile-aside">
-                <div class="ca-panel" id="profile-finance-wrap"></div>
+                <div class="ca-panel" id="profile-donors-panel" hidden>
+                  <header class="ca-panel-head">
+                    <p class="ca-eyebrow">Money</p>
+                    <h3 class="ca-panel-title">Top donors</h3>
+                  </header>
+                  <ul class="ca-donor-list" id="profile-donors-list"></ul>
+                </div>
+                <div class="ca-panel ca-panel-warn" id="profile-flags-panel" hidden>
+                  <header class="ca-panel-head">
+                    <p class="ca-eyebrow ca-eyebrow-warn">Watch list</p>
+                    <h3 class="ca-panel-title">Flags for review</h3>
+                  </header>
+                  <ul class="ca-flag-list" id="profile-flags-list"></ul>
+                </div>
               </aside>
             </div>
           </div>
@@ -417,7 +419,14 @@
     </footer>
   </div>
 
-  <!-- Hidden controls for JS / E2E compatibility -->
+  <!-- E2E / programmatic tab targets (citywide data views) -->
+  <nav class="ca-e2e-nav" aria-hidden="true">
+    <button type="button" class="tab-btn on" data-tab="overview">Overview</button>
+    <button type="button" class="tab-btn" data-tab="money">Money</button>
+    <button type="button" class="tab-btn" data-tab="voting">Voting</button>
+    <button type="button" class="tab-btn" data-tab="lobbying">Lobbying</button>
+    <button type="button" class="tab-btn" data-tab="transactions">Transactions</button>
+  </nav>
   <select id="filter-member" hidden aria-hidden="true"><option value="">All members</option></select>
   <input type="date" id="vote-from" hidden aria-hidden="true" />
   <input type="date" id="vote-to" hidden aria-hidden="true" />

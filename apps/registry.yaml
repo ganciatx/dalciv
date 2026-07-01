@@ -84,6 +84,7 @@ apps:
     static_dir: council-accountability
     serve_built_html: true
     embed_bootstrap: true
+    skip_site_chrome: true
     build: npm run build
     docker: true
     legacy_routes:

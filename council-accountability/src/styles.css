@@ -1127,7 +1127,257 @@ h1, h2, h3, h4 { letter-spacing: -0.01em; }
   .ca-profile-layout { grid-template-columns: 2fr 1fr; }
 }
 
-/* ── Tables ── */
+.ca-panel-warn {
+  background: var(--flag);
+  border-color: oklch(0.68 0.14 70 / 25%);
+}
+
+.ca-empty-row {
+  margin: 0;
+  padding: 1rem 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.ca-overlap-table {
+  width: 100%;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+}
+
+.ca-overlap-table th,
+.ca-overlap-table td {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.ca-overlap-table th {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted-foreground);
+}
+
+.ca-overlap-table th.center,
+.ca-overlap-table td.center { text-align: center; }
+
+.ca-overlap-table th.right,
+.ca-overlap-table td.right { text-align: right; }
+
+.ca-overlap-table td.muted { color: var(--muted-foreground); }
+
+.ca-overlap-table .entity-cell {
+  font-weight: 600;
+  color: var(--civic);
+}
+
+.ca-overlap-table .entity-sub {
+  margin-top: 0.125rem;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+
+.ca-role-chip {
+  display: inline-flex;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ca-role-chip.donor {
+  background: oklch(0.28 0.09 260 / 10%);
+  color: var(--civic);
+}
+
+.ca-role-chip.vendor {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.ca-role-chip.both {
+  background: var(--flag);
+  color: var(--flag-foreground);
+  border: 1px solid oklch(0.68 0.14 70 / 30%);
+}
+
+.ca-vote-rows { border-top: 1px solid var(--border); }
+
+.ca-vote-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0 1rem 1rem;
+  border-bottom: 1px solid var(--border);
+  border-left: 4px solid var(--muted-foreground);
+}
+
+.ca-vote-row.yes { border-left-color: var(--success); }
+.ca-vote-row.no { border-left-color: var(--danger); }
+.ca-vote-row.abstain { border-left-color: var(--muted-foreground); }
+
+.ca-vote-row-meta {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--civic);
+}
+
+.ca-vote-row-meta .muted { color: var(--muted-foreground); font-weight: 600; }
+
+.ca-vote-row-title {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--civic);
+  line-height: 1.45;
+}
+
+.ca-vote-row-outcome {
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 0.75rem;
+}
+
+.ca-vote-row-outcome .label {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+}
+
+.ca-vote-row-outcome .value {
+  display: block;
+  margin-top: 0.125rem;
+  font-weight: 600;
+  color: var(--civic);
+}
+
+.ca-donor-list,
+.ca-flag-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ca-donor-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+
+.ca-donor-list .donor-name {
+  margin: 0;
+  font-weight: 600;
+  color: var(--civic);
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.ca-donor-list .donor-sub {
+  margin: 0.125rem 0 0;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+
+.ca-donor-list .donor-amt {
+  font-weight: 600;
+  color: var(--civic);
+  flex-shrink: 0;
+}
+
+.lobby-dot {
+  display: inline-block;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: var(--warning);
+}
+
+.ca-flag-item {
+  padding: 0 0 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid oklch(0.68 0.14 70 / 20%);
+  font-size: 0.875rem;
+}
+
+.ca-flag-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.ca-flag-sev {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--flag-foreground);
+}
+
+.ca-flag-entity {
+  margin: 0.35rem 0 0;
+  font-weight: 600;
+  color: var(--civic);
+}
+
+.ca-flag-reason {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  line-height: 1.45;
+}
+
+.ca-flag-amt {
+  margin: 0.35rem 0 0;
+  font-weight: 600;
+  color: var(--civic);
+}
+
+.ca-profile-meta-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.ca-header-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.ca-header-status:empty { display: none; }
+
+.ca-e2e-nav {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.member-card .card-footer .has-flags .ca-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
 .ca-table,
 table {
   width: 100%;

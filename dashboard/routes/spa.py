@@ -43,7 +43,8 @@ def _register_one(app: FastAPI, deps: RouteDeps, entry: dict) -> None:
                 html = built.read_text(encoding="utf-8")
                 bootstrap = get_bootstrap_payload_cached(deps.project_root)
                 html = _inject_bootstrap_html(html, bootstrap)
-                html = inject_site_chrome(html)
+                if not entry.get("skip_site_chrome"):
+                    html = inject_site_chrome(html)
                 return HTMLResponse(
                     html,
                     headers={"Cache-Control": "no-cache"},
@@ -54,7 +55,9 @@ def _register_one(app: FastAPI, deps: RouteDeps, entry: dict) -> None:
             async def built_page() -> HTMLResponse:
                 if not built.is_file():
                     raise HTTPException(status_code=503, detail=f"{slug} frontend not built")
-                html = inject_site_chrome(built.read_text(encoding="utf-8"))
+                html = built.read_text(encoding="utf-8")
+                if not entry.get("skip_site_chrome"):
+                    html = inject_site_chrome(html)
                 return HTMLResponse(
                     html,
                     headers={"Cache-Control": "no-cache"},
