@@ -3,7 +3,7 @@
 # Preview without publishing: npm run dev
 
 site:
-  name: Jackson Echols
+  name: Jackson E.
   title: Product Manager & Maker
   tagline: I help teams ideate, validate, and ship digital products that people actually use.
   location: United States
@@ -14,12 +14,12 @@ site:
   social:
     linkedin: https://linkedin.com/in/jackson-echols
     github: https://github.com/ganciatx
-    twitter: https://twitter.com/yourusername
+    # twitter: https://twitter.com/yourusername
 
 sections:
   hero:
-    primaryCta: Get in touch
-    secondaryCta: View my apps
+    primaryCta: Let's connect
+    secondaryCta: My side projects
     secondaryHref: "#side-projects"
   services:
     label: Who am I?
@@ -30,19 +30,19 @@ sections:
     label: ""
     title: Side Projects
     description: >-
-      Civic tools and experiments I've built. Each one started as a hypothesis —
-      click through to try them.
+      Tools and apps from my exploration into the world of AI tools like Cursor. Some related to my passions, some just for fun.
+      Click through to try them.
   blog:
     label: Writing
     title: Latest Content
     description: >-
-      Thoughts on product management, validation, and building things people want.
+      Thoughts on topics I find interesting.
   contact:
     label: Let's talk
-    title: Looking for product advice?
+    title: Looking for an ear?
     description: >-
-      Need help validating an idea, building an MVP, or shaping product strategy?
-      Drop me a line and let's figure out how I can help.
+      I'm not a consultant, but I enjoy speaking to like-minded (or not) people.
+      Drop me a line and let's figure out what to discuss.
 
 services:
   - title: Product Management
@@ -74,7 +74,7 @@ apps:
     name: City Budget Simulator
     description: >-
       Turn-based game: balance the budget, delay consequences, and survive 30 years
-      in office.
+      in local government office.
     url: /city-budget-simulator
     emoji: "🏛️"
     image: /apps/city-budget-simulator.png
