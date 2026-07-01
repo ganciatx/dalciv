@@ -59,6 +59,7 @@ let overlapRoleFilter = "contributors";
 const tabsLoaded = new Set(["overview"]);
 let memberDirectory = [];
 let selectedMemberId = "";
+let memberSort = "district";
 
 const money = (n) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n || 0);
@@ -118,14 +119,39 @@ function lobbyOverlapRows(body) {
   return body.summary?.influence_overlap || [];
 }
 
+function syncHeroStats() {
+  const spentEl = document.getElementById("kpi-spent");
+  const spentLabel = document.getElementById("kpi-spent-label");
+  if (spentEl && spentLabel) spentLabel.textContent = spentEl.textContent;
+  const countEl = document.getElementById("sidebar-member-count");
+  const statMembers = document.getElementById("stat-members");
+  const n = memberDirectory.length;
+  if (countEl) countEl.textContent = n ? String(n) : "—";
+  if (statMembers) statMembers.textContent = n ? String(n) : "—";
+}
+
+function updateViewChrome() {
+  const on = isMemberFiltered();
+  document.getElementById("overview-chrome")?.toggleAttribute("hidden", on);
+  document.getElementById("member-chrome")?.toggleAttribute("hidden", !on);
+  document.getElementById("btn-sidebar-overview")?.classList.toggle("on", !on);
+  document.querySelectorAll(".ca-sidebar-member").forEach((btn) => {
+    btn.classList.toggle("on", btn.dataset.member === activeMemberId());
+  });
+}
+
 function updateMemberFilterChrome() {
   const on = isMemberFiltered();
   const entry = activeMemberEntry();
   const memberName = entry?.display_name || "selected member";
 
+  updateViewChrome();
+
   document.querySelector(".voting-view-toggle")?.toggleAttribute("hidden", on);
   document.getElementById("lobby-teaser")?.toggleAttribute("hidden", on);
   document.getElementById("candidate-index-section")?.toggleAttribute("hidden", on);
+  document.getElementById("member-index-section")?.toggleAttribute("hidden", on && activeTab === "overview");
+  document.getElementById("overview-watch-section")?.toggleAttribute("hidden", on);
 
   document.querySelectorAll("#tab-money .money-global-only").forEach((el) => {
     el.hidden = on;
@@ -168,6 +194,7 @@ function applyMemberHeaderKpis(profileBody) {
     document.getElementById("kpi-yes-rate").textContent = pctRate(vote.yes_rate);
   }
   document.getElementById("header-sub").textContent = `Showing data for ${memberName}`;
+  syncHeroStats();
 }
 
 function applyMemberFinanceKpis(body) {
@@ -183,6 +210,7 @@ function applyMemberFinanceKpis(body) {
   document.getElementById("kpi-candidates").textContent = "1";
   document.getElementById("header-sub").textContent =
     `Campaign finance for ${memberName} · ${meta.filtered_count ?? 0} transactions`;
+  syncHeroStats();
 }
 
 function setMemberCandidateSelect(entry) {
@@ -355,27 +383,55 @@ function severityLabel(sev) {
 }
 
 function watchCardHtml(s) {
-  const sev = escapeHtml(s.severity || "low");
-  let chips = "";
-  if (s.candidates?.length) {
-    chips = `<div class="chips">${formatSupportList(s.candidates)}</div>`;
-  } else if (s.gave_to?.length || s.paid_by?.length) {
-    const gave = s.gave_to?.length ? `Gave to: ${formatSupportList(s.gave_to)}` : "";
-    const paid = s.paid_by?.length ? `Paid by: ${formatSupportList(s.paid_by)}` : "";
-    chips = `<div class="chips">${gave}${gave && paid ? " · " : ""}${paid}</div>`;
-  }
-  const hasChips = Boolean(chips);
-  return `<article class="watch-card ${sev}">
-    <div class="watch-card-head">
-      <span class="severity-dot" aria-hidden="true"></span>
-      <div class="watch-card-body">
-        <strong>${escapeHtml(s.title)}</strong>
-        <p class="watch-detail">${escapeHtml(s.detail || "")}</p>
-      </div>
-      <span class="data-flag ${sev}" title="${severityLabel(s.severity)}">${severityLabel(s.severity)}</span>
+  const sev = String(s.severity || "low").toLowerCase();
+  const severityText = sev === "high" ? "Elevated" : "For review";
+  const memberLink = s.candidates?.length
+    ? s.candidates.slice(0, 2).join(", ")
+    : s.gave_to?.length
+      ? s.gave_to.slice(0, 2).join(", ")
+      : "";
+  const amount = s.amount != null ? money(s.amount) : "";
+  return `<article class="watch-card ca-watch-card ${escapeHtml(sev)}">
+    <div class="ca-watch-card-head">
+      <svg class="ca-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+      <span>${severityText}</span>
     </div>
-    ${hasChips ? `<details><summary>Related names & amounts</summary>${chips}</details>` : ""}
+    <p class="watch-title">${escapeHtml(s.title || s.entity || "Flag")}</p>
+    <p class="watch-detail">${escapeHtml(s.detail || s.reason || "")}</p>
+    <div class="watch-footer">
+      <span>${escapeHtml(memberLink || "Citywide")}</span>
+      ${amount ? `<span class="tabular">${amount}</span>` : ""}
+    </div>
   </article>`;
+}
+
+function radarCardHtml(r, opts = {}) {
+  const compact = opts.compact === true;
+  const role = overlapRole(r);
+  const roleCls = role === "contributor" || role === "both" ? "donor" : "vendor";
+  const roleLabel = role === "both" ? "Donor + Vendor" : role === "contributor" ? "Donor" : "Vendor";
+  const contributed = r.campaign_contributed || 0;
+  const received = r.campaign_received || 0;
+  const memberAmt = r.campaign_amount;
+  const amount = memberAmt != null ? memberAmt : Math.max(contributed, received);
+  const memberCount = r.contribution_candidates?.length || r.expenditure_candidates?.length || "—";
+  const interest = r.report_description || r.interest || "Registered lobbyist client";
+
+  if (compact) {
+    return `<article class="radar-card overlap-card overlap-${roleCls}" data-overlap-role="${escapeHtml(role)}">
+      <div class="radar-card-head">
+        <span class="role-badge ${roleCls}">${roleLabel}</span>
+        <span class="tabular" style="font-size:0.625rem;color:var(--muted-foreground)">${typeof memberCount === "number" ? memberCount : "—"} members</span>
+      </div>
+      <p class="entity-name">${escapeHtml(r.entity)}</p>
+      <p class="entity-interest">${escapeHtml(String(interest).slice(0, 120))}</p>
+      <div class="entity-footer">
+        <span>Cycle activity</span>
+        <span class="tabular">${money(amount)}</span>
+      </div>
+    </article>`;
+  }
+  return overlapCardHtml(r, opts);
 }
 
 function overlapCardHtml(r, opts = {}) {
@@ -453,13 +509,13 @@ function overlapCardHtml(r, opts = {}) {
 
   const hasDetails = detailParts.length > 0;
   const roleBadgeCls = isDonor ? "donor" : "vendor";
-  const cardRoleCls = isDonor ? " overlap-donor" : " overlap-vendor";
+  const cardRoleCls = role === "both" ? " both" : isDonor ? " overlap-donor" : " overlap-vendor";
 
   return `<article class="info-card overlap-card${cardRoleCls}" data-overlap-role="${escapeHtml(role)}">
     <div class="overlap-card-inner">
       <div class="overlap-badges">
         <span class="overlap-badge lobby">Lobbies city</span>
-        <span class="overlap-badge money ${roleBadgeCls}">${overlapRoleLabel(role)}</span>
+        <span class="overlap-badge money ${roleBadgeCls}${role === "both" ? " both" : ""}">${overlapRoleLabel(role)}</span>
       </div>
       <h3 class="card-title">${escapeHtml(r.entity)}</h3>
       <div class="overlap-stat-grid">
@@ -512,10 +568,13 @@ function applyBootstrap(body, opts = {}) {
   if (!isMemberFiltered()) {
     applyVotingOverview(body.voting || {});
     applyFinanceKpis(body.finance || {});
-    renderLobbyTeaser((body.lobbyist || {}).summary || {});
+    renderLobbyTeaser((body.lobbyist || {}).summary || {}, body.lobbyist || null);
   }
   updateMemberFilterChrome();
   renderMemberDirectory(members);
+  if (!isMemberFiltered()) {
+    void loadFinanceSummaryOnly(false, false).catch(() => {});
+  }
 }
 
 function paintInstantBootstrap(body) {
@@ -529,6 +588,7 @@ function paintInstantBootstrap(body) {
   if (sub) document.getElementById("header-sub").textContent = sub;
   document.getElementById("refresh-text").textContent =
     `Updated ${new Date().toLocaleTimeString()}`;
+  syncHeroStats();
 }
 
 function voteParams(refresh) {
@@ -683,6 +743,19 @@ function setActiveTab(tab) {
     p.classList.toggle("on", p.id === `tab-${tab}`);
   });
   const memberReload = isMemberFiltered();
+  if (tab === "overview" && memberReload) {
+    document.getElementById("combined-overview").hidden = false;
+    document.getElementById("member-index-section").hidden = true;
+    document.getElementById("overview-watch-section")?.toggleAttribute("hidden", true);
+  } else if (tab === "overview" && !memberReload) {
+    document.getElementById("combined-overview").hidden = true;
+    document.getElementById("member-index-section").hidden = false;
+    document.getElementById("lobby-teaser")?.toggleAttribute("hidden", false);
+  } else if (!memberReload) {
+    document.getElementById("member-index-section").hidden = true;
+    document.getElementById("lobby-teaser")?.toggleAttribute("hidden", true);
+    document.getElementById("overview-watch-section")?.toggleAttribute("hidden", true);
+  }
   if (tab === "money" && (memberReload || !tabsLoaded.has("money"))) {
     tabsLoaded.add("money");
     loadFinance(false);
@@ -722,7 +795,22 @@ function renderOverlapCards(containerId, rows, opts = {}) {
     el.innerHTML = `<p class="hint" style="grid-column:1/-1">${escapeHtml(emptyMsg)}</p>`;
     return;
   }
-  el.innerHTML = filtered.map((r) => overlapCardHtml(r, opts)).join("");
+  const renderFn = opts.compact ? radarCardHtml : overlapCardHtml;
+  el.innerHTML = filtered.map((r) => renderFn(r, opts)).join("");
+}
+
+function renderOverviewWatchList(flags) {
+  const section = document.getElementById("overview-watch-section");
+  const wrap = document.getElementById("overview-watch-list");
+  if (!section || !wrap) return;
+  const items = (flags || []).slice(0, 3);
+  if (!items.length || isMemberFiltered()) {
+    section.hidden = true;
+    wrap.innerHTML = "";
+    return;
+  }
+  section.hidden = false;
+  wrap.innerHTML = items.map((s) => watchCardHtml(s)).join("");
 }
 
 function setOverlapRoleFilter(role) {
@@ -938,8 +1026,51 @@ function syncMemberToCandidate(memberId) {
   }
 }
 
+function sortMembers(rows) {
+  const list = rows.slice();
+  switch (memberSort) {
+    case "raised":
+      return list.sort((a, b) => (b.finance_summary?.total_raised || 0) - (a.finance_summary?.total_raised || 0));
+    case "yes":
+      return list.sort((a, b) => (b.voting_summary?.yes_rate || 0) - (a.voting_summary?.yes_rate || 0));
+    default:
+      return list;
+  }
+}
+
+function renderSidebarMembers(members) {
+  const nav = document.getElementById("sidebar-members");
+  if (!nav) return;
+  const q = document.getElementById("sidebar-search")?.value?.trim().toLowerCase() || "";
+  const filtered = members.filter((m) => {
+    if (!q) return true;
+    const dist = String(m.district_num || m.district || "");
+    return (
+      (m.display_name || "").toLowerCase().includes(q) ||
+      dist.includes(q) ||
+      (m.id || "").toLowerCase().includes(q)
+    );
+  });
+  nav.innerHTML = filtered.map((m) => {
+    const dist = m.district_num || m.district;
+    const distLabel = dist ? `D${String(dist).padStart(2, "0")}` : "—";
+    const active = m.id === activeMemberId() ? " on" : "";
+    return `<button type="button" class="ca-sidebar-member${active}" data-member="${escapeHtml(m.id)}">
+      <span class="dot"></span>
+      <span class="dist tabular">${escapeHtml(distLabel)}</span>
+      <span class="name">${escapeHtml(m.display_name || m.id)}</span>
+    </button>`;
+  }).join("");
+  nav.querySelectorAll(".ca-sidebar-member").forEach((btn) => {
+    btn.addEventListener("click", () => selectMember(btn.dataset.member));
+  });
+  syncHeroStats();
+}
+
 function renderMemberDirectory(members) {
   memberDirectory = listableMembers(members);
+  renderSidebarMembers(memberDirectory);
+
   const sel = document.getElementById("filter-member");
   const cur = sel.value;
   const first = sel.options[0].outerHTML;
@@ -974,63 +1105,71 @@ function renderMemberDirectory(members) {
     wrap.innerHTML = "";
     return;
   }
-  section.hidden = selectedMemberId && document.getElementById("combined-overview")?.hidden === false;
+  section.hidden = isMemberFiltered() && document.getElementById("combined-overview")?.hidden === false;
   const selected = selectedMemberId;
-  wrap.innerHTML = memberDirectory.map((m) => {
+  const sorted = sortMembers(memberDirectory);
+
+  wrap.innerHTML = sorted.map((m) => {
     const fs = m.finance_summary;
     const vs = m.voting_summary;
     const distNum = m.district_num || m.district;
-    const dist = distNum ? String(distNum) : "";
-    const photo = memberHeadshotHtml(m, "");
-    const activeCls = m.council_status === "active" ? " active-member" : "";
+    const dist = distNum ? String(distNum).padStart(2, "0") : "";
     const isSelected = m.id === selected ? " is-selected" : "";
-    const searchKey = [m.display_name, dist, m.id].filter(Boolean).join(" ");
+    const searchKey = [m.display_name, distNum, m.id].filter(Boolean).join(" ");
+    const yesPct = vs ? pctNum(vs.yes_rate) : null;
+
+    const financeBadges = `<span class="data-flag money${fs ? " on" : ""}" title="Campaign finance">$</span>
+      <span class="data-flag${vs ? " on" : ""}" title="Voting record">Vote</span>`;
 
     let statsHtml = "";
     if (fs) {
-      statsHtml += statBlockHtml("Raised", money(fs.total_raised), "good");
-      statsHtml += statBlockHtml("Spent", money(fs.total_spent), "warn");
+      statsHtml = `<dl class="card-stats">
+        <div><dt>Raised</dt><dd class="tabular">${money(fs.total_raised)}</dd></div>
+        <div><dt>Spent</dt><dd class="tabular">${money(fs.total_spent)}</dd></div>
+      </dl>`;
     } else {
-      statsHtml += `<div class="card-empty" style="grid-column:1/-1">No campaign finance filings</div>`;
+      statsHtml = `<div class="card-empty">No campaign finance filings</div>`;
     }
 
-    const yesPct = vs ? pctNum(vs.yes_rate) : null;
-    const voteMeter = vs
-      ? meterHtml("Yes rate", yesPct, { empty: "No votes" })
-      : `<div class="card-empty">No voting record in range</div>`;
+    const yesMeter = vs && yesPct != null
+      ? `<div class="yes-rate-row">
+          <div class="yes-rate-header"><span>Yes-rate</span><strong class="tabular">${yesPct}%</strong></div>
+          <div class="meter-track"><div class="meter-fill" style="width:${yesPct}%"></div></div>
+        </div>`
+      : "";
 
-    const voteStat = vs
-      ? statBlockHtml("Votes", String(vs.records || 0), "")
-      : statBlockHtml("Votes", "—", "muted");
+    const flagHtml = `<span class="no-flags">No flags</span>`;
 
     return `<button type="button"
-      class="info-card is-clickable member-card${activeCls}${isSelected}"
+      class="info-card is-clickable member-card${isSelected}"
       data-member="${escapeHtml(m.id)}"
       data-search="${escapeHtml(searchKey)}"
       role="listitem"
       aria-pressed="${m.id === selected ? "true" : "false"}"
-      aria-label="View profile for ${escapeHtml(m.display_name)}${dist ? `, district ${escapeHtml(dist)}` : ""}">
-      ${photo}
+      aria-label="View profile for ${escapeHtml(m.display_name)}${distNum ? `, district ${escapeHtml(String(distNum))}` : ""}">
       <div class="card-body">
         <div class="card-header-row">
-          ${councilStatusHtml(m)}
-          ${dist ? `<span class="district-badge">Dist ${escapeHtml(dist)}</span>` : ""}
-          <div class="data-flags" aria-hidden="true">
-            <span class="data-flag money${fs ? " on" : ""}" title="Campaign finance">$</span>
-            <span class="data-flag${vs ? " on" : ""}" title="Voting record">Vote</span>
+          <div>
+            <p class="card-district">District ${escapeHtml(dist || "—")}</p>
+            <h3 class="card-title">${escapeHtml(m.display_name)}</h3>
           </div>
+          <div class="data-flags">${financeBadges}</div>
         </div>
-        <h3 class="card-title">${escapeHtml(m.display_name)}</h3>
-        <div class="stat-grid">${statsHtml}${voteStat}</div>
-        ${voteMeter}
-        <span class="card-cta">View profile →</span>
+        ${statsHtml}
+        ${yesMeter}
+        <div class="card-footer">
+          <span>${vs ? `${vs.records || 0} votes` : "—"}</span>
+          ${flagHtml}
+        </div>
       </div>
     </button>`;
   }).join("");
-  wrap.querySelectorAll(".candidate-card, .member-card, .info-card.is-clickable").forEach((btn) => {
+
+  wrap.querySelectorAll(".member-card").forEach((btn) => {
     btn.addEventListener("click", () => selectMember(btn.dataset.member));
   });
   filterCardGrid("member-search", "member-cards", null);
+  updateViewChrome();
 }
 
 function selectMember(memberId) {
@@ -1045,9 +1184,11 @@ function selectMember(memberId) {
     document.getElementById("combined-overview").hidden = true;
     document.getElementById("member-index-section").hidden = false;
     document.getElementById("filter-candidate").value = "";
+    setActiveTab("overview");
     bootstrap(false, false);
     return;
   }
+  setActiveTab("overview");
   bootstrap(false, false);
 }
 
@@ -1126,23 +1267,42 @@ function renderMemberProfile(body) {
   if (!body?.found) {
     panel.hidden = true;
     idx.hidden = false;
+    updateViewChrome();
     return;
   }
   panel.hidden = false;
   idx.hidden = true;
   const m = body.member || {};
   document.getElementById("profile-name").textContent = m.display_name || m.id;
+  const distNum = m.district_num || m.district;
+  const distLabel = document.getElementById("profile-district-label");
+  if (distLabel) {
+    distLabel.textContent = distNum
+      ? `Dallas City Council · District ${distNum}`
+      : "Dallas City Council";
+  }
+  const statusBadge = document.getElementById("profile-status-badge");
+  if (statusBadge) {
+    statusBadge.textContent = m.council_status === "active" ? "Incumbent" : "Former";
+    statusBadge.hidden = m.council_status !== "active";
+  }
   const headSlot = document.getElementById("profile-headshot-slot");
   if (headSlot) headSlot.innerHTML = memberHeadshotHtml(m, "profile-size", { districtLink: true });
   const tags = [];
-  tags.push(m.council_status === "active" ? "Active Councilmember" : "Former Councilmember");
   if (m.has_finance) tags.push("campaign finance");
   if (m.has_voting) tags.push("voting record");
-  const distNum = m.district_num || m.district;
   if (distNum) tags.push(`district ${distNum}`);
-  if (m.district_page_url) tags.push("photo → city hall district page");
-  document.getElementById("profile-meta").innerHTML =
-    `${councilStatusHtml(m)} <span class="hint" style="margin-left:0.35rem">${escapeHtml(tags.slice(1).join(" · ") || "")}</span>`;
+  document.getElementById("profile-meta").textContent = tags.join(" · ") || "";
+
+  const termEl = document.getElementById("profile-term-ends");
+  if (termEl) termEl.textContent = m.term_ends || "—";
+  const committeeEl = document.getElementById("profile-committee");
+  if (committeeEl) committeeEl.textContent = m.committee || "—";
+  const badgesEl = document.getElementById("profile-data-badges");
+  if (badgesEl) {
+    badgesEl.innerHTML = `<span class="data-flag money${m.has_finance ? " on" : ""}">$</span>
+      <span class="data-flag${m.has_voting ? " on" : ""}">Vote</span>`;
+  }
 
   const fin = body.finance_overview;
   const vote = body.voting_stats;
@@ -1151,13 +1311,12 @@ function renderMemberProfile(body) {
   if (fin?.found) {
     const f = fin.financials || {};
     kpiHtml += `
-      <div class="overview-kpi"><div class="label">Raised</div><div class="value good">${money(f.total_raised)}</div></div>
-      <div class="overview-kpi"><div class="label">Spent</div><div class="value warn">${money(f.total_spent)}</div></div>
-      <div class="overview-kpi"><div class="label">Net</div><div class="value">${money(f.net_cash)}</div></div>`;
+      <div class="overview-kpi"><div class="label">Raised · cycle</div><div class="value good">${money(f.total_raised)}</div><div class="hint">${money(f.total_spent)} spent</div></div>
+      <div class="overview-kpi"><div class="label">Cash on hand</div><div class="value">${money(f.net_cash)}</div></div>`;
   }
   if (vote?.totals) {
     kpiHtml += `
-      <div class="overview-kpi"><div class="label">Yes rate</div><div class="value">${pctRate(vote.totals.yes_rate)}</div></div>
+      <div class="overview-kpi"><div class="label">Yes-rate</div><div class="value">${pctRate(vote.totals.yes_rate)}</div><div class="hint">${vote.totals.records || 0} recorded votes</div></div>
       <div class="overview-kpi"><div class="label">Participation</div><div class="value">${pctRate(vote.totals.participation_rate)}</div></div>`;
   }
   pk.innerHTML = kpiHtml;
@@ -1471,12 +1630,16 @@ function formatSupportList(candidates) {
 function renderInsights(insights) {
   if (!insights) return;
 
-  const wl = document.getElementById("watch-list");
   const flags = insights.watch_list || [];
-  if (!flags.length) {
-    wl.innerHTML = "<p class=\"hint\" style=\"margin:0\">No flags in the current filter set.</p>";
-  } else {
-    wl.innerHTML = flags.map((s) => watchCardHtml(s)).join("");
+  renderOverviewWatchList(flags);
+
+  const wl = document.getElementById("watch-list");
+  if (wl) {
+    if (!flags.length) {
+      wl.innerHTML = "<p class=\"hint\" style=\"margin:0\">No flags in the current filter set.</p>";
+    } else {
+      wl.innerHTML = flags.map((s) => watchCardHtml(s)).join("");
+    }
   }
 
   const spend = insights.spending_breakdown || [];
@@ -1520,6 +1683,7 @@ function applyFinanceKpis(body) {
   document.getElementById("kpi-txns").textContent =
     (kpis.contribution_transactions || 0) + (kpis.expenditure_transactions || 0);
   document.getElementById("kpi-candidates").textContent = kpis.unique_candidates ?? "—";
+  syncHeroStats();
   const sub = [
     `${meta.filtered_count ?? 0} rows match filters (${meta.row_count ?? 0} total)`,
     meta.fetched_at ? `cached ${new Date(meta.fetched_at).toLocaleString()}` : null,
@@ -1835,6 +1999,32 @@ function onFilterChange() {
 
 document.querySelectorAll(".tab-btn").forEach((btn) => {
   btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
+});
+
+document.getElementById("btn-sidebar-overview")?.addEventListener("click", () => {
+  selectMember("");
+});
+
+document.getElementById("btn-back-overview")?.addEventListener("click", () => {
+  selectMember("");
+});
+
+document.getElementById("btn-sidebar-refresh")?.addEventListener("click", () => {
+  bootstrap(true, true);
+});
+
+document.getElementById("sidebar-search")?.addEventListener("input", () => {
+  renderSidebarMembers(memberDirectory);
+});
+
+document.querySelectorAll("[data-member-sort]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    memberSort = btn.dataset.memberSort;
+    document.querySelectorAll("[data-member-sort]").forEach((b) => {
+      b.classList.toggle("on", b.dataset.memberSort === memberSort);
+    });
+    renderMemberDirectory(memberDirectory);
+  });
 });
 
 document.getElementById("filter-member").addEventListener("change", () => {
