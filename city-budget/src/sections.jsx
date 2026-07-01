@@ -281,9 +281,9 @@ function SpendingSection({ palette }) {
           })}
         </div>
 
-        <DetailPanel active={activeGroup} label="Object Group" emptyTitle='“Where does the spending actually go?”'
-          emptyBody="Cents-on-a-dollar share by the city's official 'object group' — the kind of thing a dollar buys."
-          mode="spending" />
+        <DetailPanel active={activeGroup} mode="spending" emptyTitle='“Where does the spending actually go?”'
+          emptyBody="Click any category to see which departments and programs account for that share of the budget."
+        />
       </div>
 
       <div style={{ marginTop: 56 }}>
@@ -343,12 +343,119 @@ function CategoryRow({ item, total, color, onActivate, onHover, dim }) {
 }
 
 // ── DetailPanel (shared) ──────────────────────────────────────────────────
+function BreakdownList({ title, items, groupTotal, maxItems = 8 }) {
+  if (!items?.length) return null;
+  const shown = items.slice(0, maxItems);
+  const rest = items.slice(maxItems);
+  const restAmount = rest.reduce((s, i) => s + i.amount, 0);
+  const maxAmount = Math.max(...shown.map((i) => Math.abs(i.amount)), 1);
+  const denom = Math.abs(groupTotal) || 1;
+
+  return (
+    <div style={{ marginTop: 20 }}>
+      <div style={{
+        fontSize: 10.5, fontWeight: 700, letterSpacing: "0.14em",
+        textTransform: "uppercase", color: "var(--sub)", marginBottom: 10,
+      }}>{title}</div>
+      {shown.map((item, i) => (
+        <BreakdownRow
+          key={item.name}
+          item={item}
+          maxAmount={maxAmount}
+          groupTotal={denom}
+          isLast={i === shown.length - 1 && rest.length === 0}
+        />
+      ))}
+      {rest.length > 0 && (
+        <BreakdownRow
+          item={{ name: `Other (${rest.length} more)`, amount: restAmount }}
+          maxAmount={maxAmount}
+          groupTotal={denom}
+          isLast
+        />
+      )}
+    </div>
+  );
+}
+
+function BreakdownRow({ item, maxAmount, groupTotal, isLast }) {
+  const amount = item.amount;
+  const pct = (Math.abs(amount) / maxAmount) * 100;
+  return (
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "minmax(0, 1fr) minmax(72px, 1.2fr) auto auto",
+      gap: 10, alignItems: "center",
+      padding: "8px 0",
+      borderBottom: isLast ? "none" : "0.5px solid var(--hair)",
+    }}>
+      <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", lineHeight: 1.3 }}>
+        {item.name}
+      </span>
+      <div style={{ position: "relative", height: 14 }}>
+        <div style={{
+          position: "absolute", inset: "2px 0",
+          width: `${pct}%`,
+          background: "var(--accent-fg)", borderRadius: 2, opacity: 0.85,
+        }} />
+      </div>
+      <span style={{
+        fontSize: 12, fontWeight: 600, color: "var(--ink)",
+        fontVariantNumeric: "tabular-nums", minWidth: 52, textAlign: "right",
+      }}>
+        {amount < 0 ? "−" : ""}{fmt.shortDollar(Math.abs(amount))}
+      </span>
+      <span style={{
+        fontSize: 11, color: "var(--sub)",
+        fontVariantNumeric: "tabular-nums", minWidth: 36, textAlign: "right",
+      }}>
+        {fmt.pct(Math.abs(amount), groupTotal)}
+      </span>
+    </div>
+  );
+}
+
+function SpendingDetail({ active, groupTotal }) {
+  const deptItems = (active.byDept || []).filter((d) => d.name !== "Unassigned");
+  const fundItems = active.byFund || [];
+  const serviceItems = active.byService || [];
+  const showFunds = deptItems.length === 0 && fundItems.length > 0;
+
+  return (
+    <>
+      {deptItems.length > 0 && (
+        <BreakdownList
+          title="By department"
+          items={deptItems}
+          groupTotal={groupTotal}
+        />
+      )}
+      {showFunds && (
+        <BreakdownList
+          title="By fund"
+          items={fundItems}
+          groupTotal={groupTotal}
+        />
+      )}
+      {serviceItems.length > 0 && (
+        <BreakdownList
+          title={deptItems.length > 0 ? "Top programs" : "Top programs in this category"}
+          items={serviceItems}
+          groupTotal={groupTotal}
+          maxItems={6}
+        />
+      )}
+    </>
+  );
+}
+
 function DetailPanel({ active, label, emptyTitle, emptyBody, mode = "income" }) {
   const DATA = useBudgetData();
   const total = mode === "income" ? DATA.revenueTotal : DATA.operatingTotal;
+  const groupTotal = active?.amount ?? total;
   return (
     <div style={{
-      position: "sticky", top: 88,
+      position: "sticky", top: "var(--budget-sticky-top, 72px)",
       background: "var(--paper-2)",
       border: "0.5px solid var(--hair)",
       padding: "clamp(24px, 3vw, 36px)",
@@ -358,7 +465,7 @@ function DetailPanel({ active, label, emptyTitle, emptyBody, mode = "income" }) 
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 28 }}>{active.icon}</span>
-            <Pill accent>{label}</Pill>
+            {mode === "income" && label && <Pill accent>{label}</Pill>}
           </div>
           <div style={{
             marginTop: 14,
@@ -395,7 +502,10 @@ function DetailPanel({ active, label, emptyTitle, emptyBody, mode = "income" }) 
               fontFamily: "var(--ff-display)",
             }}>{active.educate}</p>
           )}
-          {active.rows && active.rows.length > 0 && (
+          {mode === "spending" && (
+            <SpendingDetail active={active} groupTotal={groupTotal} />
+          )}
+          {mode === "income" && active.rows && active.rows.length > 0 && (
             <div style={{ marginTop: 18 }}>
               <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.14em",
                 textTransform: "uppercase", color: "var(--sub)", marginBottom: 8 }}>
@@ -823,7 +933,7 @@ function FundsSection({ palette }) {
         </div>
 
         <div style={{
-          position: "sticky", top: 88, alignSelf: "start",
+          position: "sticky", top: "var(--budget-sticky-top, 72px)", alignSelf: "start",
           background: "var(--paper-2)", border: "0.5px solid var(--hair)",
           padding: "clamp(24px, 3vw, 36px)", borderRadius: 6,
         }}>

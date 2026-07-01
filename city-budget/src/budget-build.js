@@ -348,6 +348,28 @@ const DEPT_CATALOG = [
       rev: [], op: ["Communications and Customer Experience"] },
 ];
 
+function buildAppropToFriendlyMap() {
+    const map = {};
+    DEPT_CATALOG.forEach((dc) => {
+      dc.op.forEach((opName) => {
+        map[opName] = dc.name;
+      });
+    });
+    return map;
+}
+
+function friendlyDeptName(rawDept, appropMap) {
+    const d = String(rawDept || "").trim();
+    if (!d) return "Unassigned";
+    if (appropMap[d]) return appropMap[d];
+    return d
+      .replace(/\s+(GF|DWU|AVI|CCT|DSV|OBP)$/i, "")
+      .replace(/\s+Operating Fund$/i, "")
+      .trim() || d;
+}
+
+const APPROP_TO_FRIENDLY = buildAppropToFriendlyMap();
+
 // ── Aggregation helpers ──────────────────────────────────────────────────
 function groupSum(rows, keyFn, valFn) {
     const acc = {};
@@ -386,12 +408,45 @@ const revByType = Object.values(groupSum(revRows, r => r.type, r => r.bud))
 
 // ── Operating by OBJECT GROUP ────────────────────────────────────────────
 const opByOG = Object.values(groupSum(opRows, r => r.og, r => r.bud))
-    .map(g => ({
-      name: g.key, amount: g.val,
-      expended: sumBy(g.rows, r => r.exp),
-      count: g.rows.length,
-      ...(OG_INFO[g.key] || { icon: "📦", blurb: "", educate: "" }),
-    }))
+    .map(g => {
+      const groupTotal = g.val;
+      const byDept = Object.values(
+        groupSum(g.rows, r => friendlyDeptName(r.dept, APPROP_TO_FRIENDLY), r => r.bud),
+      )
+        .filter(x => x.val !== 0)
+        .sort((a, b) => Math.abs(b.val) - Math.abs(a.val))
+        .map(x => ({
+          name: x.key,
+          amount: x.val,
+          share: groupTotal ? (x.val / groupTotal) * 100 : 0,
+        }));
+      const byService = Object.values(groupSum(g.rows, r => r.svc, r => r.bud))
+        .filter(x => x.key && x.key !== "NONE" && x.val !== 0)
+        .sort((a, b) => Math.abs(b.val) - Math.abs(a.val))
+        .slice(0, 8)
+        .map(x => ({
+          name: x.key,
+          amount: x.val,
+          dept: friendlyDeptName(x.rows[0]?.dept, APPROP_TO_FRIENDLY),
+        }));
+      const byFund = Object.values(groupSum(g.rows, r => r.fund || "Unknown", r => r.bud))
+        .filter(x => x.val !== 0)
+        .sort((a, b) => Math.abs(b.val) - Math.abs(a.val))
+        .map(x => ({
+          name: x.key,
+          amount: x.val,
+          share: groupTotal ? (x.val / groupTotal) * 100 : 0,
+        }));
+      return {
+        name: g.key, amount: g.val,
+        expended: sumBy(g.rows, r => r.exp),
+        count: g.rows.length,
+        byDept,
+        byService,
+        byFund,
+        ...(OG_INFO[g.key] || { icon: "📦", blurb: "", educate: "" }),
+      };
+    })
     .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount));
 
 // ── FUNDS — both sides ───────────────────────────────────────────────────

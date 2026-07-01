@@ -1,6 +1,13 @@
 {% extends "layouts/app_shell.html" %}
 {% block title %}City of Dallas Budget{% endblock %}
+{% block site_chrome_footer %}{% endblock %}
 {% block head_extra %}
+  <style>
+    /* Budget explorer: full-width main, no duplicate portfolio footer */
+    .site-chrome-main {
+      min-width: 0;
+    }
+  </style>
   <link rel="stylesheet" href="/static/city-budget/assets/index.css?v={{ asset_version }}" />
 {% endblock %}
 {% block content %}

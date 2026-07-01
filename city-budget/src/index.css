@@ -8,6 +8,8 @@
   --accent-bg: rgba(181, 50, 39, 0.10);
   --ff-display: "Instrument Serif", serif;
   --ff-body: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --site-header-height: 52px;
+  --budget-sticky-top: calc(var(--site-header-height) + 20px);
 }
 
 * {
@@ -69,6 +71,288 @@ em {
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Budget shell (sidebar + main) ─────────────────────────────────────── */
+
+.budget-shell {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 56px);
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: clamp(20px, 3vw, 40px) clamp(20px, 4vw, 56px) clamp(48px, 6vw, 80px);
+  align-items: start;
+}
+
+.budget-main {
+  min-width: 0;
+}
+
+.budget-rail {
+  min-width: 0;
+}
+
+/* Desktop sidebar */
+.budget-sidebar {
+  position: sticky;
+  top: var(--budget-sticky-top);
+  align-self: start;
+}
+
+.budget-sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 14px 18px;
+  border: 0.5px solid var(--hair);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--paper) 92%, var(--paper-2));
+}
+
+.budget-sidebar-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.budget-sidebar-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  background: var(--accent-fg);
+  color: var(--paper);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--ff-display);
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.budget-sidebar-kicker {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sub);
+}
+
+.budget-sidebar-title {
+  margin: 2px 0 0;
+  font-family: var(--ff-display);
+  font-size: 1.35rem;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.budget-sidebar-progress {
+  height: 3px;
+  border-radius: 99px;
+  background: var(--hair);
+  overflow: hidden;
+}
+
+.budget-sidebar-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-fg);
+  transition: width 0.25s ease;
+}
+
+.budget-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.budget-nav-item {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  padding: 8px 10px 8px 12px;
+  border-radius: 6px;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.budget-nav-item:hover {
+  background: var(--accent-bg);
+}
+
+.budget-nav-item.is-active {
+  background: var(--accent-bg);
+  border-left-color: var(--accent-fg);
+}
+
+.budget-nav-item-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.budget-nav-item.is-active .budget-nav-item-label {
+  color: var(--accent-fg);
+}
+
+.budget-nav-item-stat {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sub);
+  font-variant-numeric: tabular-nums;
+}
+
+.budget-sidebar-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 0.5px solid var(--hair);
+}
+
+.budget-sidebar-control-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sub);
+}
+
+.budget-segment {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 7px;
+  background: var(--hair);
+}
+
+.budget-segment button {
+  all: unset;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--sub);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.budget-segment button.is-on {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.budget-sidebar-select {
+  width: 100%;
+  padding: 7px 28px 7px 10px;
+  border: 0.5px solid var(--hair);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.45)' d='M0 0h10L5 6z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.budget-sidebar-select:focus-visible {
+  outline: 2px solid var(--accent-fg);
+  outline-offset: 2px;
+}
+
+.budget-nav-item:focus-visible,
+.budget-segment button:focus-visible,
+.budget-mobile-pill:focus-visible {
+  outline: 2px solid var(--accent-fg);
+  outline-offset: 2px;
+}
+
+/* Mobile section strip */
+.budget-mobile-nav {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .budget-shell {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding-top: 0;
+  }
+
+  .budget-rail {
+    display: contents;
+  }
+
+  .budget-sidebar {
+    display: none;
+  }
+
+  .budget-mobile-nav {
+    display: block;
+    position: sticky;
+    top: var(--site-header-height);
+    z-index: 40;
+    grid-column: 1;
+    margin: 0 calc(-1 * clamp(20px, 4vw, 56px)) 20px;
+    padding: 10px clamp(20px, 4vw, 56px);
+    background: color-mix(in oklab, var(--paper) 90%, transparent);
+    backdrop-filter: blur(12px) saturate(140%);
+    border-bottom: 0.5px solid var(--hair);
+  }
+
+  .budget-mobile-nav-track {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 2px;
+  }
+
+  .budget-mobile-nav-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .budget-mobile-pill {
+    all: unset;
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    padding: 6px 12px;
+    border-radius: 99px;
+    border: 0.5px solid var(--hair);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--sub);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+
+  .budget-mobile-pill.is-active {
+    background: var(--accent-bg);
+    border-color: color-mix(in oklab, var(--accent-fg) 35%, var(--hair));
+    color: var(--accent-fg);
   }
 }
 
