@@ -63,6 +63,14 @@ python -m dashboard
 
 Open **http://127.0.0.1:8765** (app portal), **http://127.0.0.1:8765/council-meetings** (Legistar), **http://127.0.0.1:8765/police** (active calls), **http://127.0.0.1:8765/council-accountability** (finance + voting), **http://127.0.0.1:8765/city-budget** (revenue + operating budget), **http://127.0.0.1:8765/city-budget-simulator** (budget game), **http://127.0.0.1:8765/time-timer** (visual countdown), or **http://127.0.0.1:8765/crossword-constructor** (crossword builder).
 
+**Frontend builds:** Interactive apps are listed in **`apps/registry.yaml`**. Built assets land in **`dashboard/static/`** and are gitignored — build before running locally:
+
+```bash
+./scripts/build-all-frontends.sh
+```
+
+Sync portfolio catalog from the registry: `python3 scripts/sync-site-apps.py`. Production Docker builds all frontends in the image (see **`Dockerfile`**).
+
 | Control | Action |
 |---------|--------|
 | **Start scrape** | Subprocess: `python dallas_legistar_scraper.py` |

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Council Accountability — Dallas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Council accountability</h1>
+      <p id="header-sub">Campaign finance + voting + lobbyist registrations · Loading…</p>
+    </div>
+    <div class="nav-links">
+      <span class="status-pill"><span class="spinner" id="refresh-spin" hidden></span> <span
+          id="refresh-text">—</span></span>
+      <a class="btn-link" href="/">Apps</a>
+      <a class="btn-link" href="https://cityofdallas.legistar.com/Calendar.aspx" target="_blank" rel="noopener noreferrer">Council meetings</a>
+      <a class="btn-link" href="/police">Police map</a>
+      <a class="btn-link" href="/city-budget">City budget</a>
+      <button type="button" id="btn-refresh-finance" class="btn-link">Refresh finance</button>
+      <button type="button" id="btn-refresh-voting" class="btn-link">Refresh voting</button>
+      <button type="button" id="btn-refresh-lobbyist" class="btn-link primary">Refresh lobbying</button>
+    </div>
+  </header>
+
+  <div class="member-bar">
+    <label>Councilmember
+      <select id="filter-member">
+        <option value="">All members (browse below)</option>
+      </select>
+    </label>
+    <label>Votes from
+      <input type="date" id="vote-from" />
+    </label>
+    <label>Votes to
+      <input type="date" id="vote-to" />
+    </label>
+  </div>
+
+  <nav class="tab-nav" role="tablist">
+    <button type="button" class="tab-btn on" data-tab="overview">Overview</button>
+    <button type="button" class="tab-btn" data-tab="money">Money</button>
+    <button type="button" class="tab-btn" data-tab="voting">Voting</button>
+    <button type="button" class="tab-btn" data-tab="lobbying">Lobbying</button>
+    <button type="button" class="tab-btn" data-tab="transactions">Transactions</button>
+  </nav>
+
+  <main>
+    <section class="kpis" id="kpis">
+      <div class="kpi">
+        <div class="label">Total raised</div>
+        <div class="value good" id="kpi-raised">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Total spent</div>
+        <div class="value warn" id="kpi-spent">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Money transactions</div>
+        <div class="value" id="kpi-txns">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Candidates</div>
+        <div class="value" id="kpi-candidates">—</div>
+      </div>
+    
+      <div class="kpi">
+        <div class="label">Vote records</div>
+        <div class="value" id="kpi-vote-records">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Council yes rate</div>
+        <div class="value" id="kpi-yes-rate">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Lobby registrations</div>
+        <div class="value" id="kpi-lobby-regs">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Lobby + campaign overlap</div>
+        <div class="value warn" id="kpi-lobby-overlap">—</div>
+      </div>
+    </section>
+
+
+    <div id="tab-overview" class="tab-panel on">
+    <section class="lobby-teaser insight-section" id="lobby-teaser" hidden>
+      <h2>Influence radar</h2>
+      <p class="hint" id="lobby-teaser-copy">Organizations registered to lobby Dallas City Hall that also show up in campaign finance filings.</p>
+      <div class="overlap-grid" id="lobby-teaser-overlap"></div>
+      <div class="teaser-actions">
+        <button type="button" class="btn-link primary" id="btn-open-lobby-tab">Explore lobbying data</button>
+        <span class="hint" id="lobby-teaser-meta"></span>
+      </div>
+    </section>
+    <section class="insight-section" id="member-index-section">
+      <h2>Browse council members</h2>
+      <p class="hint">Active councilmembers (with photos) are listed first by district. Click a card or photo for an in-app profile; on the profile, the photo links to the district City Hall page.</p>
+      <div class="candidate-cards member-cards" id="member-cards"></div>
+    </section>
+    <section class="insight-section" id="combined-overview" hidden>
+      <div class="profile-header" id="profile-header">
+        <div id="profile-headshot-slot"></div>
+        <div class="profile-header-text">
+          <h2>Member profile — <span id="profile-name"></span></h2>
+          <p class="hint" id="profile-meta"></p>
+        </div>
+      </div>
+      <div class="overview-kpis" id="profile-kpis"></div>
+      <div class="insight-grid" id="profile-voting-block" hidden>
+        <div>
+          <h3 style="margin:0 0 .35rem;font-size:.85rem">Voting record</h3>
+          <div class="overview-kpis" id="vote-stats-kpis"></div>
+          <div class="chart-wrap compact"><canvas id="chart-vote-yearly"></canvas></div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 .35rem;font-size:.85rem">Recent roll calls</h3>
+          <div class="mini-wrap">
+            <table class="mini-table">
+              <thead><tr><th>Date</th><th>Vote</th><th>Item</th></tr></thead>
+              <tbody id="profile-recent-votes"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div id="profile-finance-wrap"></div>
+      <section class="insight-section" id="profile-lobby-block" hidden>
+        <h3 style="margin:.75rem 0 .35rem;font-size:.85rem">Lobbying overlap</h3>
+        <p class="hint">Campaign donors or vendors tied to this member who are also registered to lobby the city.</p>
+        <div class="overlap-grid" id="profile-lobby-overlap"></div>
+      </section>
+    </section>
+    </div>
+
+    <div id="tab-money" class="tab-panel">
+    <section class="filters">
+      <label>Candidate
+        <select id="filter-candidate">
+          <option value="">All candidates</option>
+        </select>
+      </label>
+      <label>Type
+        <select id="filter-kind">
+          <option value="all">All types</option>
+          <option value="contribution">Contributions</option>
+          <option value="expenditure">Expenditures</option>
+          <option value="filing">Filings only</option>
+          <option value="other">Other</option>
+        </select>
+      </label>
+      <label>Filing period
+        <select id="filter-record-type">
+          <option value="">All periods</option>
+        </select>
+      </label>
+      <label>Search
+        <input type="search" id="filter-q" placeholder="Name, schedule, ID…" autocomplete="off" />
+      </label>
+    </section>
+
+    <section class="insight-section" id="candidate-index-section">
+      <h2>Browse candidates</h2>
+      <p class="hint">Select a candidate for a full campaign finance overview (financials, donors, spending, fiscal health).</p>
+      <div class="candidate-cards" id="candidate-cards"></div>
+    </section>
+
+    <section class="insight-section" id="candidate-overview" hidden>
+      <h2>Campaign finance overview — <span id="ov-candidate-name"></span></h2>
+      <p class="hint" id="ov-meta"></p>
+      <div class="overview-kpis" id="ov-kpis"></div>
+      <div class="fiscal-card" id="ov-fiscal">
+        <div class="fiscal-label" id="ov-fiscal-label">—</div>
+        <p id="ov-fiscal-summary"></p>
+        <ul id="ov-fiscal-flags"></ul>
+      </div>
+      <div class="insight-grid">
+        <div>
+          <h3 style="margin:0 0 .35rem;font-size:.85rem">Major donors</h3>
+          <div class="mini-wrap">
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>Donor</th>
+                  <th class="amt">Amount</th>
+                  <th class="amt">Share</th>
+                </tr>
+              </thead>
+              <tbody id="ov-donors"></tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 .35rem;font-size:.85rem">Major expenditures (paid to)</h3>
+          <div class="mini-wrap">
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>Vendor / payee</th>
+                  <th class="amt">Amount</th>
+                  <th class="amt">Share</th>
+                </tr>
+              </thead>
+              <tbody id="ov-expend"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <h3 style="margin:.65rem 0 .35rem;font-size:.85rem">Cash flow by month</h3>
+      <div class="chart-wrap compact"><canvas id="chart-candidate-monthly"></canvas></div>
+      <h3 style="margin:.65rem 0 .35rem;font-size:.85rem">Flags for this candidate</h3>
+      <div class="watch-list" id="ov-watch" style="max-height:160px"></div>
+    </section>
+
+    <section class="insight-section" id="section-watch">
+      <h2>Watch list — possible conflicts of interest</h2>
+      <p class="hint">Automated flags for manual review only (not legal conclusions). Uses donor/vendor names from city filings.</p>
+      <div class="watch-list" id="watch-list"></div>
+    </section>
+
+    <section class="insight-grid">
+      <div class="insight-section">
+        <h2>Where money goes</h2>
+        <p class="hint">Who (candidate) spent how much with which vendor or payee.</p>
+        <div class="mini-wrap">
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>Candidate</th>
+                <th>Paid to</th>
+                <th class="amt">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="spending-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="insight-section">
+        <h2>Who bankrolls whom</h2>
+        <p class="hint">Top donors and which candidates they support.</p>
+        <div class="mini-wrap">
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>Donor</th>
+                <th class="amt">Total</th>
+                <th>Supports</th>
+              </tr>
+            </thead>
+            <tbody id="donors-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="insight-section">
+      <h2>Top vendors (all campaigns)</h2>
+      <p class="hint">Payees receiving the most campaign money, and which candidates paid them.</p>
+      <div class="mini-wrap" id="vendors-wrap"></div>
+    </section>
+
+    <section class="charts">
+      <div class="chart-card">
+        <h2>Top 10 — contributions by candidate</h2>
+        <div class="chart-wrap"><canvas id="chart-contrib"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h2>Top 10 — expenditures by candidate</h2>
+        <div class="chart-wrap"><canvas id="chart-expend"></canvas></div>
+      </div>
+      <div class="chart-card wide">
+        <h2>Contributions vs expenditures by month (last 24 months)</h2>
+        <div class="chart-wrap tall"><canvas id="chart-monthly"></canvas></div>
+      </div>
+    </section>
+
+    </div>
+
+
+    <div id="tab-voting" class="tab-panel">
+    <section class="insight-section">
+      <h2>Voting record</h2>
+      <div class="voting-view-toggle" role="tablist" aria-label="Voting view">
+        <button type="button" class="on" data-voting-view="member" id="btn-vote-view-member">By member</button>
+        <button type="button" data-voting-view="agenda" id="btn-vote-view-agenda">By agenda item</button>
+      </div>
+      <div id="voting-member-panel">
+      <p class="hint" id="voting-hint">Roll-call votes for selected member and date range.</p>
+      <div class="overview-kpis" id="voting-member-kpis"></div>
+      <div class="chart-wrap compact"><canvas id="chart-voting-yearly"></canvas></div>
+      <section class="filters" style="margin-bottom:.5rem">
+        <label>Vote
+          <select id="vote-filter">
+            <option value="">All votes</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="abstain">Abstain</option>
+            <option value="absent">Absent (any)</option>
+            <option value="ABSNT">Absent — personal</option>
+            <option value="ABSNT_CB">Absent — city business</option>
+            <option value="AWVT">Absent when vote taken</option>
+            <option value="N/A">N/A</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>Search votes <input type="search" id="vote-q" placeholder="Agenda description…" /></label>
+      </section>
+      <div class="mini-wrap">
+        <table class="mini-table" id="votes-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Vote</th>
+              <th>District</th>
+              <th class="col-description">Description</th>
+              <th>Outcome</th>
+            </tr>
+          </thead>
+          <tbody id="votes-body"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button type="button" id="votes-prev" disabled>Prev</button>
+        <span id="votes-pager-info">—</span>
+        <button type="button" id="votes-next" disabled>Next</button>
+      </div>
+      </div>
+
+      <div id="voting-agenda-panel" hidden>
+        <p class="hint">Roll calls grouped by agenda item. Click a row for the full council vote.</p>
+        <label>Search agenda <input type="search" id="agenda-q" placeholder="Description, agenda id…" /></label>
+        <div class="mini-wrap" style="margin-top:.5rem">
+          <table class="mini-table" id="agenda-items-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Item</th>
+                <th class="col-description">Description</th>
+                <th>Yes</th>
+                <th>No</th>
+                <th>Other</th>
+                <th>Outcome</th>
+              </tr>
+            </thead>
+            <tbody id="agenda-items-body"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button type="button" id="agenda-prev" disabled>Prev</button>
+          <span id="agenda-pager-info">—</span>
+          <button type="button" id="agenda-next" disabled>Next</button>
+        </div>
+        <section id="agenda-detail" hidden>
+          <h3 id="agenda-detail-title">Agenda item</h3>
+          <p class="agenda-desc" id="agenda-detail-desc"></p>
+          <div class="tally-pills" id="agenda-detail-tallies"></div>
+          <div class="mini-wrap">
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>District</th>
+                  <th>Vote</th>
+                </tr>
+              </thead>
+              <tbody id="agenda-detail-members"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+    </div>
+
+    <div id="tab-lobbying" class="tab-panel">
+    <section class="insight-section">
+      <h2>Who is lobbying City Hall?</h2>
+      <p class="hint">Dallas requires lobbyists to register clients with the city. This tab links those registrations to campaign money — same players, two channels of influence. Not legal advice; names are matched heuristically.</p>
+      <div class="overview-kpis" id="lobby-kpis"></div>
+      <h3 style="margin:1.25rem 0 .5rem;font-size:.9rem">Influence overlap</h3>
+      <p class="hint">Entities that both lobby and appear in campaign finance (contributions or expenditures).</p>
+      <div class="overlap-grid" id="lobby-overlap-grid"></div>
+      <h3 style="margin:1.25rem 0 .5rem;font-size:.9rem">Top lobbying clients</h3>
+      <div class="chart-wrap compact"><canvas id="chart-lobby-clients"></canvas></div>
+      <h3 style="margin:1.25rem 0 .5rem;font-size:.9rem">Search registrations</h3>
+      <div class="lobby-search-row">
+        <label>Filter
+          <input type="search" id="lobby-q" placeholder="Lobbyist or client name…" />
+        </label>
+        <button type="button" class="btn-link" id="btn-lobby-search">Search</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Sworn</th>
+              <th>Lobbyist</th>
+              <th>Client</th>
+              <th>Report</th>
+              <th>PDF</th>
+            </tr>
+          </thead>
+          <tbody id="lobby-table-body"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button type="button" id="lobby-prev" disabled>Previous</button>
+        <span id="lobby-pager-info">—</span>
+        <button type="button" id="lobby-next" disabled>Next</button>
+      </div>
+    </section>
+    </div>
+
+    <div id="tab-transactions" class="tab-panel">
+    <section class="table-section">
+      <h2>Transactions <span id="table-count" style="font-weight:400;color:var(--muted)"></span></h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="transaction_date">Date</th>
+              <th data-sort="candidate_name">Candidate</th>
+              <th data-sort="counterparty_name">Donor / vendor</th>
+              <th data-sort="kind">Type</th>
+              <th data-sort="schedule_type">Schedule</th>
+              <th data-sort="amount_num" class="amt">Amount</th>
+              <th>Report</th>
+            </tr>
+          </thead>
+          <tbody id="tx-body"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button type="button" id="btn-prev" disabled>Previous</button>
+        <span id="pager-info">—</span>
+        <button type="button" id="btn-next" disabled>Next</button>
+      </div>
+    </section>
+    </div>
+  </main>
+
+  <footer>
+    Data:
+    <a href="https://www.dallasopendata.com/Services/Campaign-Finance/ndxz-gccx/data_preview" target="_blank" rel="noopener">Campaign Finance</a>
+    ·
+    <a href="https://www.dallasopendata.com/Services/Dallas-City-Council-Voting-Record/ts5d-gdq6/data_preview" target="_blank" rel="noopener">Council Voting Record</a>
+    ·
+    <a href="https://www.dallasopendata.com/Services/Lobbyist-Registration/ffkm-63hd/about_data" target="_blank" rel="noopener">Lobbyist Registration</a>
+    · Cached locally (finance ~1h, voting & lobbying ~24h). Not legal advice.
+  </footer>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

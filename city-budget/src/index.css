@@ -1,0 +1,113 @@
+:root {
+  --paper: #F2EBDA;
+  --paper-2: #EBE3CE;
+  --ink: #181A22;
+  --sub: rgba(24, 26, 34, 0.62);
+  --hair: rgba(24, 26, 34, 0.18);
+  --accent-fg: #B53227;
+  --accent-bg: rgba(181, 50, 39, 0.10);
+  --ff-display: "Instrument Serif", serif;
+  --ff-body: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--ff-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-variant-numeric: tabular-nums;
+}
+
+body {
+  min-height: 100vh;
+  transition: background 0.25s, color 0.25s;
+}
+
+button {
+  font-family: inherit;
+}
+
+em {
+  font-style: italic;
+}
+
+::selection {
+  background: var(--accent-fg);
+  color: var(--paper);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--hair);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sub);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/18bf9686-073b-4c9e-9a37-faea6b14e6f0.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/b86de40e-3872-49e8-8555-e953e5de4cc5.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/b86de40e-3872-49e8-8555-e953e5de4cc5.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Newsreader";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/734bf58d-db37-4d62-8e8f-312865d1a757.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/416f0ba4-ec92-4f2b-9b53-185854c87bee.woff2") format("woff2");
+}

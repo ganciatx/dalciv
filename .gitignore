@@ -2,3 +2,13 @@
 __pycache__/
 *.pyc
 scraper_dashboard_data/
+node_modules/
+
+# Frontend build outputs (rebuilt via scripts/build-all-frontends.sh or Docker)
+dashboard/static/portfolio-site/
+dashboard/static/city-budget-simulator/
+dashboard/static/crossword-constructor/
+dashboard/static/time-timer/
+dashboard/static/city-budget/
+dashboard/static/council-accountability/
+dashboard/static/dallas-budget/

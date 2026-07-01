@@ -1,0 +1,152 @@
+# Single source of truth for DalCiv apps and portfolio catalog entries.
+# Sync catalog → portfolio/content/site.yaml:  node scripts/sync-site-apps.mjs
+# Build all frontends:                        ./scripts/build-all-frontends.sh
+
+apps:
+  # ── Vite SPAs (source dir → dashboard/static/<static_dir>/) ──────────────
+
+  - slug: city-budget-simulator
+    name: City Budget Simulator
+    route: /city-budget-simulator
+    type: vite-spa
+    source_dir: city-budget-simulator
+    static_dir: city-budget-simulator
+    template: city_budget_simulator.html
+    build: npm run build
+    docker: true
+    catalog:
+      description: >-
+        Turn-based game: balance the budget, delay consequences, and survive 30 years
+        in local government office.
+      emoji: "🏛️"
+      image: /apps/city-budget-simulator.png
+      tags: [Game, Civic]
+      featured: true
+
+  - slug: crossword-constructor
+    name: Crossword Constructor
+    route: /crossword-constructor
+    type: vite-spa
+    source_dir: crossword-constructor
+    static_dir: crossword-constructor
+    template: crossword_constructor.html
+    build: npm run build
+    docker: true
+    catalog:
+      description: >-
+        Build NYT- and WSJ-compliant crossword puzzles with live validation, word
+        fill, and export.
+      emoji: "🧩"
+      image: /apps/crossword-constructor.png
+      tags: [Game, Utility]
+      featured: true
+
+  - slug: time-timer
+    name: Time Timer
+    route: /time-timer
+    type: vite-spa
+    source_dir: time-timer
+    static_dir: time-timer
+    template: time_timer.html
+    build: npm run build
+    docker: true
+    catalog:
+      description: >-
+        Visual countdown timer for meetings, focus sessions, and classroom transitions.
+      emoji: "⏱️"
+      image: /apps/timer.png
+      tags: [Utility]
+      featured: false
+
+  - slug: city-budget
+    name: City Budget Explorer
+    route: /city-budget
+    type: vite-spa
+    source_dir: city-budget
+    static_dir: city-budget
+    template: city_budget.html
+    build: npm run build
+    docker: true
+    catalog:
+      description: >-
+        Interactive Dallas city budget — revenue sources, operating departments, and
+        vendor spending.
+      emoji: "📊"
+      image: /apps/budget-visual.png
+      tags: [Civic, Data]
+      featured: true
+
+  - slug: council-accountability
+    name: Council Accountability
+    route: /council-accountability
+    type: vite-spa
+    source_dir: council-accountability
+    static_dir: council-accountability
+    serve_built_html: true
+    build: npm run build
+    docker: true
+    legacy_routes:
+      - /campaign-finance
+    catalog:
+      description: >-
+        Campaign finance, council voting records, and lobbyist registration for Dallas.
+      emoji: "⚖️"
+      image: /apps/council-accountability.png
+      tags: [Civic, Data]
+      featured: true
+
+  # ── Jinja + server APIs (no Vite build) ──────────────────────────────────
+
+  - slug: police
+    name: Police Active Calls
+    route: /police
+    type: jinja
+    template: police_map.html
+    catalog:
+      description: Live map of Dallas police active calls with geocoded incident locations.
+      emoji: "🗺️"
+      image: /apps/police-map.png
+      tags: [Civic, Map]
+      featured: false
+
+  - slug: council-meetings
+    name: Council Meetings
+    route: /council-meetings
+    type: jinja
+    template: index.html
+
+  - slug: dalciv
+    name: DalCiv Portal
+    route: /dalciv
+    type: jinja
+    template: home.html
+
+  - slug: command
+    name: Ops Command Center
+    route: /command
+    type: jinja
+    template: command.html
+
+  # ── External (not served by sivic container) ─────────────────────────────
+
+  - slug: tally
+    name: Tally
+    route: https://tally.ganciatx.com/
+    type: external
+    catalog:
+      description: Keep track of game scores and friendly competitions with your group.
+      emoji: "🔥"
+      tags: [Game, Scoring]
+      featured: true
+      external: true
+
+  # ── Portfolio (Next.js static export) ────────────────────────────────────
+
+  - slug: portfolio
+    name: Portfolio
+    route: /
+    type: next-export
+    source_dir: portfolio
+    static_dir: portfolio-site
+    build: npm run build
+    docker: true

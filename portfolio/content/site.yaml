@@ -1,136 +1,135 @@
 # Portfolio site content (everything except blog posts).
-# Edit this file, then run:  npm run publish-site   (from portfolio/)
-# Preview without publishing: npm run dev
+# App catalog is synced from apps/registry.yaml — run: python3 scripts/sync-site-apps.py
+# Preview without publishing: npm run dev (from portfolio/)
 
 site:
   name: Jackson E.
   title: Product Manager & Maker
-  tagline: I help teams ideate, validate, and ship digital products that people actually use.
+  tagline: I help teams ideate, validate, and ship digital products that people actually
+    use.
   location: United States
-  bio: >-
-    I combine business strategy, user research, and hands-on building to turn ideas
+  bio: I combine business strategy, user research, and hands-on building to turn ideas
     into products. From MVPs to scale, I focus on solving real problems for real users.
   email: hello@example.com
   social:
     linkedin: https://linkedin.com/in/jackson-echols
     github: https://github.com/ganciatx
-    # twitter: https://twitter.com/yourusername
-
 sections:
   hero:
     primaryCta: Let's connect
     secondaryCta: My side projects
-    secondaryHref: "#side-projects"
+    secondaryHref: '#side-projects'
   services:
     label: Who am I?
     title: What I Do
-    # Leave description empty to use site.bio
-    description: ""
+    description: ''
   sideProjects:
-    label: ""
+    label: ''
     title: Side Projects
-    description: >-
-      Tools and apps from my exploration into the world of AI tools like Cursor. Some related to my passions, some just for fun.
-      Click through to try them.
+    description: Tools and apps from my exploration into the world of AI tools like
+      Cursor. Some related to my passions, some just for fun. Click through to try
+      them.
   blog:
     label: Writing
     title: Latest Content
-    description: >-
-      Thoughts on topics I find interesting.
+    description: Thoughts on topics I find interesting.
   contact:
     label: Let's talk
     title: Looking for an ear?
-    description: >-
-      I'm not a consultant, but I enjoy speaking to like-minded (or not) people.
-      Drop me a line and let's figure out what to discuss.
-
+    description: I'm not a consultant, but I enjoy speaking to like-minded (or not)
+      people. Drop me a line and let's figure out what to discuss.
 services:
-  - title: Product Management
-    description: >-
-      Discovering products that are valuable, feasible, and usable by bridging
-      business, tech, and design.
-  - title: Turning Insight Into Growth
-    description: >-
-      Eventually all the research, the data, and the customer feedback has to turn into something — a message, a strategy, a reason someone picks you over the other option.
-  - title: MVPs & Validation
-    description: >-
-      Running lean experiments and smoke tests to validate ideas before investing
-      in full builds.
-  - title: Simplifying Complexity
-    description: >-
-      Tax prep, compliance workflows, B2B onboarding — my specialty is taking the
-      stuff nobody wants to deal with and making it slightly less painful.
-  - title: Rapid Prototyping
-    description: >-
-      Shipping functional prototypes in days, not months, to test assumptions with
-      real users.
-  - title: Reading the Business
-    description: >-
-      I have an accounting degree, which mostly means I ask annoying questions about
-      what we're actually measuring before we build anything.
-
+- title: Product Management
+  description: Discovering products that are valuable, feasible, and usable by bridging
+    business, tech, and design.
+- title: Turning Insight Into Growth
+  description: Eventually all the research, the data, and the customer feedback has
+    to turn into something — a message, a strategy, a reason someone picks you over
+    the other option.
+- title: MVPs & Validation
+  description: Running lean experiments and smoke tests to validate ideas before investing
+    in full builds.
+- title: Simplifying Complexity
+  description: Tax prep, compliance workflows, B2B onboarding — my specialty is taking
+    the stuff nobody wants to deal with and making it slightly less painful.
+- title: Rapid Prototyping
+  description: Shipping functional prototypes in days, not months, to test assumptions
+    with real users.
+- title: Reading the Business
+  description: I have an accounting degree, which mostly means I ask annoying questions
+    about what we're actually measuring before we build anything.
 apps:
-  - slug: city-budget-simulator
-    name: City Budget Simulator
-    description: >-
-      Turn-based game: balance the budget, delay consequences, and survive 30 years
-      in local government office.
-    url: /city-budget-simulator
-    emoji: "🏛️"
-    image: /apps/city-budget-simulator.png
-    tags: [Game, Civic]
-    featured: true
-  - slug: crossword-constructor
-    name: Crossword Constructor
-    description: >-
-      Build NYT- and WSJ-compliant crossword puzzles with live validation, word
-      fill, and export.
-    url: /crossword-constructor
-    emoji: "🧩"
-    image: /apps/crossword-constructor.png
-    tags: [Game, Utility]
-    featured: true
-  - slug: city-budget
-    name: City Budget Explorer
-    description: >-
-      Interactive Dallas city budget — revenue sources, operating departments, and
-      vendor spending.
-    url: /city-budget
-    emoji: "📊"
-    image: /apps/budget-visual.png
-    tags: [Civic, Data]
-    featured: true
-  - slug: council-accountability
-    name: Council Accountability
-    description: >-
-      Campaign finance, council voting records, and lobbyist registration for Dallas.
-    url: /council-accountability
-    emoji: "⚖️"
-    image: /apps/council-accountability.png
-    tags: [Civic, Data]
-    featured: true
-  - slug: tally
-    name: Tally
-    description: Keep track of game scores and friendly competitions with your group.
-    url: https://tally.ganciatx.com/
-    emoji: "🔥"
-    tags: [Game, Scoring]
-    featured: true
-    external: true
-  - slug: police
-    name: Police Active Calls
-    description: Live map of Dallas police active calls with geocoded incident locations.
-    url: /police
-    emoji: "🗺️"
-    image: /apps/police-map.png
-    tags: [Civic, Map]
-    featured: false
-  - slug: time-timer
-    name: Time Timer
-    description: >-
-      Visual countdown timer for meetings, focus sessions, and classroom transitions.
-    url: /time-timer
-    emoji: "⏱️"
-    image: /apps/timer.png
-    tags: [Utility]
-    featured: false
+- slug: city-budget-simulator
+  name: City Budget Simulator
+  description: 'Turn-based game: balance the budget, delay consequences, and survive
+    30 years in local government office.'
+  url: /city-budget-simulator
+  emoji: 🏛️
+  tags:
+  - Game
+  - Civic
+  featured: true
+  image: /apps/city-budget-simulator.png
+- slug: crossword-constructor
+  name: Crossword Constructor
+  description: Build NYT- and WSJ-compliant crossword puzzles with live validation,
+    word fill, and export.
+  url: /crossword-constructor
+  emoji: 🧩
+  tags:
+  - Game
+  - Utility
+  featured: true
+  image: /apps/crossword-constructor.png
+- slug: time-timer
+  name: Time Timer
+  description: Visual countdown timer for meetings, focus sessions, and classroom
+    transitions.
+  url: /time-timer
+  emoji: ⏱️
+  tags:
+  - Utility
+  featured: false
+  image: /apps/timer.png
+- slug: city-budget
+  name: City Budget Explorer
+  description: Interactive Dallas city budget — revenue sources, operating departments,
+    and vendor spending.
+  url: /city-budget
+  emoji: 📊
+  tags:
+  - Civic
+  - Data
+  featured: true
+  image: /apps/budget-visual.png
+- slug: council-accountability
+  name: Council Accountability
+  description: Campaign finance, council voting records, and lobbyist registration
+    for Dallas.
+  url: /council-accountability
+  emoji: ⚖️
+  tags:
+  - Civic
+  - Data
+  featured: true
+  image: /apps/council-accountability.png
+- slug: police
+  name: Police Active Calls
+  description: Live map of Dallas police active calls with geocoded incident locations.
+  url: /police
+  emoji: 🗺️
+  tags:
+  - Civic
+  - Map
+  featured: false
+  image: /apps/police-map.png
+- slug: tally
+  name: Tally
+  description: Keep track of game scores and friendly competitions with your group.
+  url: https://tally.ganciatx.com/
+  emoji: 🔥
+  tags:
+  - Game
+  - Scoring
+  featured: true
+  external: true
