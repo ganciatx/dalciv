@@ -134,12 +134,3 @@ apps:
     image: /apps/timer.png
     tags: [Utility]
     featured: false
-  - slug: breach-check
-    name: Tax Identity Shield
-    description: >-
-      Trade-show demo: scan your email for breach exposure and learn how H&R Block
-      protects your tax identity.
-    url: /breach-check
-    emoji: "🛡️"
-    tags: [Demo, Privacy]
-    featured: false

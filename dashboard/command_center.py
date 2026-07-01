@@ -419,19 +419,6 @@ def build_page_api_catalog(
             "upstream_endpoints": [],
         },
         {
-            "id": "breach-check",
-            "title": "Tax Identity Shield Demo",
-            "ui_path": "/breach-check",
-            "dashboard_endpoints": [
-                ep(
-                    "GET",
-                    "/api/breach-check/email",
-                    "Booth email exposure scan (XposedOrNot proxy)",
-                ),
-            ],
-            "upstream_endpoints": [],
-        },
-        {
             "id": PAGE_BUDGET,
             "title": "City budget",
             "ui_path": "/city-budget",
