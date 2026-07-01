@@ -281,6 +281,8 @@ def build_finance_entity_index(
                 "received": 0.0,
                 "transaction_count": 0,
                 "candidates": set(),
+                "contribution_candidates": set(),
+                "expenditure_candidates": set(),
             },
         )
         amt = row.get("amount_num")
@@ -294,11 +296,15 @@ def build_finance_entity_index(
         entry["transaction_count"] += 1
         if row.get("kind") == "contribution":
             entry["contributed"] += amt
+            entry["contribution_candidates"].add(cand)
         elif row.get("kind") == "expenditure":
             entry["received"] += amt
+            entry["expenditure_candidates"].add(cand)
 
     for entry in index.values():
         entry["candidates"] = sorted(entry["candidates"])
+        entry["contribution_candidates"] = sorted(entry["contribution_candidates"])
+        entry["expenditure_candidates"] = sorted(entry["expenditure_candidates"])
     return index
 
 
@@ -351,6 +357,12 @@ def build_influence_overlap(
             continue
         contributed = round(float(fin["contributed"]), 2)
         received = round(float(fin["received"]), 2)
+        if contributed > 0 and received > 0:
+            campaign_role = "both"
+        elif contributed > 0:
+            campaign_role = "contributor"
+        else:
+            campaign_role = "recipient"
         overlaps.append(
             {
                 "entity": lobby["client_name"] or fin["display_name"],
@@ -360,12 +372,23 @@ def build_influence_overlap(
                 "latest_lobby_sworn": lobby.get("latest_sworn") or "",
                 "campaign_contributed": contributed,
                 "campaign_received": received,
+                "campaign_role": campaign_role,
                 "campaign_transactions": fin["transaction_count"],
                 "candidates": fin["candidates"],
+                "contribution_candidates": fin.get("contribution_candidates") or [],
+                "expenditure_candidates": fin.get("expenditure_candidates") or [],
                 "influence_score": contributed + received + len(lobby.get("report_ids") or []) * 500,
             }
         )
-    overlaps.sort(key=lambda x: x["influence_score"], reverse=True)
+    overlaps.sort(
+        key=lambda x: (
+            1 if (x.get("campaign_contributed") or 0) > 0 else 0,
+            x.get("campaign_contributed") or 0,
+            x.get("campaign_received") or 0,
+            x.get("influence_score") or 0,
+        ),
+        reverse=True,
+    )
     return overlaps[:limit]
 
 
@@ -403,10 +426,21 @@ def member_lobby_overlap(
                 "latest_lobby_sworn": lobby.get("latest_sworn") or "",
                 "campaign_amount": round(amt, 2),
                 "campaign_kind": row.get("kind"),
+                "campaign_role": "contributor"
+                if row.get("kind") == "contribution"
+                else "recipient"
+                if row.get("kind") == "expenditure"
+                else "other",
                 "campaign_date": (row.get("transaction_date") or "")[:10],
             }
         )
-    hits.sort(key=lambda x: x.get("campaign_amount") or 0, reverse=True)
+    hits.sort(
+        key=lambda x: (
+            1 if x.get("campaign_role") == "contributor" else 0,
+            x.get("campaign_amount") or 0,
+        ),
+        reverse=True,
+    )
     return hits[:limit]
 
 
@@ -436,6 +470,16 @@ def build_summary(
     if finance_rows:
         overlap = build_influence_overlap(rows, finance_rows, limit=20)
 
+    contributor_overlaps = [
+        o for o in overlap if (o.get("campaign_contributed") or 0) > 0
+    ]
+    vendor_only_overlaps = [
+        o
+        for o in overlap
+        if (o.get("campaign_contributed") or 0) <= 0
+        and (o.get("campaign_received") or 0) > 0
+    ]
+
     now = datetime.now(tz=UTC)
     recent_30d = 0
     for r in rows:
@@ -463,6 +507,8 @@ def build_summary(
         "recent_registrations": recent,
         "influence_overlap": overlap,
         "overlap_count": len(overlap),
+        "overlap_contributor_count": len(contributor_overlaps),
+        "overlap_vendor_count": len(vendor_only_overlaps),
     }
 
 
@@ -482,15 +528,16 @@ def get_summary_payload(
     cached = get_cached_rows(project_root, force_refresh=force_refresh)
     rows: list[dict[str, Any]] = cached.get("rows") or []
 
-    fin_cached = get_finance_cached(project_root) if not lightweight or member_id else None
+    fin_cached = get_finance_cached(project_root)
     finance_rows: Optional[list[dict[str, Any]]] = None
     if fin_cached:
         finance_rows = fin_cached.get("rows") or []
 
-    summary = build_summary(rows, finance_rows if not lightweight else None)
+    summary = build_summary(rows, finance_rows)
     if lightweight:
         summary["influence_overlap"] = []
         summary["overlap_count"] = None
+        # Keep overlap_contributor_count / overlap_vendor_count for overview KPIs.
     page, total = search_registrations(rows, q, limit=limit, offset=offset)
 
     member_overlap: list[dict[str, Any]] = []

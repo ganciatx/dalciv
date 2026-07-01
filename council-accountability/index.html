@@ -79,7 +79,7 @@
         <div class="value" id="kpi-lobby-regs">—</div>
       </div>
       <div class="kpi">
-        <div class="label">Lobby + campaign overlap</div>
+        <div class="label">Lobby donors</div>
         <div class="value warn" id="kpi-lobby-overlap">—</div>
       </div>
     </section>
@@ -88,7 +88,7 @@
     <div id="tab-overview" class="tab-panel on">
     <section class="lobby-teaser insight-section" id="lobby-teaser" hidden>
       <h2>Influence radar</h2>
-      <p class="hint" id="lobby-teaser-copy">Organizations registered to lobby Dallas City Hall that also show up in campaign finance filings.</p>
+      <p class="hint" id="lobby-teaser-copy">Lobbying clients who also gave money to council campaigns — not vendors paid by campaigns.</p>
       <div class="overlap-grid" id="lobby-teaser-overlap"></div>
       <div class="teaser-actions">
         <button type="button" class="btn-link primary" id="btn-open-lobby-tab">Explore lobbying data</button>
@@ -96,9 +96,17 @@
       </div>
     </section>
     <section class="insight-section" id="member-index-section">
-      <h2>Browse council members</h2>
-      <p class="hint">Active councilmembers (with photos) are listed first by district. Click a card or photo for an in-app profile; on the profile, the photo links to the district City Hall page.</p>
-      <div class="candidate-cards member-cards" id="member-cards"></div>
+      <div class="section-head">
+        <div>
+          <h2>Browse council members</h2>
+          <p class="hint">Active councilmembers are listed first by district. Click a card for a full profile — campaign money, voting record, and lobbying ties.</p>
+        </div>
+        <label class="card-search" for="member-search">
+          <span class="sr-only">Search members</span>
+          <input type="search" id="member-search" placeholder="Search by name or district…" autocomplete="off" />
+        </label>
+      </div>
+      <div class="candidate-cards member-cards" id="member-cards" role="list"></div>
     </section>
     <section class="insight-section" id="combined-overview" hidden>
       <div class="profile-header" id="profile-header">
@@ -128,7 +136,7 @@
       <div id="profile-finance-wrap"></div>
       <section class="insight-section" id="profile-lobby-block" hidden>
         <h3 style="margin:.75rem 0 .35rem;font-size:.85rem">Lobbying overlap</h3>
-        <p class="hint">Campaign donors or vendors tied to this member who are also registered to lobby the city.</p>
+        <p class="hint">Campaign donors or vendors tied to this member who also lobby the city. Donors who gave money are listed first.</p>
         <div class="overlap-grid" id="profile-lobby-overlap"></div>
       </section>
     </section>
@@ -161,9 +169,17 @@
     </section>
 
     <section class="insight-section" id="candidate-index-section">
-      <h2>Browse candidates</h2>
-      <p class="hint">Select a candidate for a full campaign finance overview (financials, donors, spending, fiscal health).</p>
-      <div class="candidate-cards" id="candidate-cards"></div>
+      <div class="section-head">
+        <div>
+          <h2>Browse candidates</h2>
+          <p class="hint">Select a candidate for financials, major donors, spending, and fiscal health.</p>
+        </div>
+        <label class="card-search" for="candidate-search">
+          <span class="sr-only">Search candidates</span>
+          <input type="search" id="candidate-search" placeholder="Search candidates…" autocomplete="off" />
+        </label>
+      </div>
+      <div class="candidate-cards" id="candidate-cards" role="list"></div>
     </section>
 
     <section class="insight-section" id="candidate-overview" hidden>
@@ -378,7 +394,12 @@
       <p class="hint">Dallas requires lobbyists to register clients with the city. This tab links those registrations to campaign money — same players, two channels of influence. Not legal advice; names are matched heuristically.</p>
       <div class="overview-kpis" id="lobby-kpis"></div>
       <h3 style="margin:1.25rem 0 .5rem;font-size:.9rem">Influence overlap</h3>
-      <p class="hint">Entities that both lobby and appear in campaign finance (contributions or expenditures).</p>
+      <p class="hint" id="lobby-overlap-hint">Lobbying clients who gave money to council campaigns — the primary overlap to watch.</p>
+      <div class="overlap-filter" role="tablist" aria-label="Overlap type">
+        <button type="button" class="on" data-overlap-filter="contributors">Campaign donors</button>
+        <button type="button" data-overlap-filter="vendors">Campaign vendors</button>
+        <button type="button" data-overlap-filter="all">Show all</button>
+      </div>
       <div class="overlap-grid" id="lobby-overlap-grid"></div>
       <h3 style="margin:1.25rem 0 .5rem;font-size:.9rem">Top lobbying clients</h3>
       <div class="chart-wrap compact"><canvas id="chart-lobby-clients"></canvas></div>

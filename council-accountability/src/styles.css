@@ -6,9 +6,16 @@
       --text: #e5e7eb;
       --muted: #9ca3af;
       --accent: #38bdf8;
+      --accent-dim: rgba(56, 189, 248, 0.12);
       --good: #4ade80;
+      --good-dim: rgba(74, 222, 128, 0.15);
       --warn: #fbbf24;
+      --warn-dim: rgba(251, 191, 36, 0.15);
       --danger: #f87171;
+      --danger-dim: rgba(248, 113, 113, 0.15);
+      --card-radius: 0.55rem;
+      --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      --card-shadow-hover: 0 4px 14px rgba(0, 0, 0, 0.25);
     }
 
     @media (prefers-color-scheme: light) {
@@ -19,9 +26,15 @@
         --text: #111827;
         --muted: #6b7280;
         --accent: #0284c7;
+        --accent-dim: rgba(2, 132, 199, 0.1);
         --good: #16a34a;
+        --good-dim: rgba(22, 163, 74, 0.1);
         --warn: #d97706;
+        --warn-dim: rgba(217, 119, 6, 0.1);
         --danger: #dc2626;
+        --danger-dim: rgba(220, 38, 38, 0.1);
+        --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        --card-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.08);
       }
     }
 
@@ -135,8 +148,13 @@
     .kpi {
       background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 0.45rem;
+      border-radius: var(--card-radius);
       padding: 0.75rem;
+      transition: border-color 0.15s ease;
+    }
+
+    .kpi:hover {
+      border-color: color-mix(in oklab, var(--accent) 30%, var(--border));
     }
 
     .kpi .label {
@@ -144,6 +162,7 @@
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.03em;
+      line-height: 1.3;
     }
 
     .kpi .value {
@@ -375,40 +394,104 @@
     .watch-list {
       display: flex;
       flex-direction: column;
-      gap: 0.45rem;
-      max-height: 320px;
+      gap: 0.55rem;
+      max-height: 360px;
       overflow: auto;
     }
 
     .watch-card {
       border: 1px solid var(--border);
-      border-radius: 0.35rem;
-      padding: 0.5rem 0.6rem;
+      border-radius: var(--card-radius);
+      padding: 0;
       font-size: 0.8rem;
-      border-left-width: 3px;
+      background: var(--bg);
+      overflow: hidden;
     }
 
-    .watch-card.high {
-      border-left-color: var(--danger);
+    .watch-card-head {
+      display: flex;
+      gap: 0.6rem;
+      align-items: flex-start;
+      padding: 0.6rem 0.75rem;
+      border-left: 3px solid var(--muted);
     }
 
-    .watch-card.medium {
-      border-left-color: var(--warn);
+    .watch-card.high .watch-card-head { border-left-color: var(--danger); }
+    .watch-card.medium .watch-card-head { border-left-color: var(--warn); }
+    .watch-card.low .watch-card-head { border-left-color: var(--muted); }
+
+    .severity-dot {
+      flex-shrink: 0;
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      margin-top: 0.35rem;
+      background: var(--muted);
     }
 
-    .watch-card.low {
-      border-left-color: var(--muted);
+    .watch-card.high .severity-dot { background: var(--danger); }
+    .watch-card.medium .severity-dot { background: var(--warn); }
+
+    .watch-card-body {
+      flex: 1;
+      min-width: 0;
     }
 
     .watch-card strong {
       display: block;
-      margin-bottom: 0.15rem;
+      margin-bottom: 0.2rem;
+      font-size: 0.85rem;
+      line-height: 1.3;
     }
 
-    .watch-card .chips {
-      margin-top: 0.35rem;
-      font-size: 0.72rem;
+    .watch-card .watch-detail {
       color: var(--muted);
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    .watch-card details {
+      border-top: 1px solid var(--border);
+    }
+
+    .watch-card details summary {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent);
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+
+    .watch-card details summary::-webkit-details-marker { display: none; }
+
+    .watch-card details summary::before {
+      content: "▸ ";
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+
+    .watch-card details[open] summary::before {
+      transform: rotate(90deg);
+    }
+
+    .watch-card .data-flag {
+      flex-shrink: 0;
+      font-size: 0.58rem;
+      margin-top: 0.15rem;
+    }
+
+    .watch-card .data-flag.high {
+      color: var(--danger);
+      border-color: color-mix(in oklab, var(--danger) 40%, var(--border));
+      background: var(--danger-dim);
+    }
+
+    .watch-card .data-flag.medium {
+      color: var(--warn);
+      border-color: color-mix(in oklab, var(--warn) 40%, var(--border));
+      background: var(--warn-dim);
     }
 
     .mini-table {
@@ -542,36 +625,268 @@
 
     .candidate-cards {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 0.5rem;
-      max-height: 280px;
-      overflow: auto;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.75rem;
+      max-height: none;
+      overflow: visible;
     }
 
-    .candidate-card {
-      border: 1px solid var(--border);
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-head h2 {
+      margin: 0;
+    }
+
+    .section-head .hint {
+      margin: 0.25rem 0 0;
+    }
+
+    .card-search {
+      flex: 0 1 220px;
+      min-width: 160px;
+    }
+
+    .card-search input {
+      width: 100%;
+      padding: 0.45rem 0.6rem;
       border-radius: 0.4rem;
-      padding: 0.55rem;
-      cursor: pointer;
+      border: 1px solid var(--border);
       background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.82rem;
+    }
+
+    .card-search input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ── Interactive info cards ── */
+    .info-card {
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      background: var(--bg);
+      box-shadow: var(--card-shadow);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    }
+
+    .info-card:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .info-card.is-clickable {
+      cursor: pointer;
       text-align: left;
       font-family: inherit;
       color: var(--text);
+      padding: 0;
+      width: 100%;
     }
 
-    .candidate-card:hover {
+    .info-card.is-clickable:hover {
+      border-color: color-mix(in oklab, var(--accent) 55%, var(--border));
+      box-shadow: var(--card-shadow-hover);
+      transform: translateY(-1px);
+    }
+
+    .info-card.is-clickable:active {
+      transform: translateY(0);
+    }
+
+    .info-card.is-selected {
       border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), var(--card-shadow-hover);
     }
 
-    .candidate-card strong {
+    .card-body {
+      padding: 0.65rem 0.75rem 0.75rem;
+    }
+
+    .card-header-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .card-title {
+      margin: 0 0 0.5rem;
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .district-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid color-mix(in oklab, var(--accent) 35%, var(--border));
+    }
+
+    .data-flags {
+      display: flex;
+      gap: 0.3rem;
+      margin-left: auto;
+    }
+
+    .data-flag {
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      padding: 0.12rem 0.35rem;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .data-flag.on {
+      color: var(--accent);
+      border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+      background: var(--accent-dim);
+    }
+
+    .data-flag.money.on {
+      color: var(--good);
+      border-color: color-mix(in oklab, var(--good) 40%, var(--border));
+      background: var(--good-dim);
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-grid.cols-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .stat-block {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.35rem;
+      padding: 0.35rem 0.45rem;
+    }
+
+    .stat-block .stat-label {
       display: block;
-      font-size: 0.85rem;
-      margin-bottom: 0.25rem;
+      font-size: 0.62rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 0.1rem;
     }
 
-    .candidate-card .line {
+    .stat-block .stat-value {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+
+    .stat-block .stat-value.good { color: var(--good); }
+    .stat-block .stat-value.warn { color: var(--warn); }
+    .stat-block .stat-value.muted { color: var(--muted); font-weight: 500; font-size: 0.75rem; }
+
+    .meter {
+      margin-bottom: 0.45rem;
+    }
+
+    .meter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .meter-header strong {
+      color: var(--text);
+      font-size: 0.72rem;
+    }
+
+    .meter-track {
+      height: 5px;
+      border-radius: 999px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    .meter-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--good);
+      transition: width 0.4s ease;
+    }
+
+    .meter-fill.warn { background: var(--warn); }
+    .meter-fill.low { background: var(--muted); }
+
+    .card-cta {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent);
+      opacity: 0;
+      transform: translateY(2px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .info-card.is-clickable:hover .card-cta,
+    .info-card.is-clickable:focus-visible .card-cta,
+    .info-card.is-selected .card-cta {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .card-empty {
+      font-size: 0.75rem;
+      color: var(--muted);
+      padding: 0.35rem 0;
+      font-style: italic;
+    }
+
+    .watch-card .chips {
+      padding: 0 0.75rem 0.6rem;
       font-size: 0.72rem;
       color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .candidate-card.info-card {
+      padding: 0;
     }
 
     #candidate-overview {
@@ -594,7 +909,12 @@
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 0.35rem;
-      padding: 0.5rem;
+      padding: 0.55rem 0.6rem;
+      transition: border-color 0.15s ease;
+    }
+
+    .overview-kpi:hover {
+      border-color: color-mix(in oklab, var(--accent) 25%, var(--border));
     }
 
     .overview-kpi .label {
@@ -608,13 +928,18 @@
       font-weight: 700;
     }
 
+    .overview-kpi .value.muted {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
     .fiscal-card {
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 0.4rem;
-      padding: 0.6rem 0.75rem;
+      border-radius: var(--card-radius);
+      padding: 0.75rem 0.85rem;
       margin-bottom: 0.65rem;
-      border-left: 3px solid var(--accent);
+      border-left: 4px solid var(--accent);
     }
 
     .fiscal-card.deficit {
@@ -737,13 +1062,18 @@
     }
 
     .member-cards {
-      max-height: none;
-      grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     }
 
     .member-card {
       padding: 0;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .member-card .card-body {
+      flex: 1;
       display: flex;
       flex-direction: column;
     }
@@ -828,7 +1158,26 @@
     }
 
     .member-card.active-member {
-      border-color: rgba(74, 222, 128, 0.35);
+      border-color: color-mix(in oklab, var(--good) 45%, var(--border));
+    }
+
+    .member-card.active-member::before {
+      content: "";
+      display: block;
+      height: 3px;
+      background: linear-gradient(90deg, var(--good), color-mix(in oklab, var(--good) 40%, transparent));
+    }
+
+    .info-card.is-hidden-by-search {
+      display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .info-card.is-clickable,
+      .meter-fill,
+      .card-cta {
+        transition: none;
+      }
     }
 
     .lobby-teaser {
@@ -854,23 +1203,209 @@
 
     .overlap-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 0.65rem;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.75rem;
       margin-top: 0.75rem;
     }
 
     .overlap-card {
-      border: 1px solid var(--border);
-      border-radius: 0.45rem;
-      padding: 0.75rem 0.85rem;
-      background: var(--bg);
+      padding: 0;
+      overflow: hidden;
     }
 
-    .overlap-card strong {
+    .overlap-card-inner {
+      padding: 0.75rem 0.85rem;
+    }
+
+    .overlap-card .card-title {
+      margin-bottom: 0.55rem;
+    }
+
+    .overlap-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin: 0.5rem 0 0.75rem;
+    }
+
+    .overlap-filter button {
+      font-family: inherit;
+      font-size: 0.78rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 0.35rem;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .overlap-filter button.on {
+      background: var(--good-dim);
+      border-color: color-mix(in oklab, var(--good) 45%, var(--border));
+      color: var(--good);
+      font-weight: 600;
+    }
+
+    .overlap-filter button[data-overlap-filter="vendors"].on {
+      background: var(--warn-dim);
+      border-color: color-mix(in oklab, var(--warn) 45%, var(--border));
+      color: var(--warn);
+    }
+
+    .overlap-filter button[data-overlap-filter="all"].on {
+      background: var(--accent-dim);
+      border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
+      color: var(--accent);
+    }
+
+    .overlap-card.overlap-donor {
+      border-color: color-mix(in oklab, var(--good) 30%, var(--border));
+    }
+
+    .overlap-card.overlap-vendor {
+      border-color: color-mix(in oklab, var(--warn) 22%, var(--border));
+      opacity: 0.92;
+    }
+
+    .overlap-money-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .overlap-stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem;
+      margin-bottom: 0.5rem;
+      align-items: stretch;
+    }
+
+    .overlap-stat {
+      border-radius: 0.35rem;
+      padding: 0.45rem 0.55rem;
+      border: 1px solid var(--border);
+    }
+
+    .overlap-stat.lobby {
+      background: color-mix(in oklab, var(--accent) 8%, var(--panel));
+      border-color: color-mix(in oklab, var(--accent) 25%, var(--border));
+    }
+
+    .overlap-stat.money {
+      background: color-mix(in oklab, var(--good) 8%, var(--panel));
+      border-color: color-mix(in oklab, var(--good) 25%, var(--border));
+    }
+
+    .overlap-stat.money.donor {
+      background: color-mix(in oklab, var(--good) 10%, var(--panel));
+      border-color: color-mix(in oklab, var(--good) 35%, var(--border));
+    }
+
+    .overlap-stat.money.donor .stat-label { color: var(--good); }
+    .overlap-stat.money.donor .stat-value { color: var(--good); }
+
+    .overlap-stat.money.vendor {
+      background: color-mix(in oklab, var(--warn) 8%, var(--panel));
+      border-color: color-mix(in oklab, var(--warn) 25%, var(--border));
+    }
+
+    .overlap-stat.money.vendor .stat-label { color: var(--warn); }
+
+    .overlap-stat.money.vendor.secondary {
+      opacity: 0.9;
+    }
+
+    .overlap-stat.money.vendor.secondary .stat-value {
+      font-size: 0.85rem;
+    }
+
+    .overlap-stat .stat-label {
       display: block;
-      font-size: 0.9rem;
-      line-height: 1.3;
-      margin-bottom: 0.35rem;
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.15rem;
+    }
+
+    .overlap-stat.lobby .stat-label { color: var(--accent); }
+    .overlap-stat.money .stat-label { color: var(--good); }
+
+    .overlap-badge.money.donor {
+      background: color-mix(in oklab, var(--good) 18%, transparent);
+      color: var(--good);
+      border-color: color-mix(in oklab, var(--good) 35%, var(--border));
+    }
+
+    .overlap-badge.money.vendor {
+      background: color-mix(in oklab, var(--warn) 16%, transparent);
+      color: var(--warn);
+      border-color: color-mix(in oklab, var(--warn) 35%, var(--border));
+    }
+
+    .overlap-stat .stat-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .overlap-stat .stat-sub {
+      display: block;
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 0.1rem;
+      line-height: 1.35;
+    }
+
+    .overlap-card details {
+      border-top: 1px solid var(--border);
+    }
+
+    .overlap-card details summary {
+      padding: 0.45rem 0.85rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent);
+      cursor: pointer;
+      list-style: none;
+      background: var(--panel);
+    }
+
+    .overlap-card details summary::-webkit-details-marker { display: none; }
+
+    .overlap-card details summary::before {
+      content: "+ ";
+      font-weight: 700;
+    }
+
+    .overlap-card details[open] summary::before {
+      content: "− ";
+    }
+
+    .overlap-details-body {
+      padding: 0.55rem 0.85rem 0.7rem;
+      font-size: 0.76rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .overlap-details-body dl {
+      margin: 0;
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .overlap-details-body dt {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .overlap-details-body dd {
+      margin: 0 0 0.25rem;
     }
 
     .overlap-badges {

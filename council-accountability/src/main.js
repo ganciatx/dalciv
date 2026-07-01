@@ -28,6 +28,7 @@ const AGENDA_PAGE = 50;
 let selectedRollCallId = "";
 let agendaSearchTimer = null;
 let activeTab = "overview";
+let overlapRoleFilter = "contributors";
 /** Tabs whose heavy API payloads have been loaded (Money transactions, Voting tables). */
 const tabsLoaded = new Set(["overview"]);
 let memberDirectory = [];
@@ -180,6 +181,210 @@ function pct(share) {
 function pctRate(rate) {
   if (rate == null || Number.isNaN(rate)) return "—";
   return `${(rate * 100).toFixed(1)}%`;
+}
+
+function pctNum(rate) {
+  if (rate == null || Number.isNaN(rate)) return null;
+  return Math.round(rate * 1000) / 10;
+}
+
+function meterHtml(label, pctValue, opts = {}) {
+  if (pctValue == null || Number.isNaN(pctValue)) {
+    return `<div class="card-empty">${escapeHtml(opts.empty || "No data")}</div>`;
+  }
+  const clamped = Math.max(0, Math.min(100, pctValue));
+  let fillCls = "";
+  if (clamped < 50) fillCls = " low";
+  else if (clamped < 70) fillCls = " warn";
+  return `<div class="meter" role="img" aria-label="${escapeHtml(label)}: ${clamped}%">
+    <div class="meter-header"><span>${escapeHtml(label)}</span><strong>${clamped}%</strong></div>
+    <div class="meter-track"><div class="meter-fill${fillCls}" style="width:${clamped}%"></div></div>
+  </div>`;
+}
+
+function statBlockHtml(label, value, tone = "") {
+  const toneCls = tone ? ` ${tone}` : "";
+  return `<div class="stat-block">
+    <span class="stat-label">${escapeHtml(label)}</span>
+    <span class="stat-value${toneCls}">${value}</span>
+  </div>`;
+}
+
+function severityLabel(sev) {
+  const s = String(sev || "low").toLowerCase();
+  if (s === "high") return "High priority";
+  if (s === "medium") return "Review";
+  return "Low";
+}
+
+function watchCardHtml(s) {
+  const sev = escapeHtml(s.severity || "low");
+  let chips = "";
+  if (s.candidates?.length) {
+    chips = `<div class="chips">${formatSupportList(s.candidates)}</div>`;
+  } else if (s.gave_to?.length || s.paid_by?.length) {
+    const gave = s.gave_to?.length ? `Gave to: ${formatSupportList(s.gave_to)}` : "";
+    const paid = s.paid_by?.length ? `Paid by: ${formatSupportList(s.paid_by)}` : "";
+    chips = `<div class="chips">${gave}${gave && paid ? " · " : ""}${paid}</div>`;
+  }
+  const hasChips = Boolean(chips);
+  return `<article class="watch-card ${sev}">
+    <div class="watch-card-head">
+      <span class="severity-dot" aria-hidden="true"></span>
+      <div class="watch-card-body">
+        <strong>${escapeHtml(s.title)}</strong>
+        <p class="watch-detail">${escapeHtml(s.detail || "")}</p>
+      </div>
+      <span class="data-flag ${sev}" title="${severityLabel(s.severity)}">${severityLabel(s.severity)}</span>
+    </div>
+    ${hasChips ? `<details><summary>Related names & amounts</summary>${chips}</details>` : ""}
+  </article>`;
+}
+
+function overlapRole(r) {
+  if (r.campaign_role) return r.campaign_role;
+  const contributed = r.campaign_contributed || 0;
+  const received = r.campaign_received || 0;
+  if (contributed > 0 && received > 0) return "both";
+  if (contributed > 0) return "contributor";
+  if (received > 0) return "recipient";
+  if (r.campaign_kind === "contribution") return "contributor";
+  if (r.campaign_kind === "expenditure") return "recipient";
+  return "other";
+}
+
+function isOverlapContributor(r) {
+  const role = overlapRole(r);
+  return role === "contributor" || role === "both";
+}
+
+function filterOverlapRows(rows, roleFilter = overlapRoleFilter) {
+  const list = rows || [];
+  if (roleFilter === "contributors") {
+    return list.filter((r) => isOverlapContributor(r));
+  }
+  if (roleFilter === "vendors") {
+    return list.filter((r) => overlapRole(r) === "recipient");
+  }
+  return list;
+}
+
+function overlapRoleLabel(role) {
+  if (role === "contributor") return "Campaign donor";
+  if (role === "recipient") return "Campaign vendor";
+  if (role === "both") return "Donor & vendor";
+  return "Campaign finance";
+}
+
+function overlapCardHtml(r, opts = {}) {
+  const compact = opts.compact === true;
+  const lobbyists = r.lobbyists || [];
+  const contributed = r.campaign_contributed || 0;
+  const received = r.campaign_received || 0;
+  const memberAmt = r.campaign_amount;
+  const regs = r.lobby_registrations || 0;
+  const role = overlapRole(r);
+  const isDonor = role === "contributor" || role === "both";
+  const isVendor = role === "recipient" || role === "both";
+  const donorCands = r.contribution_candidates || [];
+  const vendorCands = r.expenditure_candidates || [];
+
+  const lobbyValue = regs ? `${regs}` : "—";
+  const lobbySub = lobbyists.length
+    ? lobbyists.slice(0, compact ? 2 : 4).join(", ") + (lobbyists.length > (compact ? 2 : 4) ? "…" : "")
+    : "Registered lobbyist client";
+
+  let moneyColumnHtml = "";
+  if (memberAmt != null) {
+    const memberIsDonor = r.campaign_kind === "contribution" || role === "contributor";
+    moneyColumnHtml = `<div class="overlap-stat money ${memberIsDonor ? "donor" : "vendor"}">
+      <span class="stat-label">${memberIsDonor ? "Gave to this member" : "Paid by this member"}</span>
+      <span class="stat-value">${money(memberAmt)}</span>
+      <span class="stat-sub">${escapeHtml(r.campaign_kind || (memberIsDonor ? "contribution" : "expenditure"))}</span>
+    </div>`;
+  } else if (isDonor) {
+    moneyColumnHtml = `<div class="overlap-stat money donor">
+      <span class="stat-label">Gave to campaigns</span>
+      <span class="stat-value">${money(contributed)}</span>
+      <span class="stat-sub">${donorCands.length ? `Supported ${donorCands.slice(0, compact ? 2 : 3).join(", ")}${donorCands.length > (compact ? 2 : 3) ? "…" : ""}` : "Campaign contributions"}</span>
+    </div>`;
+    if (isVendor && received > 0 && !compact) {
+      moneyColumnHtml += `<div class="overlap-stat money vendor secondary">
+        <span class="stat-label">Also paid by campaigns</span>
+        <span class="stat-value">${money(received)}</span>
+        <span class="stat-sub">Vendor / payee spending</span>
+      </div>`;
+    }
+  } else if (isVendor) {
+    moneyColumnHtml = `<div class="overlap-stat money vendor">
+      <span class="stat-label">Paid by campaigns</span>
+      <span class="stat-value">${money(received)}</span>
+      <span class="stat-sub">${vendorCands.length ? `Paid by ${vendorCands.slice(0, compact ? 2 : 3).join(", ")}${vendorCands.length > (compact ? 2 : 3) ? "…" : ""}` : "Campaign expenditures"}</span>
+    </div>`;
+  } else {
+    moneyColumnHtml = `<div class="overlap-stat money">
+      <span class="stat-label">Campaign money</span>
+      <span class="stat-value">—</span>
+      <span class="stat-sub">No linked transactions</span>
+    </div>`;
+  }
+
+  const detailParts = [];
+  if (memberAmt != null && r.campaign_date) {
+    detailParts.push(`<dt>Latest transaction</dt><dd>${escapeHtml(formatDate(r.campaign_date))}</dd>`);
+  }
+  if (donorCands.length) {
+    detailParts.push(`<dt>Donated to</dt><dd>${escapeHtml(donorCands.join(", "))}</dd>`);
+  }
+  if (vendorCands.length && (isVendor || role === "both")) {
+    detailParts.push(`<dt>Paid by candidates</dt><dd>${escapeHtml(vendorCands.join(", "))}</dd>`);
+  }
+  if (lobbyists.length > (compact ? 2 : 4)) {
+    detailParts.push(`<dt>All lobbyists</dt><dd>${escapeHtml(lobbyists.join(", "))}</dd>`);
+  }
+  if (r.latest_lobby_sworn) {
+    detailParts.push(`<dt>Latest lobby filing</dt><dd>${escapeHtml(formatDate(r.latest_lobby_sworn))}</dd>`);
+  }
+  if (r.campaign_transactions) {
+    detailParts.push(`<dt>Campaign transactions</dt><dd>${r.campaign_transactions}</dd>`);
+  }
+
+  const hasDetails = detailParts.length > 0;
+  const roleBadgeCls = isDonor ? "donor" : "vendor";
+  const cardRoleCls = isDonor ? " overlap-donor" : " overlap-vendor";
+
+  return `<article class="info-card overlap-card${cardRoleCls}" data-overlap-role="${escapeHtml(role)}">
+    <div class="overlap-card-inner">
+      <div class="overlap-badges">
+        <span class="overlap-badge lobby">Lobbies city</span>
+        <span class="overlap-badge money ${roleBadgeCls}">${overlapRoleLabel(role)}</span>
+      </div>
+      <h3 class="card-title">${escapeHtml(r.entity)}</h3>
+      <div class="overlap-stat-grid">
+        <div class="overlap-stat lobby">
+          <span class="stat-label">Lobby filings</span>
+          <span class="stat-value">${lobbyValue}</span>
+          <span class="stat-sub">${escapeHtml(lobbySub)}</span>
+        </div>
+        <div class="overlap-money-col">${moneyColumnHtml}</div>
+      </div>
+    </div>
+    ${hasDetails ? `<details>
+      <summary>View details</summary>
+      <div class="overlap-details-body"><dl>${detailParts.join("")}</dl></div>
+    </details>` : ""}
+  </article>`;
+}
+
+function filterCardGrid(inputId, gridId, getSearchText) {
+  const input = document.getElementById(inputId);
+  const grid = document.getElementById(gridId);
+  if (!input || !grid) return;
+  const q = input.value.trim().toLowerCase();
+  grid.querySelectorAll("[data-search]").forEach((card) => {
+    const hay = (card.dataset.search || "").toLowerCase();
+    card.classList.toggle("is-hidden-by-search", q.length > 0 && !hay.includes(q));
+  });
 }
 
 function voteParams(refresh) {
@@ -354,32 +559,41 @@ function setActiveTab(tab) {
 function renderOverlapCards(containerId, rows, opts = {}) {
   const el = document.getElementById(containerId);
   if (!el) return;
-  const compact = opts.compact === true;
-  if (!rows?.length) {
-    el.innerHTML = `<p class="hint" style="grid-column:1/-1">${escapeHtml(opts.empty || "No overlaps found.")}</p>`;
+  const roleFilter = opts.roleFilter ?? overlapRoleFilter;
+  const filtered = filterOverlapRows(rows, roleFilter);
+  if (!filtered?.length) {
+    const emptyMsg = roleFilter === "contributors"
+      ? (opts.emptyContributors || opts.empty || "No lobbying clients found as campaign donors.")
+      : roleFilter === "vendors"
+        ? (opts.emptyVendors || "No lobbying clients found only as campaign vendors.")
+        : (opts.empty || "No overlaps found.");
+    el.innerHTML = `<p class="hint" style="grid-column:1/-1">${escapeHtml(emptyMsg)}</p>`;
     return;
   }
-  el.innerHTML = rows.map((r) => {
-    const lobbyists = (r.lobbyists || []).slice(0, compact ? 1 : 2).join(", ");
-    const cands = (r.candidates || []).slice(0, 3).join(", ");
-    const contributed = r.campaign_contributed || 0;
-    const received = r.campaign_received || 0;
-    const memberAmt = r.campaign_amount;
-    return `<article class="overlap-card">
-      <div class="overlap-badges">
-        <span class="overlap-badge lobby">Lobbies city</span>
-        <span class="overlap-badge money">Campaign $</span>
-      </div>
-      <strong>${escapeHtml(r.entity)}</strong>
-      <div class="overlap-meta">
-        ${r.lobby_registrations ? `${r.lobby_registrations} registration(s)` : ""}
-        ${lobbyists ? ` · via ${escapeHtml(lobbyists)}` : ""}
-        ${memberAmt != null ? `<br/>To this member: ${money(memberAmt)} (${escapeHtml(r.campaign_kind || "")})` : ""}
-        ${contributed || received ? `<br/>Campaign finance: ${contributed ? `gave ${money(contributed)}` : ""}${contributed && received ? " · " : ""}${received ? `received ${money(received)}` : ""}` : ""}
-        ${cands && !compact ? `<br/>Candidates: ${escapeHtml(cands)}` : ""}
-      </div>
-    </article>`;
-  }).join("");
+  el.innerHTML = filtered.map((r) => overlapCardHtml(r, opts)).join("");
+}
+
+function setOverlapRoleFilter(role) {
+  overlapRoleFilter = role;
+  document.querySelectorAll("[data-overlap-filter]").forEach((btn) => {
+    btn.classList.toggle("on", btn.dataset.overlapFilter === role);
+  });
+  const hint = document.getElementById("lobby-overlap-hint");
+  if (hint) {
+    hint.textContent = role === "contributors"
+      ? "Lobbying clients who gave money to council campaigns — the primary overlap to watch."
+      : role === "vendors"
+        ? "Lobbying clients paid by campaigns (vendors/consultants). They received money, they did not donate."
+        : "All entities appearing in both lobbying registrations and campaign finance.";
+  }
+  const body = window.__lastLobbySummary;
+  if (body?.summary) {
+    renderOverlapCards("lobby-overlap-grid", body.summary.influence_overlap || [], {
+      emptyContributors: "No lobbying clients matched as campaign donors.",
+      emptyVendors: "No vendor-only overlaps in the current data.",
+      empty: "No entities matched across both datasets.",
+    });
+  }
 }
 
 function renderLobbyTeaser(summary) {
@@ -392,30 +606,39 @@ function renderLobbyTeaser(summary) {
   }
   teaser.hidden = document.getElementById("combined-overview")?.hidden === false;
   document.getElementById("kpi-lobby-regs").textContent = s.registration_count ?? "—";
-  const overlapN = s.overlap_count ?? overlaps.length;
+  const donorN = s.overlap_contributor_count ?? filterOverlapRows(overlaps).length;
   document.getElementById("kpi-lobby-overlap").textContent =
-    overlapN == null ? "—" : overlapN;
+    donorN == null || donorN === undefined ? "—" : donorN;
+  const vendorN = s.overlap_vendor_count ?? 0;
   document.getElementById("lobby-teaser-meta").textContent =
-    `${s.lobbyist_firm_count ?? "—"} lobbyist firms · ${s.client_count ?? "—"} clients`;
-  renderOverlapCards("lobby-teaser-overlap", overlaps.slice(0, 4), {
+  overlaps.length
+    ? `${s.lobbyist_firm_count ?? "—"} lobbyist firms · ${donorN} donor overlap${vendorN ? ` · ${vendorN} vendor` : ""}`
+    : donorN
+      ? `${donorN} lobbying donor${donorN === 1 ? "" : "s"} · open Lobbying tab for details`
+      : `${s.lobbyist_firm_count ?? "—"} lobbyist firms · ${s.client_count ?? "—"} clients`;
+  renderOverlapCards("lobby-teaser-overlap", overlaps, {
     compact: true,
-    empty: "No name matches between lobbying clients and campaign finance yet.",
+    roleFilter: "contributors",
+    emptyContributors: donorN
+      ? `${donorN} lobbying donor${donorN === 1 ? "" : "s"} — open the Lobbying tab to explore.`
+      : "No lobbying clients matched as campaign donors yet.",
   });
 }
 
 function renderLobbyTab(body) {
+  window.__lastLobbySummary = body;
   const s = body.summary || {};
   document.getElementById("kpi-lobby-regs").textContent = s.registration_count ?? "—";
-  document.getElementById("kpi-lobby-overlap").textContent = s.overlap_count ?? "—";
+  const donorN = s.overlap_contributor_count ?? filterOverlapRows(s.influence_overlap || []).length;
+  document.getElementById("kpi-lobby-overlap").textContent = donorN ?? "—";
   const kpis = document.getElementById("lobby-kpis");
   kpis.innerHTML = `
     <div class="overview-kpi"><div class="label">Registrations</div><div class="value">${s.registration_count ?? "—"}</div></div>
     <div class="overview-kpi"><div class="label">Lobbyist firms</div><div class="value">${s.lobbyist_firm_count ?? "—"}</div></div>
-    <div class="overview-kpi"><div class="label">Clients</div><div class="value">${s.client_count ?? "—"}</div></div>
+    <div class="overview-kpi"><div class="label">Campaign donors</div><div class="value good">${donorN ?? "—"}</div></div>
+    <div class="overview-kpi"><div class="label">Campaign vendors</div><div class="value muted">${s.overlap_vendor_count ?? "—"}</div></div>
     <div class="overview-kpi"><div class="label">New (30 days)</div><div class="value good">${s.registrations_last_30d ?? "—"}</div></div>`;
-  renderOverlapCards("lobby-overlap-grid", s.influence_overlap || [], {
-    empty: "No entities matched across both datasets.",
-  });
+  setOverlapRoleFilter(overlapRoleFilter);
   const clients = s.top_clients || [];
   const ctx = document.getElementById("chart-lobby-clients");
   if (chartLobbyClients) chartLobbyClients.destroy();
@@ -558,32 +781,62 @@ function renderMemberDirectory(members) {
     return;
   }
   section.hidden = selectedMemberId && document.getElementById("combined-overview")?.hidden === false;
+  const selected = selectedMemberId;
   wrap.innerHTML = memberDirectory.map((m) => {
     const fs = m.finance_summary;
     const vs = m.voting_summary;
-    const moneyLine = fs
-      ? `Raised ${money(fs.total_raised)} · Spent ${money(fs.total_spent)}`
-      : "No finance filings";
-    const voteLine = vs
-      ? `Yes ${pctRate(vs.yes_rate)} · ${vs.records || 0} votes`
-      : "No voting data";
     const distNum = m.district_num || m.district;
-    const dist = distNum ? `Dist ${escapeHtml(String(distNum))}` : "";
+    const dist = distNum ? String(distNum) : "";
     const photo = memberHeadshotHtml(m, "");
     const activeCls = m.council_status === "active" ? " active-member" : "";
-    return `<button type="button" class="candidate-card member-card${activeCls}" data-member="${escapeHtml(m.id)}">
+    const isSelected = m.id === selected ? " is-selected" : "";
+    const searchKey = [m.display_name, dist, m.id].filter(Boolean).join(" ");
+
+    let statsHtml = "";
+    if (fs) {
+      statsHtml += statBlockHtml("Raised", money(fs.total_raised), "good");
+      statsHtml += statBlockHtml("Spent", money(fs.total_spent), "warn");
+    } else {
+      statsHtml += `<div class="card-empty" style="grid-column:1/-1">No campaign finance filings</div>`;
+    }
+
+    const yesPct = vs ? pctNum(vs.yes_rate) : null;
+    const voteMeter = vs
+      ? meterHtml("Yes rate", yesPct, { empty: "No votes" })
+      : `<div class="card-empty">No voting record in range</div>`;
+
+    const voteStat = vs
+      ? statBlockHtml("Votes", String(vs.records || 0), "")
+      : statBlockHtml("Votes", "—", "muted");
+
+    return `<button type="button"
+      class="info-card is-clickable member-card${activeCls}${isSelected}"
+      data-member="${escapeHtml(m.id)}"
+      data-search="${escapeHtml(searchKey)}"
+      role="listitem"
+      aria-pressed="${m.id === selected ? "true" : "false"}"
+      aria-label="View profile for ${escapeHtml(m.display_name)}${dist ? `, district ${escapeHtml(dist)}` : ""}">
       ${photo}
-      <div class="member-card-body">
-        ${councilStatusHtml(m)}
-        <strong>${escapeHtml(m.display_name)}</strong>${dist ? `<span class="badge">${dist}</span>` : ""}
-        <span class="line">${moneyLine}</span>
-        <span class="line">${voteLine}</span>
+      <div class="card-body">
+        <div class="card-header-row">
+          ${councilStatusHtml(m)}
+          ${dist ? `<span class="district-badge">Dist ${escapeHtml(dist)}</span>` : ""}
+          <div class="data-flags" aria-hidden="true">
+            <span class="data-flag money${fs ? " on" : ""}" title="Campaign finance">$</span>
+            <span class="data-flag${vs ? " on" : ""}" title="Voting record">Vote</span>
+          </div>
+        </div>
+        <h3 class="card-title">${escapeHtml(m.display_name)}</h3>
+        <div class="stat-grid">${statsHtml}${voteStat}</div>
+        ${voteMeter}
+        <span class="card-cta">View profile →</span>
       </div>
     </button>`;
   }).join("");
-  wrap.querySelectorAll(".candidate-card").forEach((btn) => {
+  wrap.querySelectorAll(".candidate-card, .member-card, .info-card.is-clickable").forEach((btn) => {
     btn.addEventListener("click", () => selectMember(btn.dataset.member));
   });
+  filterCardGrid("member-search", "member-cards", null);
 }
 
 function selectMember(memberId) {
@@ -741,6 +994,7 @@ function renderMemberProfile(body) {
     lobbyBlock.hidden = false;
     renderOverlapCards("profile-lobby-overlap", overlaps, {
       compact: true,
+      roleFilter: "all",
       empty: "No lobbying overlap for this member.",
     });
   } else {
@@ -864,18 +1118,47 @@ function renderCandidateIndex(index) {
     return;
   }
   section.hidden = false;
-  wrap.innerHTML = index.map((c) => `
-    <button type="button" class="candidate-card" data-candidate="${escapeHtml(c.candidate)}">
-      <strong>${escapeHtml(c.candidate)}</strong>
-      <span class="line">Raised ${money(c.total_raised)} · Spent ${money(c.total_spent)}</span>
-      <span class="line">Net ${money(c.net_cash)}</span>
-    </button>`).join("");
+  const selectedCand = document.getElementById("filter-candidate").value;
+  wrap.innerHTML = index.map((c) => {
+    const netTone = (c.net_cash || 0) >= 0 ? "good" : "warn";
+    const raised = c.total_raised || 0;
+    const spent = c.total_spent || 0;
+    const maxAmt = Math.max(raised, spent, 1);
+    const raisedPct = Math.round((raised / maxAmt) * 100);
+    const spentPct = Math.round((spent / maxAmt) * 100);
+    const isSelected = c.candidate === selectedCand ? " is-selected" : "";
+    return `<button type="button"
+      class="info-card is-clickable candidate-card${isSelected}"
+      data-candidate="${escapeHtml(c.candidate)}"
+      data-search="${escapeHtml(c.candidate)}"
+      role="listitem"
+      aria-pressed="${c.candidate === selectedCand ? "true" : "false"}"
+      aria-label="View campaign finance for ${escapeHtml(c.candidate)}">
+      <div class="card-body">
+        <h3 class="card-title">${escapeHtml(c.candidate)}</h3>
+        <div class="stat-grid cols-3">
+          ${statBlockHtml("Raised", money(c.total_raised), "good")}
+          ${statBlockHtml("Spent", money(c.total_spent), "warn")}
+          ${statBlockHtml("Net", money(c.net_cash), netTone)}
+        </div>
+        <div class="meter" role="img" aria-label="Spending vs fundraising">
+          <div class="meter-header"><span>Spend vs raise</span><strong>${spentPct}% of max</strong></div>
+          <div class="meter-track" style="display:flex;gap:1px;background:transparent">
+            <div class="meter-fill" style="width:${raisedPct}%;background:var(--good);border-radius:999px 0 0 999px" title="Raised"></div>
+            <div class="meter-fill warn" style="width:${spentPct}%;border-radius:0 999px 999px 0" title="Spent"></div>
+          </div>
+        </div>
+        <span class="card-cta">View details →</span>
+      </div>
+    </button>`;
+  }).join("");
   wrap.querySelectorAll(".candidate-card").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.getElementById("filter-candidate").value = btn.dataset.candidate;
       onFilterChange();
     });
   });
+  filterCardGrid("candidate-search", "candidate-cards", null);
 }
 
 function renderCandidateMonthly(series) {
@@ -971,13 +1254,7 @@ function renderCandidateOverview(ov) {
   if (!flags2.length) {
     ow.innerHTML = "<p class=\"hint\" style=\"margin:0\">No flags for this candidate in the current filter.</p>";
   } else {
-    ow.innerHTML = flags2.map((s) => {
-      const sev = escapeHtml(s.severity || "low");
-      return `<div class="watch-card ${sev}">
-        <strong>${escapeHtml(s.title)}</strong>
-        ${escapeHtml(s.detail || "")}
-      </div>`;
-    }).join("");
+    ow.innerHTML = flags2.map((s) => watchCardHtml(s)).join("");
   }
 }
 
@@ -995,22 +1272,7 @@ function renderInsights(insights) {
   if (!flags.length) {
     wl.innerHTML = "<p class=\"hint\" style=\"margin:0\">No flags in the current filter set.</p>";
   } else {
-    wl.innerHTML = flags.map((s) => {
-      const sev = escapeHtml(s.severity || "low");
-      let chips = "";
-      if (s.candidates?.length) {
-        chips = `<div class="chips">${formatSupportList(s.candidates)}</div>`;
-      } else if (s.gave_to?.length || s.paid_by?.length) {
-        const gave = s.gave_to?.length ? `Gave to: ${formatSupportList(s.gave_to)}` : "";
-        const paid = s.paid_by?.length ? `Paid by: ${formatSupportList(s.paid_by)}` : "";
-        chips = `<div class="chips">${gave}${gave && paid ? " | " : ""}${paid}</div>`;
-      }
-      return `<div class="watch-card ${sev}">
-        <strong>${escapeHtml(s.title)}</strong>
-        ${escapeHtml(s.detail || "")}
-        ${chips}
-      </div>`;
-    }).join("");
+    wl.innerHTML = flags.map((s) => watchCardHtml(s)).join("");
   }
 
   const spend = insights.spending_breakdown || [];
@@ -1310,6 +1572,9 @@ document.getElementById("btn-refresh-lobbyist").addEventListener("click", async 
   }
 });
 document.getElementById("btn-open-lobby-tab")?.addEventListener("click", () => setActiveTab("lobbying"));
+document.querySelectorAll("[data-overlap-filter]").forEach((btn) => {
+  btn.addEventListener("click", () => setOverlapRoleFilter(btn.dataset.overlapFilter));
+});
 document.getElementById("btn-lobby-search")?.addEventListener("click", () => {
   lobbyOffset = 0;
   loadLobbyist(false);
@@ -1386,6 +1651,13 @@ document.getElementById("agenda-next").addEventListener("click", () => {
     agendaOffset += AGENDA_PAGE;
     loadAgendaItems(false);
   }
+});
+
+document.getElementById("member-search")?.addEventListener("input", () => {
+  filterCardGrid("member-search", "member-cards");
+});
+document.getElementById("candidate-search")?.addEventListener("input", () => {
+  filterCardGrid("candidate-search", "candidate-cards");
 });
 
 bootstrap(false, false);
