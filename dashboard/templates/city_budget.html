@@ -1,13 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>City of Dallas Budget</title>
+{% extends "layouts/app_shell.html" %}
+{% block title %}City of Dallas Budget{% endblock %}
+{% block head_extra %}
   <link rel="stylesheet" href="/static/city-budget/assets/index.css?v={{ asset_version }}" />
-</head>
-<body>
+{% endblock %}
+{% block content %}
   <div id="root"></div>
   <script type="module" src="/static/city-budget/assets/index.js?v={{ asset_version }}"></script>
-</body>
-</html>
+{% endblock %}

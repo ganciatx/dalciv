@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Crossword Constructor · Sunridge</title>
+{% extends "layouts/app_shell.html" %}
+{% block title %}Crossword Constructor · Sunridge{% endblock %}
+{% block head_extra %}
   <link rel="icon" type="image/svg+xml" href="/static/crossword-constructor/favicon.svg?v={{ asset_version }}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,9 +9,8 @@
     rel="stylesheet"
   />
   <link rel="stylesheet" href="/static/crossword-constructor/assets/index.css?v={{ asset_version }}" />
-</head>
-<body>
+{% endblock %}
+{% block content %}
   <div id="root"></div>
   <script type="module" src="/static/crossword-constructor/assets/index.js?v={{ asset_version }}"></script>
-</body>
-</html>
+{% endblock %}

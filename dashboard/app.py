@@ -20,8 +20,19 @@ ROUTE_DEPS = RouteDeps()
 
 @asynccontextmanager
 async def _app_lifespan(_app: FastAPI):
+    import threading
+
     from .data_sync import start_scheduler, stop_scheduler
 
+    def _warm_council_bootstrap() -> None:
+        try:
+            from .council_accountability import refresh_bootstrap_cache
+
+            refresh_bootstrap_cache(PROJECT_ROOT)
+        except Exception:
+            pass
+
+    threading.Thread(target=_warm_council_bootstrap, daemon=True).start()
     start_scheduler(PROJECT_ROOT)
     yield
     stop_scheduler()

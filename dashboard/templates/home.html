@@ -1,13 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="utf-8" />
-  <title>DALCIV — Dallas civic tools</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet" />
+{% extends "layouts/app_shell.html" %}
+{% block title %}DALCIV — Dallas civic tools{% endblock %}
+{% block head_extra %}
   <style>
     :root {
       color-scheme: light dark;
@@ -34,22 +27,13 @@
       }
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-
     .portal {
       max-width: 920px;
       margin: 0 auto;
       padding: 2.5rem 1.25rem 4rem;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
     }
 
     .brand {
@@ -153,17 +137,9 @@
       color: var(--muted);
       opacity: 0.85;
     }
-
-    footer {
-      margin-top: 2.5rem;
-      text-align: center;
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
   </style>
-</head>
-
-<body>
+{% endblock %}
+{% block content %}
   <div class="portal">
     <header class="brand">
       <img src="/static/dalciv-logo.png" width="200" height="200" alt="DALCIV logo" />
@@ -188,7 +164,7 @@
       <a class="app-card" href="/council-accountability" role="listitem">
         <div class="app-icon" aria-hidden="true">CA</div>
         <h2>Council accountability</h2>
-        <p>Campaign finance, roll-call voting, lobbyist registrations, and “influence overlap” — who lobbies and funds campaigns.</p>
+        <p>Campaign finance, roll-call voting, lobbyist registrations, and influence overlap.</p>
         <span class="path">/council-accountability</span>
       </a>
       <a class="app-card" href="/city-budget" role="listitem">
@@ -216,14 +192,5 @@
         <span class="path">/time-timer</span>
       </a>
     </div>
-
-    <footer>
-      Dallas open data &amp; Legistar tools · <span id="year"></span>
-    </footer>
   </div>
-  <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
-  </script>
-</body>
-
-</html>
+{% endblock %}

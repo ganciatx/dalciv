@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <title>Council Accountability — Dallas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preload" href="/api/council-accountability/bootstrap" as="fetch" crossorigin />
   <link rel="stylesheet" href="/src/styles.css" />
 </head>
 <body>
@@ -15,10 +16,6 @@
     <div class="nav-links">
       <span class="status-pill"><span class="spinner" id="refresh-spin" hidden></span> <span
           id="refresh-text">—</span></span>
-      <a class="btn-link" href="/">Apps</a>
-      <a class="btn-link" href="https://cityofdallas.legistar.com/Calendar.aspx" target="_blank" rel="noopener noreferrer">Council meetings</a>
-      <a class="btn-link" href="/police">Police map</a>
-      <a class="btn-link" href="/city-budget">City budget</a>
       <button type="button" id="btn-refresh-finance" class="btn-link">Refresh finance</button>
       <button type="button" id="btn-refresh-voting" class="btn-link">Refresh voting</button>
       <button type="button" id="btn-refresh-lobbyist" class="btn-link primary">Refresh lobbying</button>
@@ -99,7 +96,7 @@
       <div class="section-head">
         <div>
           <h2>Browse council members</h2>
-          <p class="hint">Active councilmembers are listed first by district. Click a card for a full profile — campaign money, voting record, and lobbying ties.</p>
+          <p class="hint">Active councilmembers by district (1–14). Click a card for a full profile — campaign money, voting record, and lobbying ties.</p>
         </div>
         <label class="card-search" for="member-search">
           <span class="sr-only">Search members</span>
@@ -229,13 +226,13 @@
       <div class="watch-list" id="ov-watch" style="max-height:160px"></div>
     </section>
 
-    <section class="insight-section" id="section-watch">
+    <section class="insight-section money-global-only" id="section-watch">
       <h2>Watch list — possible conflicts of interest</h2>
       <p class="hint">Automated flags for manual review only (not legal conclusions). Uses donor/vendor names from city filings.</p>
       <div class="watch-list" id="watch-list"></div>
     </section>
 
-    <section class="insight-grid">
+    <section class="insight-grid money-global-only">
       <div class="insight-section">
         <h2>Where money goes</h2>
         <p class="hint">Who (candidate) spent how much with which vendor or payee.</p>
@@ -270,13 +267,13 @@
       </div>
     </section>
 
-    <section class="insight-section">
+    <section class="insight-section money-global-only" id="money-global-vendors">
       <h2>Top vendors (all campaigns)</h2>
       <p class="hint">Payees receiving the most campaign money, and which candidates paid them.</p>
       <div class="mini-wrap" id="vendors-wrap"></div>
     </section>
 
-    <section class="charts">
+    <section class="charts money-global-only" id="money-global-charts">
       <div class="chart-card">
         <h2>Top 10 — contributions by candidate</h2>
         <div class="chart-wrap"><canvas id="chart-contrib"></canvas></div>

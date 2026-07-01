@@ -29,6 +29,7 @@ from ..council_voting import get_votes_payload
 from ..lobbyist_registration import get_summary_payload as get_lobbyist_summary_payload
 from ..police_calls import get_active_calls_payload
 from ..registry import apps_by_type
+from ..site_chrome import template_context
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -56,7 +57,7 @@ def _register_jinja_page(
         return deps.templates.TemplateResponse(
             request=request,
             name=template_name,
-            context={},
+            context=template_context(),
         )
 
     app.get(route, response_class=HTMLResponse, name=f"jinja:{slug}")(page)
@@ -67,10 +68,27 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
         _register_jinja_page(app, deps, entry)
     root = deps.project_root
 
+    def _candidate_for_request(
+        candidate: Optional[str],
+        member: Optional[str],
+    ) -> Optional[str]:
+        if candidate and candidate.strip():
+            return candidate.strip()
+        if not member or not member.strip():
+            return None
+        from ..council_accountability import (
+            finance_candidate_for_member_id,
+            get_directory_payload,
+        )
+
+        directory = get_directory_payload(root).get("members") or []
+        return finance_candidate_for_member_id(member.strip(), directory)
+
     @app.get("/api/campaign-finance/summary")
     async def api_campaign_finance_summary(
         refresh: bool = False,
         candidate: Optional[str] = None,
+        member: Optional[str] = None,
         kind: Optional[str] = None,
         record_type: Optional[str] = None,
         q: Optional[str] = None,
@@ -80,7 +98,7 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
             return get_summary_payload(
                 root,
                 force_refresh=refresh,
-                candidate=candidate,
+                candidate=_candidate_for_request(candidate, member),
                 kind=kind,
                 record_type=record_type,
                 q=q,
@@ -95,6 +113,7 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
     async def api_campaign_finance_transactions(
         refresh: bool = False,
         candidate: Optional[str] = None,
+        member: Optional[str] = None,
         kind: Optional[str] = None,
         record_type: Optional[str] = None,
         q: Optional[str] = None,
@@ -105,7 +124,7 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
             return get_transactions_payload(
                 root,
                 force_refresh=refresh,
-                candidate=candidate,
+                candidate=_candidate_for_request(candidate, member),
                 kind=kind,
                 record_type=record_type,
                 q=q,
@@ -216,10 +235,20 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
         refresh_voting: bool = False,
     ) -> dict[str, Any]:
         try:
-            return get_council_bootstrap_payload(
+            from fastapi.responses import JSONResponse
+
+            payload = get_council_bootstrap_payload(
                 root,
                 force_refresh_finance=refresh_finance,
                 force_refresh_voting=refresh_voting,
+            )
+            return JSONResponse(
+                payload,
+                headers={
+                    "Cache-Control": "private, max-age=60"
+                    if not (refresh_finance or refresh_voting)
+                    else "no-store",
+                },
             )
         except requests.HTTPError as exc:
             raise _socrata_http_error(exc) from exc

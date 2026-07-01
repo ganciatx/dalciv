@@ -231,6 +231,83 @@ def get_cached_rows(project_root: Path, *, force_refresh: bool = False) -> dict[
     return warming_rows_document("lobbyist_registration")
 
 
+def top_clients_from_rows(
+    rows: list[dict[str, Any]],
+    *,
+    limit: int = 12,
+) -> list[dict[str, Any]]:
+    client_counts: dict[str, int] = defaultdict(int)
+    for r in rows:
+        c = r.get("client_name") or "Unknown"
+        client_counts[c] += 1
+    return [
+        {"client": name, "registrations": count}
+        for name, count in sorted(client_counts.items(), key=lambda x: -x[1])[:limit]
+    ]
+
+
+def filter_registrations_for_member(
+    rows: list[dict[str, Any]],
+    member_overlap: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Keep lobby registrations for clients tied to a councilmember's campaign."""
+    if not member_overlap:
+        return []
+    keys = {
+        o.get("match_key") or entity_match_key(o.get("entity") or "")
+        for o in member_overlap
+    }
+    keys.discard("")
+    if not keys:
+        return []
+    return [
+        r
+        for r in rows
+        if (r.get("client_key") or entity_match_key(r.get("client_name") or ""))
+        in keys
+    ]
+
+
+def member_scoped_summary(
+    base: dict[str, Any],
+    *,
+    member_overlap: list[dict[str, Any]],
+    member_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Replace global overlap KPIs with member-specific counts."""
+    contributor_overlaps = [
+        o
+        for o in member_overlap
+        if o.get("campaign_role") in ("contributor", "both")
+        or (o.get("campaign_contributed") or 0) > 0
+    ]
+    vendor_only_overlaps = [
+        o
+        for o in member_overlap
+        if o.get("campaign_role") == "recipient"
+        or (
+            (o.get("campaign_contributed") or 0) <= 0
+            and (o.get("campaign_received") or 0) > 0
+        )
+    ]
+    lobbyists = {r["lobbyist_name"] for r in member_rows if r.get("lobbyist_name")}
+    clients = {r["client_name"] for r in member_rows if r.get("client_name")}
+    return {
+        **base,
+        "influence_overlap": member_overlap,
+        "overlap_count": len(member_overlap),
+        "overlap_contributor_count": len(contributor_overlaps),
+        "overlap_vendor_count": len(vendor_only_overlaps),
+        "registration_count": len(member_rows),
+        "lobbyist_firm_count": len(lobbyists),
+        "client_count": len(clients),
+        "top_clients": top_clients_from_rows(member_rows),
+        "recent_registrations": sorted(
+            member_rows, key=lambda r: r.get("sworn_date") or "", reverse=True
+        )[:15],
+    }
+
+
 def search_registrations(
     rows: list[dict[str, Any]],
     q: Optional[str],
@@ -537,17 +614,31 @@ def get_summary_payload(
     if lightweight:
         summary["influence_overlap"] = []
         summary["overlap_count"] = None
+        summary["recent_registrations"] = []
         # Keep overlap_contributor_count / overlap_vendor_count for overview KPIs.
-    page, total = search_registrations(rows, q, limit=limit, offset=offset)
 
     member_overlap: list[dict[str, Any]] = []
     member_label: Optional[str] = None
+    member_rows: list[dict[str, Any]] = []
     if member_id and finance_rows:
         directory = get_directory_payload(project_root).get("members") or []
         fc = finance_candidate_for_member_id(member_id, directory)
         if fc:
             member_label = fc
             member_overlap = member_lobby_overlap(rows, finance_rows, fc)
+            member_rows = filter_registrations_for_member(rows, member_overlap)
+            summary = member_scoped_summary(
+                summary,
+                member_overlap=member_overlap,
+                member_rows=member_rows,
+            )
+            if lightweight:
+                summary["influence_overlap"] = []
+                summary["overlap_count"] = None
+                summary["recent_registrations"] = []
+
+    reg_source = member_rows if member_id and member_label else rows
+    page, total = search_registrations(reg_source, q, limit=limit, offset=offset)
 
     finance_fetched_at = (fin_cached or {}).get("fetched_at") if fin_cached else None
 

@@ -142,6 +142,18 @@ def sort_member_directory(members: list[dict[str, Any]]) -> list[dict[str, Any]]
     return sorted(members, key=sort_key)
 
 
+def active_members_by_district(members: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Council listings: active members only, ordered by district 1–14."""
+    active = [m for m in members if m.get("council_status") == "active"]
+    return sorted(
+        active,
+        key=lambda m: (
+            _district_sort_num(m.get("district_num")) or 99,
+            str(m.get("display_name") or "").lower(),
+        ),
+    )
+
+
 def enrich_directory(
     members: list[dict[str, Any]],
     *,

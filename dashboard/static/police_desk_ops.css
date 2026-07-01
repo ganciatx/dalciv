@@ -67,17 +67,6 @@
 
 html, body { margin: 0; padding: 0; background: var(--bg-0); color: var(--fg-1); font-family: var(--font-ui); overflow: hidden; }
 
-.desk-topbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  background: var(--bg-1);
-  border-bottom: 1px solid var(--br-1);
-  flex-shrink: 0;
-  z-index: 100;
-}
-
 #alert-ribbon {
   flex-shrink: 0;
   border-bottom: 1px solid var(--br-1);
@@ -423,10 +412,10 @@ html, body { margin: 0; padding: 0; background: var(--bg-0); color: var(--fg-1);
   z-index: 9997;
 }
 
-/* App layout (Desk Ops shell) */
+/* App layout */
 #app {
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;

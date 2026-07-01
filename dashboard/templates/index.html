@@ -43,13 +43,13 @@
       color: var(--text);
     }
 
-    main {
+    .scraper-main {
       max-width: 1200px;
       margin: 0 auto;
       padding: 1.5rem 1.25rem 3rem;
     }
 
-    header {
+    .scraper-main > header {
       display: flex;
       flex-wrap: wrap;
       gap: 1rem;
@@ -58,12 +58,12 @@
       margin-bottom: 1.25rem;
     }
 
-    header h1 {
+    .scraper-main > header h1 {
       margin: 0;
       font-size: 1.25rem;
     }
 
-    header p {
+    .scraper-main > header p {
       margin: 0.25rem 0 0;
       color: var(--muted);
       font-size: 0.875rem;
@@ -407,7 +407,7 @@
       font-weight: 600;
     }
 
-    footer {
+    .scraper-footer {
       margin-top: 2rem;
       font-size: 0.8125rem;
       color: var(--muted);
@@ -465,10 +465,12 @@
       margin-right: 0.35rem;
     }
   </style>
+  {% include "partials/site_chrome_head.html" %}
 </head>
 
-<body>
-  <main>
+<body class="site-chrome-body">
+  {% include "partials/site_header.html" %}
+  <main class="site-chrome-main scraper-main">
     <header>
       <div>
         <h1>Dallas Legistar scrape control</h1>
@@ -590,10 +592,11 @@
       </div>
     </div>
 
-    <footer>
+    <footer class="scraper-footer">
       <span id="poll-status" class="poll-status">Waiting for poll…</span>
     </footer>
   </main>
+  {% include "partials/site_footer.html" %}
 
   <script>
     const qs = sel => document.querySelector(sel);

@@ -7,6 +7,7 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse
 
 from ..command_center import build_command_payload
+from ..site_chrome import template_context
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -20,7 +21,7 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
         return deps.templates.TemplateResponse(
             request=request,
             name="command.html",
-            context={},
+            context=template_context(),
         )
 
     @app.get("/api/command")

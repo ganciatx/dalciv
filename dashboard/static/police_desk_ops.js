@@ -43,7 +43,6 @@
   let markers = {};
   let clusterLayerGroup = null;
   let pollTimer = null;
-  let clockTimer = null;
   let searchDebounceTimer = null;
   let mapFitDone = false;
 
@@ -423,33 +422,22 @@
   }
 
   /* ── render UI sections ──────────────────────────────── */
-  function renderTopBar() {
+  function renderMapStats() {
     const s = stats();
     const alertN = buildAlerts().filter((a) => !state.dismissedAlerts.includes(a.id)).length;
-    document.getElementById("topbar").innerHTML = `
-      <div class="row gap-2" style="align-items:center">
-        <div style="width:22px;height:22px;background:var(--fg-0);color:var(--bg-0);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;font-weight:700">D</div>
-        <span class="t-display" style="font-size:14px">desk ops</span>
-        <span style="width:1px;height:16px;background:var(--br-2);margin:0 4px"></span>
-        <span class="t-mono" style="color:var(--fg-2)">Dallas</span>
-        <span style="color:var(--fg-4)">·</span>
-        <span class="t-mono" id="live-clock">${fmt.clock()}</span>
-      </div>
-      <div style="flex:1"></div>
-      <div class="row gap-3" style="align-items:center">
-        <span class="row gap-1" style="align-items:center"><span class="sdot live ${state.refreshing ? "" : "dim"}"></span><span class="t-mono" style="color:var(--fg-0);font-weight:600">LIVE</span></span>
-        <span class="t-mono">${s.totalActive} active</span>
-        <span style="color:var(--fg-4)">·</span>
-        <span class="t-mono">${s.totalUnits} units</span>
-        <span style="color:var(--fg-4)">·</span>
-        <span class="t-mono" style="color:${alertN ? "var(--warn)" : "var(--fg-3)"}">${alertN} alert${alertN === 1 ? "" : "s"}</span>
-      </div>
-      <span style="width:1px;height:16px;background:var(--br-2)"></span>
+    document.getElementById("map-stats").innerHTML = `
+      <span class="row gap-1" style="align-items:center"><span class="sdot live ${state.refreshing ? "" : "dim"}"></span><span class="t-mono" style="color:var(--fg-0);font-weight:600">LIVE</span></span>
+      <span class="t-mono">${s.totalActive} active</span>
+      <span style="color:var(--fg-4)">·</span>
+      <span class="t-mono">${s.totalUnits} units</span>
+      <span style="color:var(--fg-4)">·</span>
+      <span class="t-mono" style="color:${alertN ? "var(--warn)" : "var(--fg-3)"}">${alertN} alert${alertN === 1 ? "" : "s"}</span>
+      <span style="color:var(--fg-4)">·</span>
+      <span class="t-mono" style="color:var(--fg-3)">${s.unmapped} unmapped</span>
+      <span style="color:var(--fg-4)">·</span>
+      <span class="t-mono" style="color:var(--fg-3)">fetched ${s.fetchedAt} (${s.lagSec}s)</span>
+      <span style="flex:1"></span>
       <button type="button" class="btn ghost sm" id="btn-refresh" title="Refresh">${Ic.refresh()}</button>
-      <a class="btn ghost sm" href="/">Apps</a>
-      <a class="btn ghost sm" href="https://cityofdallas.legistar.com/Calendar.aspx" target="_blank" rel="noopener noreferrer">Meetings</a>
-      <a class="btn ghost sm" href="/council-accountability">Council</a>
-      <a class="btn ghost sm" href="/city-budget">Budget</a>
       <button type="button" class="btn ghost sm" id="btn-fit">${Ic.scope()} Fit</button>
     `;
     document.getElementById("btn-refresh")?.addEventListener("click", () =>
@@ -501,7 +489,7 @@
       btn.addEventListener("click", () => {
         state.dismissedAlerts.push(btn.dataset.dismiss);
         renderAlerts();
-        renderTopBar();
+        renderMapStats();
       });
     });
   }
@@ -698,20 +686,6 @@
     });
   }
 
-  function renderMapStats() {
-    const s = stats();
-    document.getElementById("map-stats").innerHTML = `
-      <span class="row gap-1"><span class="sdot live"></span><span class="t-mono">LIVE</span></span>
-      <span class="t-mono">${s.totalActive} active</span>
-      <span style="color:var(--fg-4)">·</span>
-      <span class="t-mono">${s.totalUnits} units</span>
-      <span style="color:var(--fg-4)">·</span>
-      <span class="t-mono" style="color:var(--fg-3)">${s.unmapped} unmapped</span>
-      <span style="color:var(--fg-4)">·</span>
-      <span class="t-mono" style="color:var(--fg-3)">fetched ${s.fetchedAt} (${s.lagSec}s)</span>
-    `;
-  }
-
   function fillDivisionSelect() {
     const sel = document.getElementById("filter-division");
     const cur = state.division;
@@ -723,7 +697,6 @@
   }
 
   function renderAll() {
-    renderTopBar();
     renderAlerts();
     renderMarkers(visibleIncidents());
     renderRail();
@@ -734,7 +707,6 @@
 
   /** Lighter path for 90s polls — skip alerts/division rebuild when data shape unchanged. */
   function renderPollLight() {
-    renderTopBar();
     renderMapStats();
     renderMarkers(visibleIncidents());
     renderRail();
@@ -823,7 +795,7 @@
   async function loadCalls(options) {
     options = options || {};
     state.refreshing = true;
-    renderTopBar();
+    renderMapStats();
     try {
       const res = await fetch(activeCallsUrl(options));
       if (!res.ok) throw new Error(await res.text());
@@ -849,7 +821,7 @@
       document.getElementById("map-stats").innerHTML = `<span class="t-mono" style="color:var(--p1)">${esc(String(err))}</span>`;
     } finally {
       state.refreshing = false;
-      renderTopBar();
+      renderMapStats();
     }
   }
 
@@ -912,9 +884,5 @@
     applyMapChrome();
     loadCalls();
     pollTimer = setInterval(() => loadCalls(), POLL_MS);
-    clockTimer = setInterval(() => {
-      const c = document.getElementById("live-clock");
-      if (c) c.textContent = fmt.clock();
-    }, 1000);
   });
 })();

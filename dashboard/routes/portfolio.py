@@ -16,6 +16,7 @@ from ..portfolio_site import (
     portfolio_root_asset,
     portfolio_side_projects_redirect,
 )
+from ..site_chrome import template_context
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -31,7 +32,7 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
         return deps.templates.TemplateResponse(
             request=request,
             name="home.html",
-            context={},
+            context=template_context(),
         )
 
     @app.get("/apps", response_class=HTMLResponse)

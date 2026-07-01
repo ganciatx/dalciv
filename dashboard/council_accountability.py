@@ -3,6 +3,8 @@ Council Accountability: bridge campaign finance candidates ↔ voting members.
 """
 from __future__ import annotations
 
+import json
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Optional
 
@@ -13,7 +15,7 @@ from .campaign_finance import (
     build_candidate_overview,
     get_cached_rows as get_finance_cache,
 )
-from .council_headshots import enrich_directory, enrich_member_portrait
+from .council_headshots import enrich_directory, enrich_member_portrait, active_members_by_district
 from .council_voting import (
     build_member_voting_stats,
     canonical_display_name,
@@ -220,7 +222,7 @@ def get_directory_payload(
             entry["finance_summary"] = None
         entry["voting_summary"] = vote_index.get(entry["id"])
 
-    enrich_directory(directory, project_root=project_root)
+    directory = enrich_directory(directory, project_root=project_root)
 
     return {
         "meta": {
@@ -230,7 +232,24 @@ def get_directory_payload(
             "voting_row_count": voting_row_count,
             "date_range_defaults": date_range_defaults,
         },
-        "members": directory,
+        "members": active_members_by_district(directory),
+    }
+
+
+def _listable_directory_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Ensure cached bootstrap payloads only expose active members in listings."""
+    directory = payload.get("directory")
+    if not isinstance(directory, dict):
+        return payload
+    members = directory.get("members")
+    if not isinstance(members, list):
+        return payload
+    return {
+        **payload,
+        "directory": {
+            **directory,
+            "members": active_members_by_district(members),
+        },
     }
 
 
@@ -242,7 +261,93 @@ def get_bootstrap_payload(
 ) -> dict[str, Any]:
     """
     One round-trip for Overview: directory + lightweight finance/voting/lobby summaries.
+  Uses a precomputed on-disk cache when source datasets are unchanged.
     """
+    if force_refresh_finance or force_refresh_voting:
+        payload = _build_bootstrap_payload(
+            project_root,
+            force_refresh_finance=force_refresh_finance,
+            force_refresh_voting=force_refresh_voting,
+        )
+        _save_bootstrap_cache(project_root, payload)
+        return _listable_directory_payload(payload)
+
+    cached = _load_bootstrap_cache(project_root)
+    if cached is not None:
+        return _listable_directory_payload(cached)
+
+    payload = _build_bootstrap_payload(project_root)
+    _save_bootstrap_cache(project_root, payload)
+    return _listable_directory_payload(payload)
+
+
+def get_bootstrap_payload_cached(project_root: Path) -> dict[str, Any]:
+    """Fast path for HTML shell embed — avoids rebuilding on every page view."""
+    cached = _load_bootstrap_cache(project_root)
+    if cached is not None:
+        return _listable_directory_payload(cached)
+    return get_bootstrap_payload(project_root)
+
+
+def refresh_bootstrap_cache(project_root: Path) -> dict[str, Any]:
+    """Rebuild bootstrap JSON after finance/voting/lobby caches update."""
+    payload = _build_bootstrap_payload(project_root)
+    _save_bootstrap_cache(project_root, payload)
+    return _listable_directory_payload(payload)
+
+
+def bootstrap_cache_path(project_root: Path) -> Path:
+    return project_root / "scraper_dashboard_data" / "council_accountability_bootstrap_cache.json"
+
+
+def _bootstrap_source_mtimes(project_root: Path) -> dict[str, float]:
+    from .campaign_finance import cache_path as finance_cache_path
+    from .council_voting import summary_sidecar_path
+    from .lobbyist_registration import cache_path as lobby_cache_path
+
+    out: dict[str, float] = {}
+    for key, path in (
+        ("finance", finance_cache_path(project_root)),
+        ("voting_summary", summary_sidecar_path(project_root)),
+        ("lobbyist", lobby_cache_path(project_root)),
+    ):
+        out[key] = path.stat().st_mtime if path.is_file() else 0.0
+    return out
+
+
+def _load_bootstrap_cache(project_root: Path) -> Optional[dict[str, Any]]:
+    path = bootstrap_cache_path(project_root)
+    if not path.is_file():
+        return None
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    if not isinstance(doc, dict):
+        return None
+    if doc.get("source_mtimes") != _bootstrap_source_mtimes(project_root):
+        return None
+    payload = doc.get("payload")
+    return payload if isinstance(payload, dict) else None
+
+
+def _save_bootstrap_cache(project_root: Path, payload: dict[str, Any]) -> None:
+    path = bootstrap_cache_path(project_root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    doc = {
+        "built_at": datetime.now(tz=UTC).isoformat(),
+        "source_mtimes": _bootstrap_source_mtimes(project_root),
+        "payload": payload,
+    }
+    path.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+
+
+def _build_bootstrap_payload(
+    project_root: Path,
+    *,
+    force_refresh_finance: bool = False,
+    force_refresh_voting: bool = False,
+) -> dict[str, Any]:
     from .campaign_finance import get_summary_payload as get_finance_summary
     from .lobbyist_registration import get_summary_payload as get_lobby_summary
 
@@ -265,6 +370,8 @@ def get_bootstrap_payload(
         project_root,
         force_refresh=force_refresh_finance or force_refresh_voting,
         lightweight=True,
+        limit=0,
+        offset=0,
     )
     return {
         "directory": directory,

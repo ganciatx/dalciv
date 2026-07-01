@@ -121,16 +121,20 @@ def _run_police(project_root: Path) -> dict[str, Any]:
 
 def _run_finance(project_root: Path) -> dict[str, Any]:
     from .campaign_finance import refresh_cache
+    from .council_accountability import refresh_bootstrap_cache
 
     doc = refresh_cache(project_root)
+    refresh_bootstrap_cache(project_root)
     return {"row_count": len(doc.get("rows") or [])}
 
 
 def _run_voting(project_root: Path) -> dict[str, Any]:
+    from .council_accountability import refresh_bootstrap_cache
     from .council_voting import refresh_cache, refresh_voting_summary_sidecar
 
     doc = refresh_cache(project_root)
     refresh_voting_summary_sidecar(project_root)
+    refresh_bootstrap_cache(project_root)
     return {"row_count": len(doc.get("rows") or [])}
 
 
@@ -141,9 +145,11 @@ def _run_budget(project_root: Path) -> dict[str, Any]:
 
 
 def _run_lobbyist(project_root: Path) -> dict[str, Any]:
+    from .council_accountability import refresh_bootstrap_cache
     from .lobbyist_registration import refresh_cache
 
     doc = refresh_cache(project_root)
+    refresh_bootstrap_cache(project_root)
     return {"row_count": len(doc.get("rows") or [])}
 
 

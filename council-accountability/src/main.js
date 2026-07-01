@@ -1,4 +1,30 @@
-import Chart from "chart.js/auto";
+import {
+  readBootstrapSession as readBootstrapSessionFromStorage,
+  saveBootstrapSession as saveBootstrapSessionToStorage,
+} from "./lib/bootstrap-cache.js";
+import {
+  filterOverlapRows,
+  overlapRole,
+  overlapRoleLabel,
+} from "./lib/overlap.js";
+import { cardMatchesSearch } from "./lib/search.js";
+import { listableMembers } from "./lib/members.js";
+
+const MEMBER_RENDER_CHUNK = 16;
+
+let ChartLib = null;
+let chartLibPromise = null;
+
+function loadChartLib() {
+  if (ChartLib) return Promise.resolve(ChartLib);
+  if (!chartLibPromise) {
+    chartLibPromise = import("chart.js/auto").then((mod) => {
+      ChartLib = mod.default;
+      return ChartLib;
+    });
+  }
+  return chartLibPromise;
+}
 
 const PAGE_SIZE = 50;
 const VOTES_PAGE = 50;
@@ -48,18 +74,125 @@ function formatDate(iso) {
   return Number.isNaN(d.getTime()) ? iso.slice(0, 10) : d.toLocaleDateString();
 }
 
+function ensureMemberCandidateFilter() {
+  if (!isMemberFiltered()) return;
+  syncMemberToCandidate(activeMemberId());
+}
+
 function filterParams(refresh) {
+  ensureMemberCandidateFilter();
   const p = new URLSearchParams();
   if (refresh) p.set("refresh", "true");
-  const cand = document.getElementById("filter-candidate").value;
+  const mid = activeMemberId();
+  if (mid) {
+    p.set("member", mid);
+  } else {
+    const cand = document.getElementById("filter-candidate").value;
+    if (cand) p.set("candidate", cand);
+  }
   const kind = document.getElementById("filter-kind").value;
   const rt = document.getElementById("filter-record-type").value;
   const q = document.getElementById("filter-q").value.trim();
-  if (cand) p.set("candidate", cand);
   if (kind && kind !== "all") p.set("kind", kind);
   if (rt) p.set("record_type", rt);
   if (q) p.set("q", q);
   return p;
+}
+
+function activeMemberId() {
+  return selectedMemberId || document.getElementById("filter-member")?.value || "";
+}
+
+function activeMemberEntry() {
+  const mid = activeMemberId();
+  return memberDirectory.find((m) => m.id === mid) || null;
+}
+
+function isMemberFiltered() {
+  return Boolean(activeMemberId());
+}
+
+function lobbyOverlapRows(body) {
+  if (!body) return [];
+  if (isMemberFiltered()) return body.member_overlap || body.summary?.influence_overlap || [];
+  return body.summary?.influence_overlap || [];
+}
+
+function updateMemberFilterChrome() {
+  const on = isMemberFiltered();
+  const entry = activeMemberEntry();
+  const memberName = entry?.display_name || "selected member";
+
+  document.querySelector(".voting-view-toggle")?.toggleAttribute("hidden", on);
+  document.getElementById("lobby-teaser")?.toggleAttribute("hidden", on);
+  document.getElementById("candidate-index-section")?.toggleAttribute("hidden", on);
+
+  document.querySelectorAll("#tab-money .money-global-only").forEach((el) => {
+    el.hidden = on;
+  });
+  document.getElementById("section-watch")?.toggleAttribute("hidden", on);
+
+  document.getElementById("tab-money")?.classList.toggle("member-scoped", on);
+
+  const overlapHint = document.getElementById("lobby-overlap-hint");
+  if (overlapHint) {
+    overlapHint.textContent = on
+      ? `Lobbying clients tied to ${memberName}'s campaign.`
+      : overlapRoleFilter === "contributors"
+        ? "Lobbying clients who gave money to council campaigns — the primary overlap to watch."
+        : overlapRoleFilter === "vendors"
+          ? "Lobbying clients paid by campaigns (vendors/consultants). They received money, they did not donate."
+          : "All entities appearing in both lobbying registrations and campaign finance.";
+  }
+
+  if (on && votingViewMode === "agenda") {
+    setVotingViewMode("member");
+  }
+}
+
+function applyMemberHeaderKpis(profileBody) {
+  if (!profileBody?.found) return;
+  const fin = profileBody.finance_overview?.financials;
+  const vote = profileBody.voting_stats?.totals;
+  const memberName = profileBody.member?.display_name || "member";
+
+  if (fin) {
+    document.getElementById("kpi-raised").textContent = money(fin.total_raised);
+    document.getElementById("kpi-spent").textContent = money(fin.total_spent);
+    document.getElementById("kpi-txns").textContent =
+      (fin.contribution_count || 0) + (fin.expenditure_count || 0);
+    document.getElementById("kpi-candidates").textContent = "1";
+  }
+  if (vote) {
+    document.getElementById("kpi-vote-records").textContent = vote.records ?? "—";
+    document.getElementById("kpi-yes-rate").textContent = pctRate(vote.yes_rate);
+  }
+  document.getElementById("header-sub").textContent = `Showing data for ${memberName}`;
+}
+
+function applyMemberFinanceKpis(body) {
+  const meta = body.meta || {};
+  const kpis = body.kpis || {};
+  const entry = activeMemberEntry();
+  const memberName = entry?.display_name || "member";
+
+  document.getElementById("kpi-raised").textContent = money(kpis.total_contributions);
+  document.getElementById("kpi-spent").textContent = money(kpis.total_expenditures);
+  document.getElementById("kpi-txns").textContent =
+    (kpis.contribution_transactions || 0) + (kpis.expenditure_transactions || 0);
+  document.getElementById("kpi-candidates").textContent = "1";
+  document.getElementById("header-sub").textContent =
+    `Campaign finance for ${memberName} · ${meta.filtered_count ?? 0} transactions`;
+}
+
+function setMemberCandidateSelect(entry) {
+  const sel = document.getElementById("filter-candidate");
+  if (!sel || !entry?.finance_candidate_name) return;
+  const fc = entry.finance_candidate_name;
+  sel.innerHTML =
+    `<option value="">All candidates</option>` +
+    `<option value="${escapeHtml(fc)}">${escapeHtml(fc)}</option>`;
+  sel.value = fc;
 }
 
 function setRefreshing(on) {
@@ -75,8 +208,10 @@ function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#94a3b8";
 }
 
-function renderBarChart(canvasId, items, labelKey, color) {
+async function renderBarChart(canvasId, items, labelKey, color) {
   const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  const Chart = await loadChartLib();
   const labels = items.map((x) => x.candidate);
   const data = items.map((x) => x.total);
   const cfg = {
@@ -120,8 +255,10 @@ function renderBarChart(canvasId, items, labelKey, color) {
   }
 }
 
-function renderMonthlyChart(series) {
+async function renderMonthlyChart(series) {
   const ctx = document.getElementById("chart-monthly");
+  if (!ctx) return;
+  const Chart = await loadChartLib();
   const labels = series.map((x) => x.month);
   const cfg = {
     type: "bar",
@@ -241,41 +378,6 @@ function watchCardHtml(s) {
   </article>`;
 }
 
-function overlapRole(r) {
-  if (r.campaign_role) return r.campaign_role;
-  const contributed = r.campaign_contributed || 0;
-  const received = r.campaign_received || 0;
-  if (contributed > 0 && received > 0) return "both";
-  if (contributed > 0) return "contributor";
-  if (received > 0) return "recipient";
-  if (r.campaign_kind === "contribution") return "contributor";
-  if (r.campaign_kind === "expenditure") return "recipient";
-  return "other";
-}
-
-function isOverlapContributor(r) {
-  const role = overlapRole(r);
-  return role === "contributor" || role === "both";
-}
-
-function filterOverlapRows(rows, roleFilter = overlapRoleFilter) {
-  const list = rows || [];
-  if (roleFilter === "contributors") {
-    return list.filter((r) => isOverlapContributor(r));
-  }
-  if (roleFilter === "vendors") {
-    return list.filter((r) => overlapRole(r) === "recipient");
-  }
-  return list;
-}
-
-function overlapRoleLabel(role) {
-  if (role === "contributor") return "Campaign donor";
-  if (role === "recipient") return "Campaign vendor";
-  if (role === "both") return "Donor & vendor";
-  return "Campaign finance";
-}
-
 function overlapCardHtml(r, opts = {}) {
   const compact = opts.compact === true;
   const lobbyists = r.lobbyists || [];
@@ -382,9 +484,51 @@ function filterCardGrid(inputId, gridId, getSearchText) {
   if (!input || !grid) return;
   const q = input.value.trim().toLowerCase();
   grid.querySelectorAll("[data-search]").forEach((card) => {
-    const hay = (card.dataset.search || "").toLowerCase();
-    card.classList.toggle("is-hidden-by-search", q.length > 0 && !hay.includes(q));
+    card.classList.toggle(
+      "is-hidden-by-search",
+      !cardMatchesSearch(card.dataset.search, q)
+    );
   });
+}
+
+function readBootstrapSession() {
+  return readBootstrapSessionFromStorage(sessionStorage);
+}
+
+function saveBootstrapSession(body) {
+  saveBootstrapSessionToStorage(sessionStorage, body);
+}
+
+function applyBootstrap(body, opts = {}) {
+  const dir = body.directory || {};
+  const members = dir.members || [];
+  const dr = (dir.meta || {}).date_range_defaults || {};
+  if (!document.getElementById("vote-from").value && dr.from) {
+    document.getElementById("vote-from").value = dr.from.slice(0, 10);
+  }
+  if (!document.getElementById("vote-to").value && dr.to) {
+    document.getElementById("vote-to").value = dr.to.slice(0, 10);
+  }
+  if (!isMemberFiltered()) {
+    applyVotingOverview(body.voting || {});
+    applyFinanceKpis(body.finance || {});
+    renderLobbyTeaser((body.lobbyist || {}).summary || {});
+  }
+  updateMemberFilterChrome();
+  renderMemberDirectory(members);
+}
+
+function paintInstantBootstrap(body) {
+  applyBootstrap(body, { deferMembers: true });
+  const fin = body.finance || {};
+  const meta = fin.meta || {};
+  const sub = [
+    meta.row_count != null ? `${meta.row_count} finance rows cached` : null,
+    meta.fetched_at ? `as of ${new Date(meta.fetched_at).toLocaleString()}` : null,
+  ].filter(Boolean).join(" · ");
+  if (sub) document.getElementById("header-sub").textContent = sub;
+  document.getElementById("refresh-text").textContent =
+    `Updated ${new Date().toLocaleTimeString()}`;
 }
 
 function voteParams(refresh) {
@@ -538,21 +682,29 @@ function setActiveTab(tab) {
   document.querySelectorAll(".tab-panel").forEach((p) => {
     p.classList.toggle("on", p.id === `tab-${tab}`);
   });
-  if (tab === "money" && !tabsLoaded.has("money")) {
+  const memberReload = isMemberFiltered();
+  if (tab === "money" && (memberReload || !tabsLoaded.has("money"))) {
     tabsLoaded.add("money");
     loadFinance(false);
   }
-  if (tab === "voting" && !tabsLoaded.has("voting")) {
+  if (tab === "voting" && (memberReload || !tabsLoaded.has("voting"))) {
     tabsLoaded.add("voting");
-    if (votingViewMode === "agenda") {
+    if (isMemberFiltered() || votingViewMode === "member") {
+      setVotingViewMode("member");
+    } else if (votingViewMode === "agenda") {
       loadAgendaItems(false);
     } else {
       loadVotes(false);
     }
   }
-  if (tab === "lobbying" && !tabsLoaded.has("lobbying")) {
+  if (tab === "lobbying" && (memberReload || !tabsLoaded.has("lobbying"))) {
     tabsLoaded.add("lobbying");
     loadLobbyist(false);
+  }
+  if (tab === "transactions" && (memberReload || !tabsLoaded.has("transactions"))) {
+    tabsLoaded.add("transactions");
+    ensureMemberCandidateFilter();
+    loadTransactions(false);
   }
 }
 
@@ -588,25 +740,35 @@ function setOverlapRoleFilter(role) {
   }
   const body = window.__lastLobbySummary;
   if (body?.summary) {
-    renderOverlapCards("lobby-overlap-grid", body.summary.influence_overlap || [], {
-      emptyContributors: "No lobbying clients matched as campaign donors.",
-      emptyVendors: "No vendor-only overlaps in the current data.",
-      empty: "No entities matched across both datasets.",
+    renderOverlapCards("lobby-overlap-grid", lobbyOverlapRows(body), {
+      emptyContributors: isMemberFiltered()
+        ? "No lobbying clients tied to this member's campaign as donors."
+        : "No lobbying clients matched as campaign donors.",
+      emptyVendors: isMemberFiltered()
+        ? "No lobbying clients tied to this member's campaign as vendors."
+        : "No vendor-only overlaps in the current data.",
+      empty: isMemberFiltered()
+        ? "No lobbying overlap for this member."
+        : "No entities matched across both datasets.",
     });
   }
 }
 
-function renderLobbyTeaser(summary) {
+function renderLobbyTeaser(summary, body = null) {
   const teaser = document.getElementById("lobby-teaser");
   const s = summary || {};
-  const overlaps = s.influence_overlap || [];
+  const overlaps = body ? lobbyOverlapRows(body) : (s.influence_overlap || []);
+  if (isMemberFiltered()) {
+    teaser.hidden = true;
+    return;
+  }
   if (!s.registration_count) {
     teaser.hidden = true;
     return;
   }
   teaser.hidden = document.getElementById("combined-overview")?.hidden === false;
   document.getElementById("kpi-lobby-regs").textContent = s.registration_count ?? "—";
-  const donorN = s.overlap_contributor_count ?? filterOverlapRows(overlaps).length;
+  const donorN = s.overlap_contributor_count ?? filterOverlapRows(overlaps, "contributors").length;
   document.getElementById("kpi-lobby-overlap").textContent =
     donorN == null || donorN === undefined ? "—" : donorN;
   const vendorN = s.overlap_vendor_count ?? 0;
@@ -628,22 +790,36 @@ function renderLobbyTeaser(summary) {
 function renderLobbyTab(body) {
   window.__lastLobbySummary = body;
   const s = body.summary || {};
+  const overlaps = lobbyOverlapRows(body);
+  const donorN = isMemberFiltered()
+    ? filterOverlapRows(overlaps, "contributors").length
+    : (s.overlap_contributor_count ?? filterOverlapRows(overlaps, "contributors").length);
+  const vendorN = isMemberFiltered()
+    ? filterOverlapRows(overlaps, "vendors").length
+    : (s.overlap_vendor_count ?? 0);
   document.getElementById("kpi-lobby-regs").textContent = s.registration_count ?? "—";
-  const donorN = s.overlap_contributor_count ?? filterOverlapRows(s.influence_overlap || []).length;
   document.getElementById("kpi-lobby-overlap").textContent = donorN ?? "—";
   const kpis = document.getElementById("lobby-kpis");
+  const memberLabel = isMemberFiltered()
+    ? (body.member_finance_name || activeMemberEntry()?.display_name || "Member")
+    : null;
   kpis.innerHTML = `
     <div class="overview-kpi"><div class="label">Registrations</div><div class="value">${s.registration_count ?? "—"}</div></div>
     <div class="overview-kpi"><div class="label">Lobbyist firms</div><div class="value">${s.lobbyist_firm_count ?? "—"}</div></div>
     <div class="overview-kpi"><div class="label">Campaign donors</div><div class="value good">${donorN ?? "—"}</div></div>
-    <div class="overview-kpi"><div class="label">Campaign vendors</div><div class="value muted">${s.overlap_vendor_count ?? "—"}</div></div>
+    <div class="overview-kpi"><div class="label">Campaign vendors</div><div class="value muted">${vendorN ?? "—"}</div></div>
     <div class="overview-kpi"><div class="label">New (30 days)</div><div class="value good">${s.registrations_last_30d ?? "—"}</div></div>`;
+  if (memberLabel) {
+    const hint = document.getElementById("lobby-overlap-hint");
+    if (hint) hint.textContent = `Lobbying clients tied to ${memberLabel}'s campaign.`;
+  }
   setOverlapRoleFilter(overlapRoleFilter);
   const clients = s.top_clients || [];
   const ctx = document.getElementById("chart-lobby-clients");
   if (chartLobbyClients) chartLobbyClients.destroy();
   if (clients.length && ctx) {
-    chartLobbyClients = new Chart(ctx, {
+    void loadChartLib().then((Chart) => {
+      chartLobbyClients = new Chart(ctx, {
       type: "bar",
       data: {
         labels: clients.map((c) => c.client),
@@ -660,6 +836,7 @@ function renderLobbyTab(body) {
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
       },
+    });
     });
   }
   const tbody = document.getElementById("lobby-table-body");
@@ -700,7 +877,7 @@ async function loadLobbyist(refresh) {
   const res = await fetch(`/api/lobbyist-registration/summary?${lobbyParams(refresh)}`);
   if (!res.ok) throw new Error(await res.text());
   const body = await res.json();
-  renderLobbyTeaser(body.summary);
+  renderLobbyTeaser(body.summary, body);
   if (activeTab === "lobbying" || tabsLoaded.has("lobbying")) {
     renderLobbyTab(body);
   }
@@ -708,15 +885,14 @@ async function loadLobbyist(refresh) {
 }
 
 async function loadLobbyistSummaryOnly(refresh = false) {
-  const p = new URLSearchParams();
-  if (refresh) p.set("refresh", "true");
+  const p = lobbyParams(refresh);
   p.set("lightweight", "true");
   p.set("limit", "1");
   p.set("offset", "0");
   const res = await fetch(`/api/lobbyist-registration/summary?${p}`);
   if (!res.ok) throw new Error(await res.text());
   const body = await res.json();
-  renderLobbyTeaser(body.summary);
+  renderLobbyTeaser(body.summary, body);
   return body;
 }
 
@@ -754,13 +930,16 @@ function memberHeadshotHtml(m, sizeClass, opts = {}) {
 function syncMemberToCandidate(memberId) {
   selectedMemberId = memberId || "";
   const entry = memberDirectory.find((m) => m.id === selectedMemberId);
-  const cand = entry?.finance_candidate_name || "";
   document.getElementById("filter-member").value = selectedMemberId;
-  document.getElementById("filter-candidate").value = cand;
+  if (entry?.finance_candidate_name) {
+    setMemberCandidateSelect(entry);
+  } else {
+    document.getElementById("filter-candidate").value = "";
+  }
 }
 
 function renderMemberDirectory(members) {
-  memberDirectory = members || [];
+  memberDirectory = listableMembers(members);
   const sel = document.getElementById("filter-member");
   const cur = sel.value;
   const first = sel.options[0].outerHTML;
@@ -768,10 +947,25 @@ function renderMemberDirectory(members) {
     const tags = [];
     if (m.has_finance) tags.push("$");
     if (m.has_voting) tags.push("vote");
-    const label = tags.length ? `${m.display_name} (${tags.join(" · ")})` : m.display_name;
+    const dist = m.district_num || m.district;
+    const distLabel = dist ? ` · Dist ${dist}` : "";
+    const label = tags.length
+      ? `${m.display_name}${distLabel} (${tags.join(" · ")})`
+      : `${m.display_name}${distLabel}`;
     return `<option value="${escapeHtml(m.id)}">${escapeHtml(label)}</option>`;
   }).join("");
   if (memberDirectory.some((m) => m.id === cur)) sel.value = cur;
+  else if (cur) {
+    sel.value = "";
+    if (selectedMemberId === cur) {
+      selectedMemberId = "";
+      document.getElementById("filter-candidate").value = "";
+    }
+  }
+
+  if (isMemberFiltered()) {
+    syncMemberToCandidate(activeMemberId());
+  }
 
   const wrap = document.getElementById("member-cards");
   const section = document.getElementById("member-index-section");
@@ -841,12 +1035,16 @@ function renderMemberDirectory(members) {
 
 function selectMember(memberId) {
   syncMemberToCandidate(memberId);
-  setActiveTab("overview");
+  tabsLoaded.clear();
+  tabsLoaded.add("overview");
   tableOffset = 0;
   votesOffset = 0;
+  lobbyOffset = 0;
+  updateMemberFilterChrome();
   if (!memberId) {
     document.getElementById("combined-overview").hidden = true;
     document.getElementById("member-index-section").hidden = false;
+    document.getElementById("filter-candidate").value = "";
     bootstrap(false, false);
     return;
   }
@@ -863,9 +1061,10 @@ function voteTagHtml(vote) {
   return `<span class="vote-tag ${cls}">${escapeHtml(v || "—")}</span>`;
 }
 
-function renderVoteYearChart(canvasId, byYear) {
+async function renderVoteYearChart(canvasId, byYear) {
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
+  const Chart = await loadChartLib();
   const series = byYear || [];
   const cfg = {
     type: "bar",
@@ -1000,6 +1199,9 @@ function renderMemberProfile(body) {
   } else {
     lobbyBlock.hidden = true;
   }
+
+  applyMemberHeaderKpis(body);
+  updateMemberFilterChrome();
 }
 
 async function loadDirectory(refreshFinance, refreshVoting) {
@@ -1161,8 +1363,10 @@ function renderCandidateIndex(index) {
   filterCardGrid("candidate-search", "candidate-cards", null);
 }
 
-function renderCandidateMonthly(series) {
+async function renderCandidateMonthly(series) {
   const ctx = document.getElementById("chart-candidate-monthly");
+  if (!ctx) return;
+  const Chart = await loadChartLib();
   const labels = (series || []).map((x) => x.month);
   const cfg = {
     type: "bar",
@@ -1324,28 +1528,80 @@ function applyFinanceKpis(body) {
 }
 
 function applySummary(body) {
-  applyFinanceKpis(body);
+  const onMember = isMemberFiltered();
+  if (onMember) {
+    applyMemberFinanceKpis(body);
+  } else {
+    applyFinanceKpis(body);
+  }
   if (body.meta?.lightweight) return;
 
+  updateMemberFilterChrome();
+
   const charts = body.charts || {};
-  renderBarChart("chart-contrib", charts.top_contributions || [], "Contributions", cssVar("--good"));
-  renderBarChart("chart-expend", charts.top_expenditures || [], "Expenditures", cssVar("--warn"));
-  renderMonthlyChart(charts.by_month || []);
+  if (!onMember) {
+    void Promise.all([
+      renderBarChart("chart-contrib", charts.top_contributions || [], "Contributions", cssVar("--good")),
+      renderBarChart("chart-expend", charts.top_expenditures || [], "Expenditures", cssVar("--warn")),
+      renderMonthlyChart(charts.by_month || []),
+    ]);
+  }
 
   const opts = body.options || {};
   const candNow = document.getElementById("filter-candidate").value;
   const rtNow = document.getElementById("filter-record-type").value;
-  fillSelect("filter-candidate", opts.candidates || [], candNow);
+  if (!onMember) {
+    fillSelect("filter-candidate", opts.candidates || [], candNow);
+  } else {
+    ensureMemberCandidateFilter();
+    const entry = activeMemberEntry();
+    if (entry) setMemberCandidateSelect(entry);
+  }
   fillSelect("filter-record-type", opts.record_types || [], rtNow);
 
-  renderInsights(body.insights);
+  if (!onMember) {
+    renderInsights(body.insights);
+  }
 
-  const cand = document.getElementById("filter-candidate").value;
-  if (cand && body.candidate_overview?.found) {
-    renderCandidateOverview(body.candidate_overview);
+  const ov = body.candidate_overview;
+  if (ov?.found) {
+    if (ov.candidate) {
+      document.getElementById("filter-candidate").value = ov.candidate;
+    }
+    renderCandidateOverview(ov);
+  } else if (onMember) {
+    void loadMemberFinanceOverview();
   } else {
     document.getElementById("candidate-overview").hidden = true;
     renderCandidateIndex(body.candidate_index || []);
+  }
+}
+
+async function loadMemberFinanceOverview() {
+  const mid = activeMemberId();
+  if (!mid) return;
+  const p = new URLSearchParams({ member: mid });
+  const res = await fetch(`/api/council-accountability/member?${p}`);
+  if (!res.ok) return;
+  const body = await res.json();
+  const fin = body.finance_overview;
+  if (fin?.found) {
+    if (fin.candidate) {
+      document.getElementById("filter-candidate").value = fin.candidate;
+    }
+    renderCandidateOverview(fin);
+    applyMemberFinanceKpis({
+      meta: { filtered_count: (fin.financials?.contribution_count || 0) + (fin.financials?.expenditure_count || 0) },
+      kpis: {
+        total_contributions: fin.financials?.total_raised,
+        total_expenditures: fin.financials?.total_spent,
+        contribution_transactions: fin.financials?.contribution_count,
+        expenditure_transactions: fin.financials?.expenditure_count,
+      },
+    });
+  } else {
+    document.getElementById("candidate-overview").hidden = true;
+    document.getElementById("candidate-index-section").hidden = true;
   }
 }
 
@@ -1370,19 +1626,8 @@ async function loadBootstrap(refreshFinance, refreshVoting) {
   const res = await fetch(`/api/council-accountability/bootstrap?${p}`);
   if (!res.ok) throw new Error(await res.text());
   const body = await res.json();
-  const dir = body.directory || {};
-  renderMemberDirectory(dir.members || []);
-  const dr = (dir.meta || {}).date_range_defaults || {};
-  if (!document.getElementById("vote-from").value && dr.from) {
-    document.getElementById("vote-from").value = dr.from.slice(0, 10);
-  }
-  if (!document.getElementById("vote-to").value && dr.to) {
-    document.getElementById("vote-to").value = dr.to.slice(0, 10);
-  }
-  applyVotingOverview(body.voting || {});
-  applyFinanceKpis(body.finance || {});
-  const lobby = body.lobbyist || {};
-  renderLobbyTeaser(lobby.summary || {});
+  applyBootstrap(body, { deferMembers: false });
+  saveBootstrapSession(body);
   return body;
 }
 
@@ -1432,6 +1677,7 @@ function renderTable(rows, total) {
 }
 
 async function loadTransactions(refresh) {
+  ensureMemberCandidateFilter();
   const p = filterParams(refresh);
   p.set("limit", String(PAGE_SIZE));
   p.set("offset", String(tableOffset));
@@ -1440,9 +1686,16 @@ async function loadTransactions(refresh) {
   const body = await res.json();
   tableTotal = body.meta?.total ?? 0;
   renderTable(body.transactions || [], tableTotal);
+  if (isMemberFiltered() && activeTab === "transactions") {
+    const entry = activeMemberEntry();
+    const memberName = entry?.display_name || "member";
+    document.getElementById("header-sub").textContent =
+      `${tableTotal} transactions for ${memberName}`;
+  }
 }
 
 async function loadFinanceSummaryOnly(refresh = false, lightweight = false) {
+  ensureMemberCandidateFilter();
   const p = filterParams(refresh);
   if (lightweight) p.set("lightweight", "true");
   const res = await fetch(`/api/campaign-finance/summary?${p}`);
@@ -1451,29 +1704,86 @@ async function loadFinanceSummaryOnly(refresh = false, lightweight = false) {
 }
 
 async function loadFinance(refresh = false) {
+  ensureMemberCandidateFilter();
+  updateMemberFilterChrome();
   await loadFinanceSummaryOnly(refresh);
   tabsLoaded.add("money");
-  await loadTransactions(refresh);
+  if (!isMemberFiltered()) {
+    await loadTransactions(refresh);
+  }
 }
 
 async function bootstrap(refreshFinance = false, refreshVoting = false) {
+  const forceNetwork = refreshFinance || refreshVoting;
+  let hadInstant = false;
+  if (!forceNetwork) {
+    const embedded = window.__CA_BOOTSTRAP__;
+    const instant = embedded || readBootstrapSession();
+    if (instant) {
+      hadInstant = true;
+      paintInstantBootstrap(instant);
+      if (embedded) {
+        saveBootstrapSession(embedded);
+        delete window.__CA_BOOTSTRAP__;
+      }
+    }
+  }
+
+  if (hadInstant && !forceNetwork) {
+    void (async () => {
+      try {
+        if (!isMemberFiltered()) {
+          tabsLoaded.clear();
+          tabsLoaded.add("overview");
+        }
+        await loadBootstrap(false, false);
+        if (isMemberFiltered()) {
+          await loadMemberProfile(false);
+          await loadLobbyist(false);
+          if (activeTab === "money") {
+            tabsLoaded.add("money");
+            await loadFinance(false);
+          } else if (activeTab === "voting") {
+            tabsLoaded.add("voting");
+            await loadVotes(false);
+          } else if (activeTab === "lobbying") {
+            tabsLoaded.add("lobbying");
+          } else if (activeTab === "transactions") {
+            tabsLoaded.add("transactions");
+            await loadTransactions(false);
+          }
+        }
+        document.getElementById("refresh-text").textContent =
+          `Updated ${new Date().toLocaleTimeString()}`;
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+    return;
+  }
+
   setRefreshing(true);
-  document.getElementById("refresh-text").textContent = refreshFinance || refreshVoting
+  document.getElementById("refresh-text").textContent = forceNetwork
     ? "Fetching from Socrata…" : "Updating…";
   try {
-    tabsLoaded.clear();
-    tabsLoaded.add("overview");
+    if (!isMemberFiltered()) {
+      tabsLoaded.clear();
+      tabsLoaded.add("overview");
+    }
     await loadBootstrap(refreshFinance, refreshVoting);
-    if (selectedMemberId || document.getElementById("filter-member").value) {
+    if (isMemberFiltered()) {
       await loadMemberProfile(refreshFinance || refreshVoting);
+      await loadLobbyist(refreshFinance || refreshVoting);
     }
     if (activeTab === "money") {
       tabsLoaded.add("money");
-      await loadTransactions(refreshFinance);
+      await loadFinance(refreshFinance);
     }
     if (activeTab === "voting") {
       tabsLoaded.add("voting");
-      if (votingViewMode === "agenda") {
+      if (isMemberFiltered() || votingViewMode === "member") {
+        await loadVotes(refreshVoting);
+      } else if (votingViewMode === "agenda") {
         await loadAgendaItems(refreshVoting);
       } else {
         await loadVotes(false);
@@ -1481,7 +1791,10 @@ async function bootstrap(refreshFinance = false, refreshVoting = false) {
     }
     if (activeTab === "lobbying") {
       tabsLoaded.add("lobbying");
-      await loadLobbyist(refreshFinance || refreshVoting);
+    }
+    if (activeTab === "transactions") {
+      tabsLoaded.add("transactions");
+      await loadTransactions(refreshFinance);
     }
     document.getElementById("refresh-text").textContent =
       `Updated ${new Date().toLocaleTimeString()}`;
@@ -1497,12 +1810,26 @@ async function bootstrap(refreshFinance = false, refreshVoting = false) {
 function onFilterChange() {
   tableOffset = 0;
   votesOffset = 0;
+  lobbyOffset = 0;
   const mid = document.getElementById("filter-member").value;
   if (mid) selectedMemberId = mid;
-  const entry = memberDirectory.find((m) => m.id === selectedMemberId);
-  if (entry?.finance_candidate_name) {
-    document.getElementById("filter-candidate").value = entry.finance_candidate_name;
+  else selectedMemberId = "";
+  ensureMemberCandidateFilter();
+  updateMemberFilterChrome();
+
+  if (activeTab === "money") {
+    tabsLoaded.add("money");
+    void loadFinance(false);
+    return;
   }
+  if (activeTab === "transactions") {
+    tabsLoaded.add("transactions");
+    void loadTransactions(false);
+    return;
+  }
+
+  tabsLoaded.clear();
+  tabsLoaded.add("overview");
   bootstrap(false, false);
 }
 

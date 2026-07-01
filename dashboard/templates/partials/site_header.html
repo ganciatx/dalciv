@@ -1,0 +1,12 @@
+{# Portfolio-style global header — keep nav in sync with portfolio/src/components/Header.tsx #}
+<header class="site-header" role="banner">
+  <div class="site-header__inner">
+    <a class="site-header__brand" href="/">{{ site.name.split(' ')[0] }}</a>
+    <nav class="site-header__nav" aria-label="Site">
+      <a class="site-header__link" href="/">Home</a>
+      <a class="site-header__link" href="/side-projects">Side Projects</a>
+      <a class="site-header__link" href="/blog">Blog</a>
+      <a class="site-header__cta" href="mailto:{{ site.email }}">Contact</a>
+    </nav>
+  </div>
+</header>

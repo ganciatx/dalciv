@@ -52,7 +52,8 @@
       flex-direction: column;
     }
 
-    header {
+    body > header,
+    .site-chrome-main > header {
       display: flex;
       flex-wrap: wrap;
       gap: 0.75rem;
@@ -63,12 +64,14 @@
       background: var(--panel);
     }
 
-    header h1 {
+    body > header h1,
+    .site-chrome-main > header h1 {
       margin: 0;
       font-size: 1.1rem;
     }
 
-    header p {
+    body > header p,
+    .site-chrome-main > header p {
       margin: 0.2rem 0 0;
       font-size: 0.8rem;
       color: var(--muted);
@@ -212,6 +215,14 @@
 
     .filters input[type="search"] {
       min-width: 12rem;
+    }
+
+    #tab-money.member-scoped .money-global-only {
+      display: none !important;
+    }
+
+    #tab-money.member-scoped #candidate-overview {
+      display: block;
     }
 
     .charts {

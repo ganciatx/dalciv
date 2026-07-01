@@ -9,6 +9,7 @@ from fastapi.templating import Jinja2Templates
 
 from ..command_center import ApiUsageTracker
 from ..registry import spa_asset_versions
+from ..site_chrome import template_context
 from ..summaries import SummaryJob
 from ..supervisor import ScraperSupervisor
 
@@ -31,6 +32,9 @@ SCRAPER_ENABLED = os.environ.get("SCRAPER_ENABLED", "1").strip().lower() in (
 )
 
 templates = Jinja2Templates(directory=str(DASHBOARD_DIR / "templates"))
+
+# Re-export for route modules that build Jinja context.
+base_template_context = template_context
 
 SPA_ASSET_VERSIONS = spa_asset_versions()
 

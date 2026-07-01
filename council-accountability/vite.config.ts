@@ -13,6 +13,9 @@ export default defineConfig(({ command }) => ({
         entryFileNames: "assets/[name].js",
         chunkFileNames: "assets/[name].js",
         assetFileNames: "assets/[name][extname]",
+        manualChunks(id) {
+          if (id.includes("chart.js")) return "chart";
+        },
       },
     },
   },

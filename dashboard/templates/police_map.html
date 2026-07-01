@@ -1,21 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="utf-8" />
-  <title>Active Police Calls Map - Dallas, TX</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+{% extends "layouts/app_shell.html" %}
+{% block title %}Active Police Calls Map - Dallas, TX{% endblock %}
+{% block site_chrome_footer %}{% endblock %}
+{% block head_extra %}
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="/static/police_desk_ops.css" />
-</head>
-
-<body>
+  <style>
+    /* Full-height map below global site header (no site footer on this view) */
+    .site-chrome-main { display: flex; flex-direction: column; min-height: 0; }
+    .site-chrome-main #app { flex: 1; min-height: 0; width: 100%; }
+  </style>
+{% endblock %}
+{% block content %}
   <div id="app">
-    <header id="topbar" class="desk-topbar" aria-label="Status bar"></header>
     <div id="alert-ribbon" hidden aria-live="polite"></div>
 
     <div class="main-grid">
@@ -83,10 +81,9 @@
       </aside>
     </div>
   </div>
-
+{% endblock %}
+{% block body_end %}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="/static/police_desk_ops.js"></script>
-</body>
-
-</html>
+{% endblock %}

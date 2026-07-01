@@ -1,0 +1,19 @@
+{# Portfolio-style global footer — keep links in sync with portfolio/src/components/Footer.tsx #}
+<footer class="site-footer" role="contentinfo">
+  <div class="site-footer__inner">
+    <p class="site-footer__copy">&copy; {{ year }} {{ site.name }}. All rights reserved.</p>
+    <div class="site-footer__links">
+      {% if site.social.linkedin %}
+      <a class="site-footer__link" href="{{ site.social.linkedin }}" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      {% endif %}
+      {% if site.social.github %}
+      <a class="site-footer__link" href="{{ site.social.github }}" target="_blank" rel="noopener noreferrer">GitHub</a>
+      {% endif %}
+      {% if site.social.twitter %}
+      <a class="site-footer__link" href="{{ site.social.twitter }}" target="_blank" rel="noopener noreferrer">Twitter</a>
+      {% endif %}
+      <a class="site-footer__link" href="/apps">Side Projects</a>
+      <a class="site-footer__link" href="/blog">Blog</a>
+    </div>
+  </div>
+</footer>

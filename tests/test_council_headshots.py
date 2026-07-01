@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from dashboard.council_headshots import (
+    active_members_by_district,
     district_page_url,
     enrich_member_portrait,
     headshot_public_url,
@@ -48,6 +49,15 @@ class CouncilHeadshotsTests(unittest.TestCase):
         ]
         ordered = sort_member_directory(members)
         self.assertEqual([m["display_name"] for m in ordered], ["Bob Active", "Amy Active", "Zed Former"])
+
+    def test_active_members_by_district_excludes_former(self):
+        members = [
+            {"display_name": "Zed Former", "council_status": "former", "district_num": 1},
+            {"display_name": "Amy Active", "council_status": "active", "district_num": 2},
+            {"display_name": "Bob Active", "council_status": "active", "district_num": 1},
+        ]
+        ordered = active_members_by_district(members)
+        self.assertEqual([m["display_name"] for m in ordered], ["Bob Active", "Amy Active"])
 
 
 if __name__ == "__main__":
