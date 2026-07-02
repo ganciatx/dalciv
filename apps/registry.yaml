@@ -76,6 +76,24 @@ apps:
       tags: [Civic, Data]
       featured: true
 
+  - slug: meeting-recap
+    name: Meeting Recap
+    route: /meeting-recap
+    type: vite-spa
+    source_dir: meeting-recap
+    static_dir: meeting-recap
+    template: meeting_recap.html
+    build: npm run build
+    docker: true
+    catalog:
+      description: >-
+        Plain-English summaries of Dallas council meetings — who attended, what was
+        debated, and how members voted.
+      emoji: "📋"
+      image: /apps/meeting-recap.png
+      tags: [Civic, Data]
+      featured: true
+
   - slug: council-accountability
     name: Council Accountability
     route: /council-accountability

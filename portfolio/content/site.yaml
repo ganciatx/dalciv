@@ -1,7 +1,3 @@
-# Portfolio site content (everything except blog posts).
-# App catalog is synced from apps/registry.yaml — run: python3 scripts/sync-site-apps.py
-# Preview without publishing: npm run dev (from portfolio/)
-
 site:
   name: Jackson E.
   title: Product Manager & Maker
@@ -102,6 +98,17 @@ apps:
   - Data
   featured: true
   image: /apps/budget-visual.png
+- slug: meeting-recap
+  name: Meeting Recap
+  description: Plain-English summaries of Dallas council meetings — who attended,
+    what was debated, and how members voted.
+  url: /meeting-recap
+  emoji: 📋
+  tags:
+  - Civic
+  - Data
+  featured: true
+  image: /apps/meeting-recap.png
 - slug: council-accountability
   name: Council Accountability
   description: Campaign finance, council voting records, and lobbyist registration

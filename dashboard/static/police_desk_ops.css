@@ -287,9 +287,23 @@ html, body { margin: 0; padding: 0; background: var(--bg-0); color: var(--fg-1);
 
 .show-rail-fab {
   position: absolute;
-  top: 12px;
+  top: 52px;
   right: 12px;
   z-index: 550;
+}
+
+/* Author display rules override the UA [hidden] default in Chromium. */
+#right-rail[hidden],
+#show-rail-fab[hidden],
+#map-legend[hidden],
+#alert-ribbon[hidden],
+#inspector[hidden] {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.main-grid.map-only #right-rail {
+  display: none !important;
 }
 
 /* incident row hover */

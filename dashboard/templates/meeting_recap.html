@@ -1,0 +1,13 @@
+{% extends "layouts/app_shell.html" %}
+{% block title %}Dallas Meeting Recap{% endblock %}
+{% block site_chrome_footer %}{% endblock %}
+{% block head_extra %}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/meeting-recap/assets/index.css?v={{ asset_version }}" />
+{% endblock %}
+{% block content %}
+  <div id="root"></div>
+  <script type="module" src="/static/meeting-recap/assets/index.js?v={{ asset_version }}"></script>
+{% endblock %}

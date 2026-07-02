@@ -27,6 +27,13 @@ from ..council_voting import get_agenda_items_payload
 from ..council_voting import get_summary_payload as get_voting_summary_payload
 from ..council_voting import get_votes_payload
 from ..lobbyist_registration import get_summary_payload as get_lobbyist_summary_payload
+from ..meeting_recap import (
+    analyze_status,
+    find_transcript_path,
+    get_recap_payload,
+    list_meetings,
+    start_analyze_job,
+)
 from ..police_calls import get_active_calls_payload
 from ..registry import apps_by_type
 from ..site_chrome import template_context
@@ -452,6 +459,45 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
             raise _socrata_http_error(exc) from exc
         except Exception as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    @app.get("/api/meeting-recap/meetings")
+    async def api_meeting_recap_meetings() -> dict[str, Any]:
+        try:
+            return {"meetings": list_meetings(root)}
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    @app.get("/api/meeting-recap/recap")
+    async def api_meeting_recap_recap(
+        date: str = Query(..., description="Meeting date YYYY-MM-DD"),
+        body: str = Query("City Council"),
+        refresh: bool = False,
+    ) -> dict[str, Any]:
+        try:
+            return get_recap_payload(root, date, body, refresh=refresh)
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    @app.post("/api/meeting-recap/analyze")
+    async def api_meeting_recap_analyze(
+        date: str = Query(..., description="Meeting date YYYY-MM-DD"),
+        body: str = Query("City Council"),
+    ) -> dict[str, Any]:
+        try:
+            if not find_transcript_path(root, date, body):
+                raise FileNotFoundError(f"No transcript for {date} / {body}")
+            started = start_analyze_job(root, date, body)
+            return {"started": started, "status": analyze_status()}
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    @app.get("/api/meeting-recap/status")
+    async def api_meeting_recap_status() -> dict[str, Any]:
+        return analyze_status()
 
     @app.get("/api/police/active-calls")
     async def api_police_active_calls(
