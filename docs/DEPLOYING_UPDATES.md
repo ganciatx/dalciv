@@ -30,6 +30,14 @@ Your project lives in **two places**:
 
 Most changes you make in this project affect the **live app on the VPS**, not the small landing page.
 
+> **Heads up — the VPS now runs more than one app.** A single redeploy rebuilds the whole Docker stack, not just the DalCiv dashboard:
+>
+> - **`ganciatx.com`** — DalCiv dashboard (`sivic` service)
+> - **`tally.ganciatx.com`** — Tally scorekeeper (`tally` service)
+> - **`frames.ganciatx.com`** — Problem Frame (`problem-frame` service; Next.js + SQLite, source vendored under `apps/problem-frame/`)
+>
+> Problem Frame keeps its user/org data in a Docker volume (`problem_frame_data`), so redeploys don't erase accounts. Its login secret comes from the `BETTER_AUTH_SECRET` GitHub Actions secret — set it once (GitHub → Settings → Secrets and variables → Actions) or the app won't start. See `../apps/problem-frame/README.md`.
+
 ---
 
 ## What “version” means here

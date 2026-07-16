@@ -160,6 +160,19 @@ apps:
       featured: true
       external: true
 
+  - slug: problem-frame
+    name: Problem Frame
+    route: https://frames.ganciatx.com/
+    type: external
+    catalog:
+      description: >-
+        Frame product problems: personas, evidence, outcomes, and hypotheses —
+        from fuzzy idea to testable bet.
+      emoji: "🧭"
+      tags: [Product, Utility]
+      featured: true
+      external: true
+
   # ── Portfolio (Next.js static export) ────────────────────────────────────
 
   - slug: portfolio

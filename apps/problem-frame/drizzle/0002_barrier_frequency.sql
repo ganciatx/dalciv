@@ -1,0 +1,1 @@
+ALTER TABLE `barriers` ADD `frequency` text(30);

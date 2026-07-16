@@ -1,0 +1,20 @@
+# Keep the build context small and avoid baking local state into the image.
+node_modules
+.next
+out
+build
+
+# Local SQLite data (production uses a mounted volume at DATABASE_PATH)
+data
+
+# Local env / secrets (production env is injected by the container runtime)
+.env
+.env.*
+!.env.example
+
+# VCS / editor / OS cruft
+.git
+.gitignore
+.DS_Store
+*.tsbuildinfo
+npm-debug.log*

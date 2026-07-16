@@ -25,3 +25,17 @@ tally.ganciatx.com {
 		Referrer-Policy strict-origin-when-cross-origin
 	}
 }
+
+# frames.ganciatx.com — Problem Frame (Next.js standalone service)
+frames.ganciatx.com {
+	reverse_proxy problem-frame:3000
+
+	encode gzip zstd
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+}
