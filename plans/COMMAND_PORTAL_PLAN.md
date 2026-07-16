@@ -4,7 +4,7 @@
 
 ## TLDR
 
-Add a hidden admin portal at **`/command`** (URL-only; no nav links) that shows operational status: in-process API usage counters, Socrata cache health, scraper/supervisor state, disk paths, and redacted environment flags. No authentication in v1—security is obscurity plus not exposing secrets in the payload.
+Add a hidden admin portal at **`/command`** (URL-only; no nav links) that shows operational status: in-process API usage counters, Socrata cache health, scraper/supervisor state, disk paths, and redacted environment flags. **Auth (2026-07):** requires `OPS_API_TOKEN` (see `plans/SECURITY_C1_C2_FIX_PLAN.md`); unlock form when missing.
 
 ## Critical Decisions
 

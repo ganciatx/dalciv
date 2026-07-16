@@ -213,18 +213,18 @@ Unified dashboard for **campaign finance**, **city council voting**, and **lobby
 | GET | `/api/lobbyist-registration/summary` | Lobbyist KPIs, overlap, registrations; `refresh`, `member`, `q`, `limit`, `offset` |
 | GET | `/api/campaign-finance/transactions` | Paginated rows; same filters + `limit` / `offset` |
 | GET | `/api/state` | Scrape running / PID |
-| POST | `/api/start` \| `/api/stop` | Control scraper |
+| POST | `/api/start` \| `/api/stop` | Control scraper (**requires `OPS_API_TOKEN`**) |
 | GET | `/api/audit` | `limit`, optional `status` |
 | GET | `/api/files` | Manifest + `file_exists` |
 | GET | `/api/summaries` | Grouped summaries; `?meeting_title=` filter |
-| POST | `/api/summarize` | Queue batch; `?force=true` re-run all on disk |
+| POST | `/api/summarize` | Queue batch; `?force=true` re-run all on disk (**requires `OPS_API_TOKEN`**) |
 | GET | `/api/summarize/status` | `{ running, done, total, current }` |
-| POST | `/api/summarize/one` | `saved_to` query param |
+| POST | `/api/summarize/one` | `saved_to` query param (**requires `OPS_API_TOKEN`**) |
 | GET | `/api/overview` | Bundle for polling |
-| GET | `/command` | Ops portal UI (unlisted; no auth in v1) |
-| GET | `/api/command` | Ops JSON: caches, API usage, supervisor, redacted env |
+| GET | `/command` | Ops portal UI (**requires `OPS_API_TOKEN`**; unlock form if missing) |
+| GET | `/api/command` | Ops JSON: caches, API usage, supervisor, redacted env (**requires `OPS_API_TOKEN`**) |
 
-**Admin:** bookmark **`/command`** for deployment health, API usage, and **Police/Council API catalogs** (browser endpoints + upstream Socrata/Nominatim call counts). Not linked from the public app grid.
+**Admin:** set `OPS_API_TOKEN` (see `.env.example`), then bookmark **`/command?ops_token=…`** (or enter the token on the unlock form). Send `X-Ops-Token` / `Authorization: Bearer` for API calls. Not linked from the public app grid.
 
 ---
 
@@ -255,7 +255,7 @@ Unified dashboard for **campaign finance**, **city council voting**, and **lobby
 - **Cwd**: run CLI and dashboard from repo root.
 - **Playwright**: if Chromium fails to launch, try `env -u PLAYWRIGHT_BROWSERS_PATH python -m dashboard`.
 - **Legacy manifest** (older column sets): dashboard backfills empty fields; re-scrape for full provenance + IDs.
-- **Security**: local dev binds `127.0.0.1` only; production uses `SCRAPER_ENABLED=0` by default (see **Hostinger** below).
+- **Security**: local dev binds `127.0.0.1` only; production uses `SCRAPER_ENABLED=0` by default (see **Hostinger** below). Ops/mutating routes require `OPS_API_TOKEN`.
 
 ---
 

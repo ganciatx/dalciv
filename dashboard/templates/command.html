@@ -299,6 +299,27 @@
 
   <script>
     const POLL_MS = 12000;
+    const OPS_TOKEN_STORAGE = "sivic_ops_token";
+
+    // Seed token from ?ops_token= (bookmark / unlock redirect), then scrub the URL.
+    (function seedOpsTokenFromUrl() {
+      const params = new URLSearchParams(location.search);
+      const fromUrl = params.get("ops_token");
+      if (!fromUrl) return;
+      sessionStorage.setItem(OPS_TOKEN_STORAGE, fromUrl);
+      params.delete("ops_token");
+      const qs = params.toString();
+      history.replaceState({}, "", location.pathname + (qs ? `?${qs}` : "") + location.hash);
+    })();
+
+    function opsToken() {
+      return sessionStorage.getItem(OPS_TOKEN_STORAGE) || "";
+    }
+
+    function opsHeaders() {
+      const token = opsToken();
+      return token ? { "X-Ops-Token": token } : {};
+    }
 
     function esc(s) {
       return String(s ?? "").replace(/[&<>"']/g, (c) =>
@@ -484,7 +505,7 @@
       const err = document.getElementById("err");
       err.hidden = true;
       try {
-        const res = await fetch("/api/command");
+        const res = await fetch("/api/command", { headers: opsHeaders() });
         if (!res.ok) throw new Error(await res.text());
         const d = await res.json();
         document.getElementById("updated").textContent =

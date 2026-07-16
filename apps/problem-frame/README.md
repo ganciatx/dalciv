@@ -74,7 +74,7 @@ The dev server uses Next.js with **Turbopack** (fast refresh when you edit files
 - **Port 3000 in use** — run on another port, for example:  
   `npx next dev --port 3001`  
   Then set `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` in `.env.local` to `http://localhost:3001`.
-- **Auth or session errors** — confirm `BETTER_AUTH_SECRET` is set and `BETTER_AUTH_URL` matches the URL you use in the browser (including port).
+- **Auth or session errors** — confirm `BETTER_AUTH_SECRET` is set (at least 32 characters; the app will not start without it) and `BETTER_AUTH_URL` matches the URL you use in the browser (including port).
 - **Database errors after pulling changes** — run `npm run db:migrate` again.
 
 ### Other useful commands

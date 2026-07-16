@@ -1,0 +1,72 @@
+---
+description: Conventions for the React/Vite mini-app frontends and the Next.js app
+globs:
+  - "city-budget-simulator/src/**/*.{ts,tsx}"
+  - "council-accountability/src/**/*.js"
+  - "crossword-constructor/src/**/*.{ts,tsx}"
+  - "city-budget/src/**/*.{js,jsx}"
+  - "time-timer/src/**/*.{ts,tsx,js,jsx}"
+  - "meeting-recap/src/**/*.{ts,tsx,js,jsx}"
+  - "apps/problem-frame/src/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Frontend (Vite/React mini-apps + Next.js) conventions
+
+Each top-level app (`city-budget-simulator`, `council-accountability`,
+`crossword-constructor`, `city-budget`, `time-timer`, `meeting-recap`,
+`apps/problem-frame`) is an independent Vite (or Next.js) project with its own
+`package.json`. Match the existing app's own idioms first; use these shared
+rules to keep the apps consistent with each other where they don't conflict.
+
+## Language & components
+
+- New apps and new files in TypeScript-based apps use `.tsx`/`.ts`, function
+  components, and typed props — no default `any`. `tsconfig.json` has `strict`,
+  `noUnusedLocals`, and `noUnusedParameters` on; don't disable these per-file.
+- Components live in `src/components/`, one component per file, named in
+  PascalCase matching the file name (e.g. `StaffPanel.tsx` exports `StaffPanel`).
+- Pure domain/simulation logic (no React) is separated out of components into
+  its own directory (see `city-budget-simulator/src/simulation/`) so it can be
+  unit tested independent of rendering.
+- Path aliases (e.g. `@sim/*`) are defined in both `tsconfig.json` and
+  `vite.config.ts` together — keep them in sync when adding one.
+
+## State management
+
+- Use `zustand` for shared/app-level state (see `src/store/gameStore.ts`); keep
+  local component state in `useState`/`useReducer`. Don't introduce Redux,
+  Context-as-a-store, or a second state library into an app that already has
+  zustand.
+
+## Styling
+
+- Newer apps (crossword-constructor) use Tailwind v4 (`@tailwindcss/vite`
+  or `@tailwindcss/postcss`) with utility classes in JSX; older apps use plain
+  CSS files (`index.css`, `styles.css`). Follow whichever the app already uses
+  rather than mixing approaches within one app.
+
+## Testing
+
+- Tests are colocated next to source (`Foo.test.ts` / `Foo.test.js` beside
+  `Foo.ts`), run with `vitest run`. Prefer colocated tests over a separate
+  `__tests__/` tree.
+- Apps with React Testing Library (`crossword-constructor`) use
+  `@testing-library/react` + `@testing-library/jest-dom` for component tests;
+  pure logic modules get plain vitest unit tests without a DOM.
+
+## Linting & config
+
+- Each app has its own flat-config `eslint.config.{js,mjs,ts}` — extend it
+  rather than adding a competing `.eslintrc`.
+- Run `npm run lint` and `npm run build` (or `tsc -b`) before considering
+  frontend changes done; `noUnusedLocals`/`noUnusedParameters` will fail the
+  build on dead code.
+
+## Next.js app (apps/problem-frame)
+
+- Uses Next.js App Router, Drizzle ORM (`drizzle.config.ts`, `drizzle/`
+  migrations), and `better-auth`. Schema changes go through
+  `npm run db:generate` / `db:migrate`, never hand-edited SQL migrations.
+- Tailwind v4 + `eslint-config-next`; keep server-only code (DB access, auth)
+  out of client components.

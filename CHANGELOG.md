@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Security
+
+- **C1 — Ops auth:** `OPS_API_TOKEN` required for `/command`, `/api/command`, scraper start/stop/summarize, and meeting-recap analyze (`X-Ops-Token` / Bearer / `?ops_token=`). Fail closed when unset.
+- **C2 — Problem Frame:** refuse to start without `BETTER_AUTH_SECRET` (≥32 chars); upgrade `better-auth` to 1.6.23; `requireEmailVerificationOnInvitation: true`.
+
 ### Performance
 
 - **Police map**: 90s response cache on disk; geocodes from cache on hot path with a small per-request Nominatim budget (default 5). Polls within TTL skip Socrata.

@@ -4,8 +4,9 @@ from __future__ import annotations
 from typing import Any, Optional, TYPE_CHECKING
 from urllib.parse import unquote
 
-from fastapi import HTTPException, Query
+from fastapi import Depends, HTTPException, Query
 
+from ..ops_auth import require_ops_token
 from ..supervisor import audit_entries_from_jsonl, summarize_files
 from ..summaries import join_manifest_summaries
 
@@ -18,6 +19,8 @@ if TYPE_CHECKING:
 def register(app: FastAPI, deps: RouteDeps) -> None:
     sup = deps.supervisor
     root = deps.project_root
+    # Mutating scraper controls require OPS_API_TOKEN (security audit C1).
+    ops_auth = Depends(require_ops_token)
 
     @app.get("/api/state")
     async def api_state() -> dict[str, Any]:
@@ -30,7 +33,7 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
             "scraper_enabled": deps.scraper_enabled,
         }
 
-    @app.post("/api/start")
+    @app.post("/api/start", dependencies=[ops_auth])
     async def api_start() -> dict[str, Any]:
         if not deps.scraper_enabled:
             raise HTTPException(
@@ -46,7 +49,7 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
                 raise HTTPException(status_code=409, detail=str(exc)) from exc
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    @app.post("/api/stop")
+    @app.post("/api/stop", dependencies=[ops_auth])
     async def api_stop() -> dict[str, Any]:
         if not deps.scraper_enabled:
             raise HTTPException(
@@ -96,7 +99,7 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
     async def api_summarize_status() -> dict[str, Any]:
         return deps.summary_job.status()
 
-    @app.post("/api/summarize")
+    @app.post("/api/summarize", dependencies=[ops_auth])
     async def api_summarize(force: bool = False) -> dict[str, Any]:
         try:
             return deps.summary_job.summarize_pending(force=force)
@@ -105,7 +108,7 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
                 raise HTTPException(status_code=409, detail=str(exc)) from exc
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    @app.post("/api/summarize/one")
+    @app.post("/api/summarize/one", dependencies=[ops_auth])
     async def api_summarize_one(
         saved_to: str = Query(..., description="Manifest ``saved_to`` path"),
         force: bool = False,

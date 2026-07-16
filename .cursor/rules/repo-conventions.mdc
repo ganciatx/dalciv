@@ -1,0 +1,70 @@
+---
+description: Repo-wide conventions that apply across every sub-app (Sivic Scraper monorepo)
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# Repo-wide conventions (Sivic Scraper monorepo)
+
+This repo is a monorepo: a Python/FastAPI scraper + dashboard at the root,
+plus several independent frontend apps (`city-budget`, `city-budget-simulator`,
+`council-accountability`, `crossword-constructor`, `time-timer`,
+`meeting-recap`, `apps/problem-frame`) each with their own `package.json`.
+Built frontend output is copied into `dashboard/static/<app-name>/` for the
+FastAPI app to serve — don't hand-edit files under `dashboard/static/`, they
+are build artifacts.
+
+## Scope discipline
+
+- Treat each top-level app directory as its own project. Don't share code
+  between apps by reaching across directories; if logic needs to be shared,
+  surface that explicitly rather than importing across app boundaries.
+- Before adding a new dependency, check whether the specific app (or the root
+  `requirements.txt`) already has something that does the job.
+- When editing a file, match the conventions already present in that file's
+  app/module before applying repo-wide defaults — local consistency wins over
+  a global rule.
+
+## Env & secrets
+
+- Config comes from `.env`, loaded via `python-dotenv` (backend) or Vite/Next
+  env conventions (frontend). Always add new required variables to the
+  corresponding `.env.example` in the same change.
+- Never commit real secrets, API keys, or `.env` contents.
+
+## Docs & planning
+
+- Longer-running features get a plan/tracking doc (see `plans/`, `*-PLAN.md`,
+  `issues/`) — when asked to implement "as planned", update that doc's status
+  (with progress) as steps complete rather than only editing code silently.
+- Keep `CHANGELOG.md` and per-app `README.md` files in sync with behavior
+  changes that affect how the app is run or deployed.
+
+## Testing before calling work done
+
+- Backend changes: run the relevant `pytest` subset (`pytest.ini` scopes
+  `tests/`); skip `e2e`-marked tests only when a live server isn't available.
+- Frontend changes: run that app's own `npm run test` / `npm run build` /
+  `npm run lint` — each app manages its own scripts, there's no root-level
+  aggregate script.
+- Don't mark a task complete with failing tests, type errors, or lint errors.
+
+## Git & deployment
+
+- Deployment is via the `deploy-hostinger` GitHub Actions workflow on push to
+  `main`/`master` — avoid changes that assume a different deploy target
+  without updating `.github/workflows/deploy-hostinger.yml` and
+  `docker-compose.yml`/`Dockerfile` together.
+- Keep commits scoped to one app/concern where possible, given the monorepo
+  has several independently deployable pieces.
+
+## Code style baseline
+
+- Favor small, elegant, well-commented modules over large ones — this matches
+  the existing split into per-domain modules (`campaign_finance.py`,
+  `council_voting.py`, `police_calls.py`, etc.) rather than a single
+  monolithic file per app.
+- Match existing naming: snake_case for Python, camelCase for
+  JS/TS variables and functions, PascalCase for React components and Python
+  classes.

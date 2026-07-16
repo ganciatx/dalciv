@@ -36,7 +36,7 @@ Most changes you make in this project affect the **live app on the VPS**, not th
 > - **`tally.ganciatx.com`** — Tally scorekeeper (`tally` service)
 > - **`frames.ganciatx.com`** — Problem Frame (`problem-frame` service; Next.js + SQLite, source vendored under `apps/problem-frame/`)
 >
-> Problem Frame keeps its user/org data in a Docker volume (`problem_frame_data`), so redeploys don't erase accounts. Its login secret comes from the `BETTER_AUTH_SECRET` GitHub Actions secret — set it once (GitHub → Settings → Secrets and variables → Actions) or the app won't start. See `../apps/problem-frame/README.md`.
+> Problem Frame keeps its user/org data in a Docker volume (`problem_frame_data`), so redeploys don't erase accounts. Its login secret comes from the `BETTER_AUTH_SECRET` GitHub Actions secret — set it once (GitHub → Settings → Secrets and variables → Actions) or the app won't start. Set `OPS_API_TOKEN` the same way for the DalCiv ops portal and mutating APIs. See `../apps/problem-frame/README.md`.
 
 ---
 
@@ -98,6 +98,8 @@ This is the easiest path once setup is done.
 2. Buy a **Hostinger VPS** (see below — **KVM 2**, **Ubuntu 24.04**, **Plain OS** tab).
 3. In GitHub → **Settings → Secrets and variables → Actions**:
    - Secret: `HOSTINGER_API_KEY` — from [Hostinger API settings](https://hpanel.hostinger.com/profile/api)
+   - Secret: `BETTER_AUTH_SECRET` — `openssl rand -base64 32` (Problem Frame login; required)
+   - Secret: `OPS_API_TOKEN` — `openssl rand -base64 32` (ops portal + mutating scraper/recap APIs; required)
    - Variable: `HOSTINGER_VM_ID` — your VPS number (from hPanel URL, e.g. `123456` in `.../vps/123456/...`)
 4. First deploy: in GitHub → **Actions** → **Deploy to Hostinger VPS** → **Run workflow**, or push to the `main` branch.
 

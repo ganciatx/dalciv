@@ -600,6 +600,30 @@
 
   <script>
     const qs = sel => document.querySelector(sel);
+    const OPS_TOKEN_STORAGE = "sivic_ops_token";
+
+    function opsToken() {
+      return sessionStorage.getItem(OPS_TOKEN_STORAGE) || "";
+    }
+
+    /** Prompt once per session if mutating calls need OPS_API_TOKEN. */
+    function ensureOpsToken() {
+      let token = opsToken();
+      if (token) return token;
+      token = (window.prompt("OPS_API_TOKEN required for this action:") || "").trim();
+      if (token) sessionStorage.setItem(OPS_TOKEN_STORAGE, token);
+      return token;
+    }
+
+    function opsFetch(url, options = {}) {
+      const token = ensureOpsToken();
+      if (!token) {
+        return Promise.reject(new Error("OPS_API_TOKEN is required"));
+      }
+      const headers = new Headers(options.headers || {});
+      headers.set("X-Ops-Token", token);
+      return fetch(url, { ...options, headers });
+    }
 
     const SCRAPE_MESSAGES = [
       "Loading Dallas Legistar calendar…",
@@ -994,7 +1018,7 @@
     qs("#btn-start").addEventListener("click", async () => {
       try {
         qs("#poll-status").textContent = "Starting…";
-        const res = await fetch("/api/start", { method: "POST" });
+        const res = await opsFetch("/api/start", { method: "POST" });
         if (!res.ok) {
           const detail = await res.json().catch(() => ({}));
           alert(detail.detail || res.statusText);
@@ -1009,7 +1033,7 @@
     qs("#btn-stop").addEventListener("click", async () => {
       try {
         qs("#poll-status").textContent = "Stopping…";
-        const res = await fetch("/api/stop", { method: "POST" });
+        const res = await opsFetch("/api/stop", { method: "POST" });
         if (!res.ok) {
           const detail = await res.json().catch(() => ({}));
           alert(detail.detail || res.statusText);
@@ -1026,7 +1050,7 @@
       try {
         qs("#poll-status").textContent = force ? "Regenerating all summaries…" : "Summarizing…";
         const url = force ? "/api/summarize?force=true" : "/api/summarize";
-        const res = await fetch(url, { method: "POST" });
+        const res = await opsFetch(url, { method: "POST" });
         const body = await res.json().catch(() => ({}));
         if (!res.ok) {
           alert(body.detail || res.statusText);

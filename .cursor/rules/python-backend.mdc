@@ -1,0 +1,70 @@
+---
+description: Conventions for the Python/FastAPI scraper and dashboard backend
+globs:
+  - "dashboard/**/*.py"
+  - "tests/**/*.py"
+  - "*.py"
+  - "scripts/**/*.py"
+alwaysApply: false
+---
+
+# Python / FastAPI backend conventions
+
+This covers the Legistar scraper, the `dashboard/` FastAPI app, and root-level
+scraper scripts. Match the patterns already used in `dashboard/routes/*.py`,
+`dashboard/*.py`, and `tests/*.py` rather than introducing new ones.
+
+## Module structure
+
+- Start every module with a one-line docstring describing its purpose
+  (e.g. `"""Civic data pages and Socrata-backed JSON APIs."""`).
+- Follow immediately with `from __future__ import annotations`.
+- Use relative imports within the `dashboard` package (`from ..city_budget import ...`,
+  `from .deps import RouteDeps`).
+- Group imports: stdlib, then third-party (`fastapi`, `requests`, etc.), then local
+  relative imports — each group separated by a blank line.
+- Guard import-only-for-typing dependencies behind `if TYPE_CHECKING:` (see
+  `dashboard/routes/deps.py`) instead of adding runtime import-cycle workarounds.
+
+## Routes
+
+- New route groups live in `dashboard/routes/<name>.py` and expose a single
+  `register(app: FastAPI, deps: RouteDeps) -> None` entry point, wired up in
+  `dashboard/routes/deps.py::register_all_routes`.
+- Route modules should not reach into global state directly — take everything
+  they need from the injected `RouteDeps` instance.
+- Raise `HTTPException` for upstream/user-facing errors; wrap third-party
+  exceptions in a small helper (see `_socrata_http_error`) rather than leaking
+  raw exception text.
+- Keep business/data logic out of route handlers — delegate to the sibling
+  data modules (`city_budget.py`, `council_accountability.py`,
+  `campaign_finance.py`, etc.) that expose `get_*_payload()` functions.
+
+## Typing & style
+
+- Add type hints to all function signatures, including return types.
+- Prefer `__slots__` on small data-bag classes that get instantiated once per
+  process (see `RouteDeps`).
+- Use `Path` from `pathlib` for filesystem paths, resolved relative to
+  `Path(__file__).resolve().parents[N]` — never hardcode absolute paths.
+- Read feature flags/env vars once at module import time (e.g.
+  `SCRAPER_ENABLED`), not scattered throughout call sites.
+
+## Testing
+
+- Tests live in `tests/`, named `test_*.py`, using plain `test_*` functions
+  (see `pytest.ini`); use `*Tests` classes only when grouping genuinely
+  related cases.
+- Mark slow/browser-driven tests with `@pytest.mark.e2e` — don't add new
+  markers without updating `pytest.ini`.
+- Reuse fixtures from `tests/conftest.py` and `tests/dashboard_test_app.py`
+  instead of building ad hoc FastAPI `TestClient` setups per test file.
+- New scraper/data modules should ship with at least one corresponding
+  `tests/test_<module>.py`.
+
+## General
+
+- Keep scraper/backend code dependency-light — check `requirements.txt`
+  before adding a new third-party package, and add new deps there.
+- Never commit secrets; read config via `python-dotenv` / `os.environ`,
+  following the existing `.env` / `.env.example` split.

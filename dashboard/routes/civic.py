@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Optional, TYPE_CHECKING
 
 import requests
-from fastapi import HTTPException, Query, Request
+from fastapi import Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 
 from ..campaign_finance import get_summary_payload, get_transactions_payload
@@ -34,6 +34,7 @@ from ..meeting_recap import (
     list_meetings,
     start_analyze_job,
 )
+from ..ops_auth import require_ops_token
 from ..police_calls import get_active_calls_payload
 from ..registry import apps_by_type
 from ..site_chrome import template_context
@@ -480,7 +481,10 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
         except Exception as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-    @app.post("/api/meeting-recap/analyze")
+    @app.post(
+        "/api/meeting-recap/analyze",
+        dependencies=[Depends(require_ops_token)],
+    )
     async def api_meeting_recap_analyze(
         date: str = Query(..., description="Meeting date YYYY-MM-DD"),
         body: str = Query("City Council"),
