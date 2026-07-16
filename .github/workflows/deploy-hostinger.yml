@@ -1,5 +1,5 @@
 # Deploy Sivic Scraper to Hostinger VPS via Docker Manager.
-# Secrets: HOSTINGER_API_KEY | Variables: HOSTINGER_VM_ID
+# Secrets: HOSTINGER_API_KEY, BETTER_AUTH_SECRET, OPS_API_TOKEN | Variables: HOSTINGER_VM_ID, ACME_EMAIL
 # See HOSTINGER_DEPLOY_PLAN.md
 name: Deploy to Hostinger VPS
 
@@ -26,4 +26,5 @@ jobs:
             DASHBOARD_PORT=8765
             ACME_EMAIL=${{ vars.ACME_EMAIL }}
             FORWARDED_ALLOW_IPS=127.0.0.1,172.16.0.0/12
-            BETTER_AUTH_SECRET=${{ yQ5ZonuXZrqF20zk7wLUWNdvE1/Z2O9YolN6YUFLUjM= }}
+            BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
+            OPS_API_TOKEN=${{ secrets.OPS_API_TOKEN }}
