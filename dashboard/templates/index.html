@@ -598,32 +598,10 @@
   </main>
   {% include "partials/site_footer.html" %}
 
+  <script src="/static/ops_token.js"></script>
   <script>
     const qs = sel => document.querySelector(sel);
-    const OPS_TOKEN_STORAGE = "sivic_ops_token";
-
-    function opsToken() {
-      return sessionStorage.getItem(OPS_TOKEN_STORAGE) || "";
-    }
-
-    /** Prompt once per session if mutating calls need OPS_API_TOKEN. */
-    function ensureOpsToken() {
-      let token = opsToken();
-      if (token) return token;
-      token = (window.prompt("OPS_API_TOKEN required for this action:") || "").trim();
-      if (token) sessionStorage.setItem(OPS_TOKEN_STORAGE, token);
-      return token;
-    }
-
-    function opsFetch(url, options = {}) {
-      const token = ensureOpsToken();
-      if (!token) {
-        return Promise.reject(new Error("OPS_API_TOKEN is required"));
-      }
-      const headers = new Headers(options.headers || {});
-      headers.set("X-Ops-Token", token);
-      return fetch(url, { ...options, headers });
-    }
+    const opsFetch = (url, options) => SivicOpsToken.opsFetch(url, options);
 
     const SCRAPE_MESSAGES = [
       "Loading Dallas Legistar calendar…",

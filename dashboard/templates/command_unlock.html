@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Command — unlock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <style>
+    body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif;
+      background: #0f172a; color: #e5e7eb; min-height: 100vh;
+      display: grid; place-items: center; }
+    form { width: min(24rem, 92vw); padding: 1.5rem; border: 1px solid #1f2937;
+      border-radius: 0.5rem; background: #111827; }
+    h1 { margin: 0 0 0.35rem; font-size: 1.125rem; }
+    p { margin: 0 0 1rem; color: #9ca3af; font-size: 0.875rem; }
+    label { display: block; font-size: 0.8125rem; margin-bottom: 0.35rem; }
+    input { width: 100%; box-sizing: border-box; padding: 0.55rem 0.65rem;
+      border-radius: 0.375rem; border: 1px solid #1f2937; background: #0f172a;
+      color: #e5e7eb; }
+    button { margin-top: 0.85rem; width: 100%; padding: 0.55rem;
+      border-radius: 0.375rem; border: 0; background: #38bdf8; color: #0b1220;
+      font-weight: 600; cursor: pointer; }
+    .err { color: #f87171; font-size: 0.8125rem; margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <form id="unlock">
+    <h1>Ops command</h1>
+    <p>Enter the <code>OPS_API_TOKEN</code> to open the portal.</p>
+    <label for="token">Ops token</label>
+    <input id="token" name="token" type="password" autocomplete="current-password" required />
+    <button type="submit">Unlock</button>
+    <p class="err" id="err" hidden></p>
+  </form>
+  <script src="/static/ops_token.js"></script>
+  <script>
+    SivicOpsToken.bindUnlockForm({ notConfigured: {{ not_configured | tojson }} });
+  </script>
+</body>
+</html>

@@ -1,8 +1,6 @@
 """Ops token gate for mutating / command routes (security audit C1)."""
 from __future__ import annotations
 
-import os
-
 import pytest
 from starlette.testclient import TestClient
 

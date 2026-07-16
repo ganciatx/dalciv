@@ -297,28 +297,13 @@
     </section>
   </main>
 
+  <script src="/static/ops_token.js"></script>
   <script>
     const POLL_MS = 12000;
-    const OPS_TOKEN_STORAGE = "sivic_ops_token";
-
-    // Seed token from ?ops_token= (bookmark / unlock redirect), then scrub the URL.
-    (function seedOpsTokenFromUrl() {
-      const params = new URLSearchParams(location.search);
-      const fromUrl = params.get("ops_token");
-      if (!fromUrl) return;
-      sessionStorage.setItem(OPS_TOKEN_STORAGE, fromUrl);
-      params.delete("ops_token");
-      const qs = params.toString();
-      history.replaceState({}, "", location.pathname + (qs ? `?${qs}` : "") + location.hash);
-    })();
-
-    function opsToken() {
-      return sessionStorage.getItem(OPS_TOKEN_STORAGE) || "";
-    }
+    SivicOpsToken.seedFromUrl();
 
     function opsHeaders() {
-      const token = opsToken();
-      return token ? { "X-Ops-Token": token } : {};
+      return SivicOpsToken.headers();
     }
 
     function esc(s) {
