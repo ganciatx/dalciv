@@ -141,11 +141,7 @@ apps:
     type: jinja
     template: home.html
 
-  - slug: command
-    name: Ops Command Center
-    route: /command
-    type: jinja
-    template: command.html
+  # /command is registered by dashboard/routes/ops.py (OPS_API_TOKEN gate).
 
   # ── External (not served by sivic container) ─────────────────────────────
 
