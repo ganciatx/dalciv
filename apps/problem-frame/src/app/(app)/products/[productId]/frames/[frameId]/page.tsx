@@ -10,6 +10,7 @@ import {
 import { listPersonasForOrg } from "@/actions/personas";
 import { requireOrgSession } from "@/lib/require-org";
 import { FrameWorkflow } from "@/components/frame-detail/frame-workflow";
+import { FrameExportControls } from "@/components/frame-detail/frame-export-controls";
 import { db } from "@/db";
 import { eq } from "drizzle-orm";
 import { customerFeedback as feedbackTable } from "@/db/schema";
@@ -75,6 +76,7 @@ export default async function FrameDetailPage({ params }: Props) {
             framing; changes save automatically on the first step.
           </p>
         </div>
+        <FrameExportControls frameId={frameId} />
       </div>
 
       <Suspense

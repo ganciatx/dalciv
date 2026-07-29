@@ -1,0 +1,776 @@
+{
+  "root_exists": true,
+  "servers": [
+    {
+      "name": "cursor-app-control",
+      "path": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/cursor-app-control",
+      "is_dir": true,
+      "files": [
+        {
+          "rel": "cursor-app-control/INSTRUCTIONS.md",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/cursor-app-control/INSTRUCTIONS.md",
+          "size": 162
+        },
+        {
+          "rel": "cursor-app-control/SERVER_METADATA.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/cursor-app-control/SERVER_METADATA.json",
+          "size": 84
+        },
+        {
+          "rel": "cursor-app-control/tools/create_project.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/cursor-app-control/tools/create_project.json",
+          "size": 636
+        },
+        {
+          "rel": "cursor-app-control/tools/cursor_dialog.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/cursor-app-control/tools/cursor_dialog.json",
+          "size": 4584
+        },
+        {
+          "rel": "cursor-app-control/tools/move_agent_to_cloned_root.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/cursor-app-control/tools/move_agent_to_cloned_root.json",
+          "size": 1459
+        },
+        {
+          "rel": "cursor-app-control/tools/move_agent_to_root.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/cursor-app-control/tools/move_agent_to_root.json",
+          "size": 1572
+        },
+        {
+          "rel": "cursor-app-control/tools/open_automation.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/cursor-app-control/tools/open_automation.json",
+          "size": 1647
+        },
+        {
+          "rel": "cursor-app-control/tools/open_resource.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/cursor-app-control/tools/open_resource.json",
+          "size": 842
+        },
+        {
+          "rel": "cursor-app-control/tools/rename_chat.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/cursor-app-control/tools/rename_chat.json",
+          "size": 549
+        }
+      ]
+    },
+    {
+      "name": "user-hostinger-billing",
+      "path": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-billing",
+      "is_dir": true,
+      "files": [
+        {
+          "rel": "user-hostinger-billing/SERVER_METADATA.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-billing/SERVER_METADATA.json",
+          "size": 87
+        },
+        {
+          "rel": "user-hostinger-billing/tools/billing_deletePaymentMethodV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-billing/tools/billing_deletePaymentMethodV1.json",
+          "size": 406
+        },
+        {
+          "rel": "user-hostinger-billing/tools/billing_disableAutoRenewalV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-billing/tools/billing_disableAutoRenewalV1.json",
+          "size": 391
+        },
+        {
+          "rel": "user-hostinger-billing/tools/billing_enableAutoRenewalV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-billing/tools/billing_enableAutoRenewalV1.json",
+          "size": 388
+        },
+        {
+          "rel": "user-hostinger-billing/tools/billing_getCatalogItemListV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-billing/tools/billing_getCatalogItemListV1.json",
+          "size": 753
+        },
+        {
+          "rel": "user-hostinger-billing/tools/billing_getPaymentMethodListV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-billing/tools/billing_getPaymentMethodListV1.json",
+          "size": 404
+        },
+        {
+          "rel": "user-hostinger-billing/tools/billing_getSubscriptionListV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-billing/tools/billing_getSubscriptionListV1.json",
+          "size": 265
+        },
+        {
+          "rel": "user-hostinger-billing/tools/billing_setDefaultPaymentMethodV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-billing/tools/billing_setDefaultPaymentMethodV1.json",
+          "size": 422
+        }
+      ]
+    },
+    {
+      "name": "user-hostinger-dns",
+      "path": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-dns",
+      "is_dir": true,
+      "files": [
+        {
+          "rel": "user-hostinger-dns/SERVER_METADATA.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-dns/SERVER_METADATA.json",
+          "size": 79
+        },
+        {
+          "rel": "user-hostinger-dns/tools/DNS_deleteDNSRecordsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-dns/tools/DNS_deleteDNSRecordsV1.json",
+          "size": 665
+        },
+        {
+          "rel": "user-hostinger-dns/tools/DNS_getDNSRecordsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-dns/tools/DNS_getDNSRecordsV1.json",
+          "size": 381
+        },
+        {
+          "rel": "user-hostinger-dns/tools/DNS_getDNSSnapshotListV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-dns/tools/DNS_getDNSSnapshotListV1.json",
+          "size": 370
+        },
+        {
+          "rel": "user-hostinger-dns/tools/DNS_getDNSSnapshotV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-dns/tools/DNS_getDNSSnapshotV1.json",
+          "size": 510
+        },
+        {
+          "rel": "user-hostinger-dns/tools/DNS_resetDNSRecordsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-dns/tools/DNS_resetDNSRecordsV1.json",
+          "size": 887
+        },
+        {
+          "rel": "user-hostinger-dns/tools/DNS_restoreDNSSnapshotV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-dns/tools/DNS_restoreDNSSnapshotV1.json",
+          "size": 488
+        },
+        {
+          "rel": "user-hostinger-dns/tools/DNS_updateDNSRecordsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-dns/tools/DNS_updateDNSRecordsV1.json",
+          "size": 2376
+        },
+        {
+          "rel": "user-hostinger-dns/tools/DNS_validateDNSRecordsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-dns/tools/DNS_validateDNSRecordsV1.json",
+          "size": 2427
+        }
+      ]
+    },
+    {
+      "name": "user-hostinger-domains",
+      "path": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains",
+      "is_dir": true,
+      "files": [
+        {
+          "rel": "user-hostinger-domains/SERVER_METADATA.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/SERVER_METADATA.json",
+          "size": 87
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_checkDomainAvailabilityV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_checkDomainAvailabilityV1.json",
+          "size": 1018
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_createDomainForwardingV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_createDomainForwardingV1.json",
+          "size": 685
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_createWHOISProfileV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_createWHOISProfileV1.json",
+          "size": 988
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_deleteDomainForwardingV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_deleteDomainForwardingV1.json",
+          "size": 366
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_deleteWHOISProfileV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_deleteWHOISProfileV1.json",
+          "size": 362
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_disableDomainLockV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_disableDomainLockV1.json",
+          "size": 461
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_disablePrivacyProtectionV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_disablePrivacyProtectionV1.json",
+          "size": 499
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_enableDomainLockV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_enableDomainLockV1.json",
+          "size": 488
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_enablePrivacyProtectionV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_enablePrivacyProtectionV1.json",
+          "size": 509
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_getDomainDetailsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_getDomainDetailsV1.json",
+          "size": 389
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_getDomainForwardingV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_getDomainForwardingV1.json",
+          "size": 370
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_getDomainListV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_getDomainListV1.json",
+          "size": 229
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_getDomainRenewalInformationV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_getDomainRenewalInformationV1.json",
+          "size": 468
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_getWHOISProfileListV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_getWHOISProfileListV1.json",
+          "size": 379
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_getWHOISProfileUsageV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_getWHOISProfileUsageV1.json",
+          "size": 406
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_getWHOISProfileV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_getWHOISProfileV1.json",
+          "size": 364
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_purchaseNewDomainV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_purchaseNewDomainV1.json",
+          "size": 2178
+        },
+        {
+          "rel": "user-hostinger-domains/tools/domains_updateDomainNameserversV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/domains_updateDomainNameserversV1.json",
+          "size": 884
+        },
+        {
+          "rel": "user-hostinger-domains/tools/v2_getDomainVerificationsDIRECT.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-domains/tools/v2_getDomainVerificationsDIRECT.json",
+          "size": 195
+        }
+      ]
+    },
+    {
+      "name": "user-hostinger-hosting",
+      "path": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting",
+      "is_dir": true,
+      "files": [
+        {
+          "rel": "user-hostinger-hosting/SERVER_METADATA.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/SERVER_METADATA.json",
+          "size": 87
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_changeDatabasePasswordV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_changeDatabasePasswordV1.json",
+          "size": 784
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_clearWebsiteCacheV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_clearWebsiteCacheV1.json",
+          "size": 922
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_createAccountCronJobV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_createAccountCronJobV1.json",
+          "size": 773
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_createAccountDatabaseRemoteConnectionV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_createAccountDatabaseRemoteConnectionV1.json",
+          "size": 801
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_createAccountDatabaseV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_createAccountDatabaseV1.json",
+          "size": 1076
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_createNodeJSBuildFromArchiveV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_createNodeJSBuildFromArchiveV1.json",
+          "size": 2851
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_createWebsiteParkedDomainV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_createWebsiteParkedDomainV1.json",
+          "size": 726
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_createWebsiteSubdomainV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_createWebsiteSubdomainV1.json",
+          "size": 1022
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_createWebsiteV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_createWebsiteV1.json",
+          "size": 1138
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_deleteAccountCronJobV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_deleteAccountCronJobV1.json",
+          "size": 553
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_deleteAccountDatabaseRemoteConnectionV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_deleteAccountDatabaseRemoteConnectionV1.json",
+          "size": 986
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_deleteAccountDatabaseV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_deleteAccountDatabaseV1.json",
+          "size": 573
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_deleteWebsiteParkedDomainV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_deleteWebsiteParkedDomainV1.json",
+          "size": 658
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_deleteWebsiteSubdomainV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_deleteWebsiteSubdomainV1.json",
+          "size": 629
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_deleteWebsiteV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_deleteWebsiteV1.json",
+          "size": 1162
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_deployJsApplication.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_deployJsApplication.json",
+          "size": 1365
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_deployStaticWebsite.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_deployStaticWebsite.json",
+          "size": 1387
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_deployWordpressPlugin.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_deployWordpressPlugin.json",
+          "size": 760
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_deployWordpressTheme.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_deployWordpressTheme.json",
+          "size": 969
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_generateAFreeSubdomainV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_generateAFreeSubdomainV1.json",
+          "size": 374
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_getCronJobOutputV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_getCronJobOutputV1.json",
+          "size": 584
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_getNodeJSBuildLogsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_getNodeJSBuildLogsV1.json",
+          "size": 945
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_getPHPDetailsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_getPHPDetailsV1.json",
+          "size": 726
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_getPHPInfoV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_getPHPInfoV1.json",
+          "size": 512
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_getPhpMyAdminLinkV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_getPhpMyAdminLinkV1.json",
+          "size": 691
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_importWordpressWebsite.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_importWordpressWebsite.json",
+          "size": 1356
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_listAccountCronJobsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_listAccountCronJobsV1.json",
+          "size": 381
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_listAccountDatabaseRemoteConnectionsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_listAccountDatabaseRemoteConnectionsV1.json",
+          "size": 766
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_listAccountDatabasesV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_listAccountDatabasesV1.json",
+          "size": 1023
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_listAvailableDatacentersV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_listAvailableDatacentersV1.json",
+          "size": 498
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_listJsDeployments.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_listJsDeployments.json",
+          "size": 1161
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_listNodeJSBuildsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_listNodeJSBuildsV1.json",
+          "size": 1246
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_listNode_jsVulnerabilitiesV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_listNode_jsVulnerabilitiesV1.json",
+          "size": 1818
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_listOrdersV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_listOrdersV1.json",
+          "size": 1232
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_listWebsiteParkedDomainsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_listWebsiteParkedDomainsV1.json",
+          "size": 623
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_listWebsiteSubdomainsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_listWebsiteSubdomainsV1.json",
+          "size": 599
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_listWebsitesV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_listWebsitesV1.json",
+          "size": 1153
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_patchNode_jsVulnerabilitiesV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_patchNode_jsVulnerabilitiesV1.json",
+          "size": 1703
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_repairDatabaseV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_repairDatabaseV1.json",
+          "size": 621
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_resetPHPExtensionsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_resetPHPExtensionsV1.json",
+          "size": 530
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_restartNode_jsApplicationV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_restartNode_jsApplicationV1.json",
+          "size": 841
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_showJsDeploymentLogs.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_showJsDeploymentLogs.json",
+          "size": 702
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_toggleCachelessModeV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_toggleCachelessModeV1.json",
+          "size": 920
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_toggleWebsiteCacheV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_toggleWebsiteCacheV1.json",
+          "size": 945
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_updatePHPExtensionsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_updatePHPExtensionsV1.json",
+          "size": 952
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_updatePHPOptionsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_updatePHPOptionsV1.json",
+          "size": 976
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_updatePHPVersionV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_updatePHPVersionV1.json",
+          "size": 635
+        },
+        {
+          "rel": "user-hostinger-hosting/tools/hosting_verifyDomainOwnershipV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-hosting/tools/hosting_verifyDomainOwnershipV1.json",
+          "size": 793
+        }
+      ]
+    },
+    {
+      "name": "user-hostinger-reach",
+      "path": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach",
+      "is_dir": true,
+      "files": [
+        {
+          "rel": "user-hostinger-reach/SERVER_METADATA.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach/SERVER_METADATA.json",
+          "size": 83
+        },
+        {
+          "rel": "user-hostinger-reach/tools/reach_createANewContactSegmentV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach/tools/reach_createANewContactSegmentV1.json",
+          "size": 2655
+        },
+        {
+          "rel": "user-hostinger-reach/tools/reach_createANewContactV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach/tools/reach_createANewContactV1.json",
+          "size": 960
+        },
+        {
+          "rel": "user-hostinger-reach/tools/reach_createNewContactsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach/tools/reach_createNewContactsV1.json",
+          "size": 1087
+        },
+        {
+          "rel": "user-hostinger-reach/tools/reach_deleteAContactV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach/tools/reach_deleteAContactV1.json",
+          "size": 393
+        },
+        {
+          "rel": "user-hostinger-reach/tools/reach_getProfileDomainDNSStatusV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach/tools/reach_getProfileDomainDNSStatusV1.json",
+          "size": 521
+        },
+        {
+          "rel": "user-hostinger-reach/tools/reach_getSegmentDetailsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach/tools/reach_getSegmentDetailsV1.json",
+          "size": 476
+        },
+        {
+          "rel": "user-hostinger-reach/tools/reach_listContactGroupsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach/tools/reach_listContactGroupsV1.json",
+          "size": 249
+        },
+        {
+          "rel": "user-hostinger-reach/tools/reach_listContactsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach/tools/reach_listContactsV1.json",
+          "size": 780
+        },
+        {
+          "rel": "user-hostinger-reach/tools/reach_listProfileSegmentContactsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach/tools/reach_listProfileSegmentContactsV1.json",
+          "size": 835
+        },
+        {
+          "rel": "user-hostinger-reach/tools/reach_listProfilesV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach/tools/reach_listProfilesV1.json",
+          "size": 216
+        },
+        {
+          "rel": "user-hostinger-reach/tools/reach_listSegmentContactsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach/tools/reach_listSegmentContactsV1.json",
+          "size": 651
+        },
+        {
+          "rel": "user-hostinger-reach/tools/reach_listSegmentsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-reach/tools/reach_listSegmentsV1.json",
+          "size": 248
+        }
+      ]
+    },
+    {
+      "name": "user-hostinger-wordpress",
+      "path": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress",
+      "is_dir": true,
+      "files": [
+        {
+          "rel": "user-hostinger-wordpress/SERVER_METADATA.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/SERVER_METADATA.json",
+          "size": 91
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_activateWordPressPluginV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_activateWordPressPluginV1.json",
+          "size": 881
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_activateWordPressThemeV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_activateWordPressThemeV1.json",
+          "size": 876
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_checkIfWooCommerceIsInstalledV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_checkIfWooCommerceIsInstalledV1.json",
+          "size": 409
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_checkIfWordPressInstallationsAreValidV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_checkIfWordPressInstallationsAreValidV1.json",
+          "size": 1065
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_createLoginLinksV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_createLoginLinksV1.json",
+          "size": 651
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_deactivateWordPressPluginV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_deactivateWordPressPluginV1.json",
+          "size": 889
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_deleteWordPressInstallationV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_deleteWordPressInstallationV1.json",
+          "size": 785
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_detectWordPressInstallationsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_detectWordPressInstallationsV1.json",
+          "size": 567
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_getInstallationJWTTokenV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_getInstallationJWTTokenV1.json",
+          "size": 731
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_installWordPressPluginsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_installWordPressPluginsV1.json",
+          "size": 1172
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_installWordPressThemeV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_installWordPressThemeV1.json",
+          "size": 2127
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_installWordPressV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_installWordPressV1.json",
+          "size": 3498
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_listAvailableWordPressCoreUpdatesV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_listAvailableWordPressCoreUpdatesV1.json",
+          "size": 662
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_listAvailableWordPressPluginsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_listAvailableWordPressPluginsV1.json",
+          "size": 687
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_listInstalledWordPressPluginsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_listInstalledWordPressPluginsV1.json",
+          "size": 875
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_listInstalledWordPressThemesV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_listInstalledWordPressThemesV1.json",
+          "size": 708
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_listSuggestedWordPressPluginsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_listSuggestedWordPressPluginsV1.json",
+          "size": 471
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_listWordPressInstallationsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_listWordPressInstallationsV1.json",
+          "size": 1119
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_listWordPressThemesV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_listWordPressThemesV1.json",
+          "size": 562
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_purgeLiteSpeedCacheV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_purgeLiteSpeedCacheV1.json",
+          "size": 646
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_searchWordPressPluginsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_searchWordPressPluginsV1.json",
+          "size": 515
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_setAIOptionStatusV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_setAIOptionStatusV1.json",
+          "size": 1004
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_showAIOptionStatusV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_showAIOptionStatusV1.json",
+          "size": 956
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_showLiteSpeedCacheStatusV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_showLiteSpeedCacheStatusV1.json",
+          "size": 657
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_showMaintenanceStatusV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_showMaintenanceStatusV1.json",
+          "size": 655
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_showMemcachedObjectCacheStatusV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_showMemcachedObjectCacheStatusV1.json",
+          "size": 671
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_showWordPressCoreVersionV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_showWordPressCoreVersionV1.json",
+          "size": 695
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_toggleMaintenanceModeV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_toggleMaintenanceModeV1.json",
+          "size": 866
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_toggleMemcachedObjectCacheV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_toggleMemcachedObjectCacheV1.json",
+          "size": 901
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_uninstallWordPressPluginsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_uninstallWordPressPluginsV1.json",
+          "size": 986
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_uninstallWordPressThemesV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_uninstallWordPressThemesV1.json",
+          "size": 980
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_updateHostingerWordPressPluginV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_updateHostingerWordPressPluginV1.json",
+          "size": 1114
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_updateWordPressCoreV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_updateWordPressCoreV1.json",
+          "size": 1008
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_updateWordPressPluginsV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_updateWordPressPluginsV1.json",
+          "size": 1031
+        },
+        {
+          "rel": "user-hostinger-wordpress/tools/hosting_updateWordPressThemesV1.json",
+          "abs": "/Users/jacksonechols/.cursor/projects/Users-jacksonechols-Desktop-Sivic-Scraper/mcps/user-hostinger-wordpress/tools/hosting_updateWordPressThemesV1.json",
+          "size": 1025
+        }
+      ]
+    }
+  ],
+  "auth_files": [],
+  "vps_paths": []
+}

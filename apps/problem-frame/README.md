@@ -77,6 +77,15 @@ The dev server uses Next.js with **Turbopack** (fast refresh when you edit files
 - **Auth or session errors** — confirm `BETTER_AUTH_SECRET` is set (at least 32 characters; the app will not start without it) and `BETTER_AUTH_URL` matches the URL you use in the browser (including port).
 - **Database errors after pulling changes** — run `npm run db:migrate` again.
 
+### Export (PDF / CSV)
+
+On a frame detail page, use **Export PDF** or **Export CSV** in the header. Both are generated server-side from the live presentation state (workflow steps 1–6), behind the same org session as the rest of the app:
+
+- **PDF** — narrative document (`jspdf`)
+- **CSV** — ZIP of one CSV per entity type (`frame.csv`, `barriers.csv`, `evidence.csv`, …)
+
+Routes: `GET /api/frames/[frameId]/export/pdf` and `GET /api/frames/[frameId]/export/csv`.
+
 ### Other useful commands
 
 | Command | Purpose |
