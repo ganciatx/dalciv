@@ -3,7 +3,14 @@ from __future__ import annotations
 
 import pytest
 
+from dashboard.registry import is_public, load_registry, registry_apps
+
 pytestmark = pytest.mark.e2e
+
+load_registry.cache_clear()
+_CA = next((a for a in registry_apps() if a.get("slug") == "council-accountability"), None)
+if _CA is None or not is_public(_CA):
+    pytest.skip("council-accountability unpublished (public: false)", allow_module_level=True)
 
 
 @pytest.fixture

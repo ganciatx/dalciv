@@ -98,28 +98,6 @@ apps:
   - Data
   featured: true
   image: /apps/budget-visual.png
-- slug: meeting-recap
-  name: Meeting Recap
-  description: Plain-English summaries of Dallas council meetings — who attended,
-    what was debated, and how members voted.
-  url: /meeting-recap
-  emoji: 📋
-  tags:
-  - Civic
-  - Data
-  featured: true
-  image: /apps/meeting-recap.png
-- slug: council-accountability
-  name: Council Accountability
-  description: Campaign finance, council voting records, and lobbyist registration
-    for Dallas.
-  url: /council-accountability
-  emoji: ⚖️
-  tags:
-  - Civic
-  - Data
-  featured: true
-  image: /apps/council-accountability.png
 - slug: police
   name: Police Active Calls
   description: Live map of Dallas police active calls with geocoded incident locations.
@@ -138,5 +116,16 @@ apps:
   tags:
   - Game
   - Scoring
+  featured: true
+  external: true
+- slug: problem-frame
+  name: Problem Frame
+  description: 'Frame product problems: personas, evidence, outcomes, and hypotheses
+    — from fuzzy idea to testable bet.'
+  url: https://frames.ganciatx.com/
+  emoji: 🧭
+  tags:
+  - Product
+  - Utility
   featured: true
   external: true

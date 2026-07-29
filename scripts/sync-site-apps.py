@@ -17,6 +17,9 @@ def main() -> None:
 
     apps = []
     for app in registry.get("apps", []):
+        # public: false keeps source in-repo but omits from the live catalog.
+        if app.get("public") is False:
+            continue
         catalog = app.get("catalog")
         if not isinstance(catalog, dict):
             continue

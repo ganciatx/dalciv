@@ -76,6 +76,7 @@ apps:
       tags: [Civic, Data]
       featured: true
 
+  # public: false — kept in repo for local/dev; omitted from Hostinger + catalog.
   - slug: meeting-recap
     name: Meeting Recap
     route: /meeting-recap
@@ -84,7 +85,8 @@ apps:
     static_dir: meeting-recap
     template: meeting_recap.html
     build: npm run build
-    docker: true
+    docker: false
+    public: false
     catalog:
       description: >-
         Plain-English summaries of Dallas council meetings — who attended, what was
@@ -94,6 +96,7 @@ apps:
       tags: [Civic, Data]
       featured: true
 
+  # public: false — kept in repo for local/dev; omitted from Hostinger + catalog.
   - slug: council-accountability
     name: Council Accountability
     route: /council-accountability
@@ -104,7 +107,8 @@ apps:
     embed_bootstrap: true
     skip_site_chrome: true
     build: npm run build
-    docker: true
+    docker: false
+    public: false
     legacy_routes:
       - /campaign-finance
     catalog:

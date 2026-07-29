@@ -13,3 +13,6 @@ dallas_legistar_downloads/*.pdf
 scraper_dashboard_data/*.json
 scraper_dashboard_data/logs
 deploy/archives
+# Unpublished apps — source stays in git; omit built assets from Hostinger image.
+dashboard/static/meeting-recap
+dashboard/static/council-accountability

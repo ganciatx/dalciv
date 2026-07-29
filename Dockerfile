@@ -34,13 +34,6 @@ RUN cd city-budget && npm install
 COPY city-budget ./city-budget
 RUN cd city-budget && npm run build
 
-FROM node:20-alpine AS council-accountability-build
-WORKDIR /app
-COPY council-accountability/package.json ./council-accountability/
-RUN cd council-accountability && npm install
-COPY council-accountability ./council-accountability
-RUN cd council-accountability && npm run build
-
 FROM python:3.12-slim-bookworm
 
 ENV PYTHONUNBUFFERED=1 \
@@ -71,7 +64,6 @@ COPY --from=city-budget-simulator-build /app/dashboard/static/city-budget-simula
 COPY --from=time-timer-build /app/dashboard/static/time-timer ./dashboard/static/time-timer
 COPY --from=crossword-constructor-build /app/dashboard/static/crossword-constructor ./dashboard/static/crossword-constructor
 COPY --from=city-budget-build /app/dashboard/static/city-budget ./dashboard/static/city-budget
-COPY --from=council-accountability-build /app/dashboard/static/council-accountability ./dashboard/static/council-accountability
 COPY images ./images
 
 RUN mkdir -p scraper_dashboard_data dallas_legistar_downloads

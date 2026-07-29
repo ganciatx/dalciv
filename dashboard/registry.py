@@ -26,18 +26,30 @@ def registry_apps() -> list[dict[str, Any]]:
     return apps if isinstance(apps, list) else []
 
 
+def is_public(app: dict[str, Any]) -> bool:
+    """Whether an app is served publicly (routes + portfolio catalog).
+
+    ``public: false`` in registry.yaml unpublishes without deleting source.
+    Default is public when the key is omitted.
+    """
+    return app.get("public") is not False
+
+
 def apps_by_type(app_type: str) -> list[dict[str, Any]]:
     return [a for a in registry_apps() if a.get("type") == app_type]
 
 
 def spa_apps() -> list[dict[str, Any]]:
-    return apps_by_type("vite-spa")
+    """Vite SPAs with public page routes registered."""
+    return [a for a in apps_by_type("vite-spa") if is_public(a)]
 
 
 def catalog_apps() -> list[dict[str, Any]]:
-    """Apps with portfolio catalog metadata."""
+    """Apps with portfolio catalog metadata (public only)."""
     out: list[dict[str, Any]] = []
     for app in registry_apps():
+        if not is_public(app):
+            continue
         catalog = app.get("catalog")
         if not isinstance(catalog, dict):
             continue
