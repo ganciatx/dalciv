@@ -1,0 +1,50 @@
+# Photography exhibit — images are shown at their native aspect ratio (never cropped).
+# width/height must match the source file so the masonry layout reserves the right space.
+# Drop image files into public/photography/ and list them here in display order.
+
+photos:
+  - src: /photography/photo-01.jpg
+    alt: Woman in a red dress on a rooftop
+    title: Golden hour
+    width: 1200
+    height: 1500
+  - src: /photography/photo-02.jpg
+    alt: Portrait in warm light against a stone wall
+    title: Stone wall
+    width: 1800
+    height: 1200
+  - src: /photography/photo-03.jpg
+    alt: Figure in a patterned silk shirt beside concrete architecture
+    title: Concrete & silk
+    width: 1200
+    height: 1800
+  - src: /photography/photo-04.jpg
+    alt: Person in a mirrored sequined jacket against a blue sky
+    title: Reflections
+    width: 1200
+    height: 1200
+  - src: /photography/photo-05.jpg
+    alt: Figure walking across a dusty desert ridge
+    title: Ridgeline
+    width: 1600
+    height: 1200
+  - src: /photography/photo-06.jpg
+    alt: Man in a suit playing piano in tall grass at dusk
+    title: Dusk piano
+    width: 1200
+    height: 1600
+  - src: /photography/photo-07.jpg
+    alt: Dark blue wireframe cube on a black background
+    title: Wireframe
+    width: 1920
+    height: 1080
+  - src: /photography/photo-08.jpg
+    alt: Portrait of a man in a dark jacket under blue light
+    title: Blue hour
+    width: 1200
+    height: 1800
+  - src: /photography/photo-09.jpg
+    alt: Black and white portrait with curly hair and hand raised to face
+    title: Monochrome
+    width: 1500
+    height: 1200
