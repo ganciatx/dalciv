@@ -7,6 +7,7 @@ A personal portfolio website with a landing page, blog, and apps catalog. Built 
 - **Landing page** — Bold hero intro, expertise grid, featured apps, latest blog posts, contact CTA
 - **Apps catalog** (`/apps`) — Showcase all your products with tags and direct links
 - **Blog** (`/blog`) — Markdown-powered posts with categories, dates, and static generation
+- **Photography** (`/photography`) — Masonry exhibit that shows every photo at its native aspect ratio; list photos in `content/photography.yaml`
 - **Fully customizable** — All content lives in config files and markdown, no code changes needed
 
 ## Getting Started
