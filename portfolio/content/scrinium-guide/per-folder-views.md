@@ -5,8 +5,6 @@ section: Browse
 order: 6
 ---
 
-# Per-folder views
-
 Every view setting works at three levels:
 
 1. **Global default**: used everywhere nothing else applies.

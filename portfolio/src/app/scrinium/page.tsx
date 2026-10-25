@@ -129,12 +129,12 @@ export default function ScriniumPage() {
       <section className="px-6 py-20">
         <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
           <Image
-            src="/scrinium-icon.webp"
-            alt="Scrinium icon"
-            width={144}
-            height={144}
+            src="/scrinium-logo.webp"
+            alt="Scrinium logo"
+            width={800}
+            height={188}
             priority
-            className="h-36 w-36 object-contain"
+            className="h-auto w-72 object-contain sm:w-96"
           />
           <p className="mt-8 text-sm font-medium uppercase tracking-widest text-stone-400">
             macOS App

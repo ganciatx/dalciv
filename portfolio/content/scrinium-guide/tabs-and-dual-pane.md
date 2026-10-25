@@ -5,8 +5,6 @@ section: Browse
 order: 4
 ---
 
-# Tabs and dual pane
-
 ## Tabs
 
 | Task | How |

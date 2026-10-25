@@ -5,7 +5,7 @@ import { getAllApps } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Side Projects",
-  description: "DalCiv civic tools, games, and experiments built by Jackson Echols.",
+  description: "DalCiv civic tools, games, and experiments built by ganciatx.",
 };
 
 /** Full catalog of apps and side projects */

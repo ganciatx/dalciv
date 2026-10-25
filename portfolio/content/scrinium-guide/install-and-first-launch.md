@@ -5,8 +5,6 @@ section: Getting started
 order: 1
 ---
 
-# Install and first launch
-
 ## What you need
 
 - A Mac with Apple silicon running **macOS 26 (Tahoe)** or later.

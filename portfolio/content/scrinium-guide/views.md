@@ -5,8 +5,6 @@ section: Browse
 order: 3
 ---
 
-# Views: list, columns, icons and gallery
-
 Pick a view from the toolbar's view picker, or press:
 
 | View | Shortcut | Best for |

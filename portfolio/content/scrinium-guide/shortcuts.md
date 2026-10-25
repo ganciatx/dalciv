@@ -5,10 +5,6 @@ section: Customize
 order: 9
 ---
 
-# Customize keyboard shortcuts
-
-Every action in Scrinium has a shortcut, and you can change them all. See the full list.
-
 ## Change a shortcut
 
 1. Open **Scrinium → Settings → Shortcuts**.

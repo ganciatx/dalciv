@@ -5,10 +5,6 @@ section: Browse
 order: 7
 ---
 
-# Layout templates
-
-A layout template is a saved set of view settings with a name. Rules apply a template automatically to folders that match.
-
 ## Create a template
 
 1. Set up a folder the way you want: view, sort, columns, preview pane, dual pane.
