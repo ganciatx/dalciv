@@ -5,8 +5,6 @@ section: Browse
 order: 6
 ---
 
-## Create a template
-
 1. Set up a folder the way you want: view, sort, columns, preview pane, dual pane.
 2. Click the sliders icon → **Save View as Layout Template…**
 3. Name it and click **Save**.

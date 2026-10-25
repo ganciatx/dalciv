@@ -5,9 +5,7 @@ section: Folders
 order: 1
 ---
 
-# Folder counts and sizes
-
-Finder only tells you how big a folder is if you ask, and never how many items are inside. FileCabinet shows both right in the list.
+Finder only tells you how big a folder is if you ask, and never how many items are inside. Scrinium shows both right in the list.
 
 ## The columns
 
@@ -43,13 +41,13 @@ Counts and sizes are calculated in the background and **never slow down scrollin
 
 ## Skipping huge folders
 
-Folders like `node_modules` can hold hundreds of thousands of files. To keep scans fast, FileCabinet **skips their contents** when counting a parent folder.
+Folders like `node_modules` can hold hundreds of thousands of files. To keep scans fast, Scrinium **skips their contents** when counting a parent folder.
 
 - Skipped by default: `node_modules`.
 - A total that skipped something shows a **+** (for example **373+**), meaning "at least this many". Hover to see why.
 - Looking at a skipped folder itself shows only its direct **Items**; the other columns show **—**.
 
-Change the list in **FileCabinet → Settings → General → Counting and sizes**. Enter folder names separated by commas, such as `node_modules, Pods, DerivedData`.
+Change the list in **Scrinium → Settings → General → Counting and sizes**. Enter folder names separated by commas, such as `node_modules, Pods, DerivedData`.
 
 ## If a column shows a spinner forever
 

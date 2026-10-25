@@ -5,8 +5,6 @@ section: Tools
 order: 8
 ---
 
-# Custom actions
-
 A custom action runs a shell command on the files you have selected. Set them up in **Settings → Actions**; they appear under **Actions** in the right-click menu and in **File → Actions**, for the items they apply to.
 
 ## Set one up

@@ -5,8 +5,6 @@ section: Find
 order: 8
 ---
 
-# Search
-
 Click the **Search** field in the toolbar (or press **⌘F**) and start typing. Results appear in the list as you type, and replace the folder listing until you click **Done**.
 
 ## This Folder or This Mac
@@ -72,7 +70,7 @@ Use `>`, `>=`, `<`, `<=` or `=` with a number and a unit: `B`, `KB`, `MB`, `GB` 
 
 ### Regular expressions
 
-`regex:` checks each file name against a pattern, ignoring capitalization. It works together with the other operators: `ext:jpg regex:^IMG_\d{4}`. If the pattern is invalid, FileCabinet ignores it and tells you.
+`regex:` checks each file name against a pattern, ignoring capitalization. It works together with the other operators: `ext:jpg regex:^IMG_\d{4}`. If the pattern is invalid, Scrinium ignores it and tells you.
 
 ## Examples
 
@@ -103,4 +101,4 @@ Click **Save as Filter…** to keep it in the sidebar. See [Saved filters](saved
 
 ## Where FileCabinet looks
 
-Search uses Spotlight, so it's quick. Spotlight can't see some places, such as **Google Drive folders** and **drives with Spotlight turned off**. For those, FileCabinet scans the folders directly, so nothing is missing. That can take longer on big folders.
+Search uses Spotlight, so it's quick. Spotlight can't see some places, such as **Google Drive folders** and **drives with Spotlight turned off**. For those, Scrinium scans the folders directly, so nothing is missing. That can take longer on big folders.

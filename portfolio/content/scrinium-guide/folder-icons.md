@@ -5,8 +5,6 @@ section: Organize
 order: 3
 ---
 
-# Custom folder icons
-
 Make important folders easy to spot with your own artwork, such as a logo or a picture exported from Canva.
 
 ## Apply an icon
@@ -25,7 +23,7 @@ Click **Reset** in the Custom Icon section. The folder goes back to the normal i
 
 ## The icon library
 
-Every image you apply is saved to your **icon library** so you can reuse it. In **FileCabinet → Settings → Icons** you can:
+Every image you apply is saved to your **icon library** so you can reuse it. In **Scrinium → Settings → Icons** you can:
 
 - **Add Icons…** (or drop files onto the window)
 - Right-click an icon → **Remove from Library**
@@ -34,13 +32,13 @@ Removing an icon from the library doesn't change folders that already use it.
 
 ## In Finder and elsewhere
 
-FileCabinet uses macOS's own folder-icon feature, so the icon shows in **Finder** and any other app, and stays if you uninstall FileCabinet.
+Scrinium uses macOS's own folder-icon feature, so the icon shows in **Finder** and any other app, and stays if you uninstall Scrinium.
 
 ## What gets added to the folder
 
 macOS stores the icon in a hidden file named **Icon** inside the folder. That has two effects:
 
-- In a **git repository**, git sees that file. FileCabinet warns you before applying an icon inside a repository. You can add `Icon?` to `.gitignore`.
+- In a **git repository**, git sees that file. Scrinium warns you before applying an icon inside a repository. You can add `Icon?` to `.gitignore`.
 - In **shared or synced folders**, other people and services may see the file.
 
 > **Note:** Only folders can have custom icons. Packages such as apps can't.

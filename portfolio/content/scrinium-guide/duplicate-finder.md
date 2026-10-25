@@ -5,8 +5,6 @@ section: Tools
 order: 5
 ---
 
-# Duplicate finder
-
 Open it from **Tools → Find Duplicates…**, or right-click a folder and choose **Find Duplicates in Folder…**.
 
 ## Choose where to look
@@ -18,9 +16,9 @@ Add any mix of folders, external drives and cloud drives with **Add Location**. 
 
 ## How files are compared
 
-Files are compared by **content**, never by name. FileCabinet first compares sizes, then a small sample from the start of each file, and only then reads the whole file to confirm. Two names for the same file on disk (hard links) and shortcuts (symlinks) aren't counted as duplicates.
+Files are compared by **content**, never by name. Scrinium first compares sizes, then a small sample from the start of each file, and only then reads the whole file to confirm. Two names for the same file on disk (hard links) and shortcuts (symlinks) aren't counted as duplicates.
 
-Scanning runs in the background and can be canceled. FileCabinet remembers each file's fingerprint until the file changes, so repeat scans are much faster. **Forget** clears that memory.
+Scanning runs in the background and can be canceled. Scrinium remembers each file's fingerprint until the file changes, so repeat scans are much faster. **Forget** clears that memory.
 
 ## Results
 

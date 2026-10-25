@@ -5,10 +5,6 @@ section: Rename
 order: 2
 ---
 
-# Bulk rename
-
-Rename a whole selection in one go, and see exactly what will happen before it does.
-
 ## Open it
 
 Select the items, then:
@@ -67,14 +63,14 @@ Each row shows the old name and the new one:
 
 ## Rename
 
-Click **Rename**. FileCabinet renames everything, or nothing: if any step fails, it puts everything back. Swapping names (A→B and B→A) and changing only capital letters work.
+Click **Rename**. Scrinium renames everything, or nothing: if any step fails, it puts everything back. Swapping names (A→B and B→A) and changing only capital letters work.
 
 ## Undo
 
 After a rename, a pop-up appears at the bottom for ten seconds with an **Undo** button. You can also choose **Edit → Undo Rename** (⌥⌘Z) at any time during the session.
 
 - **One undo reverses the whole batch.**
-- If an item has been moved, deleted or its old name taken since, it's left alone and FileCabinet tells you how many were restored.
+- If an item has been moved, deleted or its old name taken since, it's left alone and Scrinium tells you how many were restored.
 - Undo history lasts for the session; it's cleared when you quit.
 - ⌘Z in a text field still undoes typing as usual.
 

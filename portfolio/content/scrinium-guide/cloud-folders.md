@@ -5,10 +5,6 @@ section: Tools
 order: 3
 ---
 
-# Cloud folders
-
-iCloud Drive and Google Drive appear in the sidebar under **Cloud** and work like any other folder: browse, copy, drag, rename, tag and search.
-
 ## What's downloaded and what isn't
 
 In cloud folders, each file shows a small badge:
@@ -49,4 +45,4 @@ Tags and descriptions are stored as file metadata, which some cloud services don
 
 ## Search
 
-Google Drive folders aren't indexed by Spotlight, so FileCabinet [searches them directly](../find/search.md#where-filecabinet-looks).
+Google Drive folders aren't indexed by Spotlight, so Scrinium [searches them directly](../find/search.md#where-scrinium-looks).

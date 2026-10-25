@@ -5,8 +5,6 @@ section: Tools
 order: 7
 ---
 
-# Backup
-
 Open **Tools → Backup…** and add a job with **+**. A job has a name, a source folder, a destination folder and options. Run it with **Run Now**, or put it on a schedule.
 
 ## Two ways to back up
@@ -18,11 +16,11 @@ Folders named in **Skip folders named** (default `node_modules, .git, .Trash`) a
 
 ## Passwords
 
-An archive password is stored in your Keychain so scheduled backups can run. It isn't kept in FileCabinet's database. Without the password the archives can't be opened, so keep a copy somewhere safe.
+An archive password is stored in your Keychain so scheduled backups can run. It isn't kept in Scrinium's database. Without the password the archives can't be opened, so keep a copy somewhere safe.
 
 ## Schedule
 
-Choose Hourly, Daily or Weekly. Scheduled jobs run **only while FileCabinet is open**. A job that came due while the app was closed runs shortly after you open it. If the drive isn't connected, the run is logged as skipped and tried again within the hour.
+Choose Hourly, Daily or Weekly. Scheduled jobs run **only while Scrinium is open**. A job that came due while the app was closed runs shortly after you open it. If the drive isn't connected, the run is logged as skipped and tried again within the hour.
 
 ## Check first, and the history
 

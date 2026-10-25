@@ -5,8 +5,6 @@ section: Organize
 order: 4
 ---
 
-# The inspector
-
 Press **⌘I** (or click the inspector button) to show a panel on the right with details about your selection.
 
 ## What it shows
@@ -21,7 +19,7 @@ Press **⌘I** (or click the inspector button) to show a panel on the right with
 
 With **nothing selected**, the inspector shows the folder you're in.
 
-For a folder, **Size** shows *Calculating…* briefly while FileCabinet [scans it](../folders/counts-and-sizes.md).
+For a folder, **Size** shows *Calculating…* briefly while Scrinium [scans it](../folders/counts-and-sizes.md).
 
 ## What you can do
 

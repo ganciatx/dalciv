@@ -5,8 +5,6 @@ section: Tools
 order: 15
 ---
 
-# Preview pane
-
 Press **⌥⌘P** (or **View → Show Preview Pane**) to show a pane on the right that previews the selected file. It's remembered **per folder**, so you can have it on in your project folders and off elsewhere.
 
 Select **one** file to preview it. With several selected, or none, the pane waits.

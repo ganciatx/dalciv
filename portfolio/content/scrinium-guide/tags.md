@@ -5,9 +5,7 @@ section: Organize
 order: 1
 ---
 
-# Tags
-
-Tags are labels you can put on any file or folder. FileCabinet saves them in Finder's own format, so **Finder, Spotlight and Open/Save dialogs all see them**, and they stay if you stop using FileCabinet.
+Tags are labels you can put on any file or folder. Scrinium saves them in Finder's own format, so **Finder, Spotlight and Open/Save dialogs all see them**, and they stay if you stop using Scrinium.
 
 ## Add a tag
 
@@ -29,11 +27,11 @@ In the tag picker, choose **New Tag…**:
 
 ### About colors
 
-Your library can hold **any color**. Finder itself only has seven tag colors (red, orange, yellow, green, blue, purple, gray), so for tags with a custom color Finder shows **the nearest of its seven**. FileCabinet shows the exact color. The new-tag form tells you which Finder color will be used.
+Your library can hold **any color**. Finder itself only has seven tag colors (red, orange, yellow, green, blue, purple, gray), so for tags with a custom color Finder shows **the nearest of its seven**. Scrinium shows the exact color. The new-tag form tells you which Finder color will be used.
 
 ## Manage your tag library
 
-Open **FileCabinet → Settings → Tags**:
+Open **Scrinium → Settings → Tags**:
 
 - **Edit Color** to change a tag's color.
 - Drag to reorder.
@@ -48,4 +46,4 @@ Search `tag:Taxes` to list everything with that tag. See [Search](../find/search
 
 ## Where tags are stored
 
-Tag **names** are written to the files themselves. Tag **colors** and your tag list are kept in FileCabinet. If you uninstall FileCabinet, files keep their tags, and Finder shows them with its nearest color.
+Tag **names** are written to the files themselves. Tag **colors** and your tag list are kept in Scrinium. If you uninstall Scrinium, files keep their tags, and Finder shows them with its nearest color.

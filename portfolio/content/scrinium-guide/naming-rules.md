@@ -5,9 +5,7 @@ section: Rename
 order: 1
 ---
 
-# Naming rules and templates
-
-A **naming rule** tells FileCabinet how to name new files and folders you create, so you never type the same pattern twice. A rule points to a **template** from your library.
+A **naming rule** tells Scrinium how to name new files and folders you create, so you never type the same pattern twice. A rule points to a **template** from your library.
 
 ## How it works
 
@@ -54,7 +52,7 @@ When a template has prompts, the new item opens in rename:
 
 ## Manage your templates
 
-Open **FileCabinet → Settings → Naming**. Three examples are included.
+Open **Scrinium → Settings → Naming**. Three examples are included.
 
 - **New Template…** to add one. Use **Insert Token** to add a token, and watch the live preview.
 - **Edit** or the trash button to change or delete one.
@@ -77,9 +75,9 @@ Click the sliders icon → **Naming Rule**:
 
 A folder's rule applies to **that folder and every subfolder**, replacing the global rule there. Deleting a template removes the rules that pointed to it.
 
-## Files and folders only made inside FileCabinet
+## Files and folders only made inside Scrinium
 
-Naming rules apply to items you create **in FileCabinet**. Files that arrive from other apps, such as downloads, aren't renamed automatically.
+Naming rules apply to items you create **in Scrinium**. Files that arrive from other apps, such as downloads, aren't renamed automatically.
 
 ## Renaming one item
 

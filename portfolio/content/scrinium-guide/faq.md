@@ -5,15 +5,13 @@ section: Reference
 order: 6
 ---
 
-# FAQ
-
-## Does FileCabinet replace Finder?
+## Does Scrinium replace Finder?
 
 It's built to be your daily file manager, but Finder stays installed and keeps working. You can use both.
 
-## If I stop using FileCabinet, do I lose my tags and descriptions?
+## If I stop using Scrinium, do I lose my tags and descriptions?
 
-No. Tags, descriptions and custom folder icons are stored on the files in the standard Mac way, so Finder and Spotlight keep seeing them. What you'd lose is FileCabinet-only data: tag colors, per-folder views, libraries and saved filters. See [Where your data lives](where-your-data-lives.md).
+No. Tags, descriptions and custom folder icons are stored on the files in the standard Mac way, so Finder and Spotlight keep seeing them. What you'd lose is Scrinium-only data: tag colors, per-folder views, libraries and saved filters. See [Where your data lives](where-your-data-lives.md).
 
 ## Can I permanently delete files?
 
@@ -25,7 +23,7 @@ Yes, every rename, one or many. See [Bulk rename → Undo](../rename/bulk-rename
 
 ## Will naming rules rename files that arrive from other apps or downloads?
 
-Not in version 1. Rules apply to files and folders you create in FileCabinet. Use [bulk rename](../rename/bulk-rename.md) for existing files.
+Not in V1. Rules apply to files and folders you create in Scrinium. Use [bulk rename](../rename/bulk-rename.md) for existing files.
 
 ## Why do counts take a moment?
 
@@ -45,7 +43,7 @@ Yes, any color. Finder shows the nearest of its seven. See [Tags](../organize/ta
 
 ## Can I change a tag's name?
 
-Not in version 1. Create a new tag instead.
+Not in V1. Create a new tag instead.
 
 ## Does it work with Google Drive and iCloud?
 
@@ -57,7 +55,7 @@ All of them. See [Customize keyboard shortcuts](../customize/shortcuts.md).
 
 ## Does it work on Intel Macs or older macOS?
 
-Version 1 needs Apple silicon and macOS 26 (Tahoe) or later.
+V1 needs Apple silicon and macOS 26 (Tahoe) or later.
 
 ## What's coming next?
 

@@ -5,10 +5,6 @@ section: Find
 order: 9
 ---
 
-# Saved filters
-
-Any search can become a shortcut in the sidebar.
-
 ## Save one
 
 1. Run a [search](search.md).

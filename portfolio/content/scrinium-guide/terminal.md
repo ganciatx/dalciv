@@ -5,8 +5,6 @@ section: Tools
 order: 2
 ---
 
-# Integrated terminal
-
 Press **⌃`** (Control and the backtick key), or click the terminal button, to open a terminal at the bottom of the window.
 
 ## It's your normal shell
@@ -19,7 +17,7 @@ Opening the terminal works like Terminal's **New Terminal at Folder**: you land 
 
 - The first time, a new shell starts there.
 - After that, the terminal keeps your session (see below), so opening it moves that session to the folder you're in now. This happens even if **Follow folder** is off.
-- If a command is still running, FileCabinet leaves it alone and doesn't change folders.
+- If a command is still running, Scrinium leaves it alone and doesn't change folders.
 
 Copy and paste work as you'd expect, and full-screen programs such as `vim` and `top` run fine.
 
@@ -27,7 +25,7 @@ Copy and paste work as you'd expect, and full-screen programs such as `vim` and 
 
 With **Follow folder** checked, the terminal changes to the folder you're viewing whenever you navigate, so you can browse and run commands in the same place.
 
-- FileCabinet only does this when the shell is **sitting at its prompt**. It never types into a program that's running.
+- Scrinium only does this when the shell is **sitting at its prompt**. It never types into a program that's running.
 - It types a `cd` command for you, so you'll see it in the terminal.
 - Uncheck **Follow folder** to stop.
 

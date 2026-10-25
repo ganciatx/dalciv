@@ -5,8 +5,6 @@ section: Reference
 order: 3
 ---
 
-# Naming template tokens
-
 Use tokens in [naming rules](../rename/naming-rules.md) and [bulk rename](../rename/bulk-rename.md) templates. Anything outside curly braces is fixed text. Unrecognized `{…}` is kept as typed.
 
 | Token | Result |
@@ -39,7 +37,7 @@ Slashes and colons in dates or prompt values are replaced with a dash, because F
 ## Behaviors
 
 - The **counter** in a new item's name is the smallest number not already taken in the folder.
-- With no counter, if the name already exists, FileCabinet adds " 2", " 3" and so on.
+- With no counter, if the name already exists, Scrinium adds " 2", " 3" and so on.
 - New files made from a template get `.txt` (New Text File) or `.md` (New Markdown File) added.
 
 ## Ready-made examples

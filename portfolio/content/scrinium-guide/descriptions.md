@@ -5,11 +5,7 @@ section: Organize
 order: 2
 ---
 
-# Descriptions
-
-A description is a short note on a file or folder: "Signed copy", "Waiting on client", "Use for the 2026 return".
-
-Descriptions are saved as the file's **Finder comment**, so they appear in Finder's **Get Info** window and stay with the file if you stop using FileCabinet.
+Descriptions are saved as the file's **Finder comment**, so they appear in Finder's **Get Info** window and stay with the file if you stop using Scrinium.
 
 ## Add or edit a description
 
@@ -27,7 +23,7 @@ Use the `desc:` operator, for example `desc:signed`. See [Search](../find/search
 
 ## A safety copy
 
-Some cloud services strip the extra information Finder comments are stored in. FileCabinet keeps a copy of every description it writes, and **restores it onto the file** the next time it sees the file without one.
+Some cloud services strip the extra information Finder comments are stored in. Scrinium keeps a copy of every description it writes, and **restores it onto the file** the next time it sees the file without one.
 
 ## Columns are off by default
 

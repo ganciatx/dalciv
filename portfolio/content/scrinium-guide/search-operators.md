@@ -5,8 +5,6 @@ section: Reference
 order: 2
 ---
 
-# Search operators cheat sheet
-
 Plain words match **file names**. Add operators to narrow. All parts must match. See [Search](../find/search.md) for explanations.
 
 | Operator | Value | Examples |
@@ -43,4 +41,4 @@ Plain words match **file names**. Add operators to narrow. All parts must match.
 
 - Quotes keep words together: `name:"tax return"`.
 - Operators are not case-sensitive; `EXT:PDF` works.
-- A part FileCabinet can't understand is ignored and flagged in the search bar.
+- A part Scrinium can't understand is ignored and flagged in the search bar.

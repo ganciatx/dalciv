@@ -5,8 +5,6 @@ section: Reference
 order: 1
 ---
 
-# Keyboard shortcuts
-
 These are the defaults. Change any of them in **Settings → Shortcuts**. See [Customize keyboard shortcuts](../customize/shortcuts.md).
 
 Symbols: ⌘ Command · ⌥ Option · ⇧ Shift · ⌃ Control
@@ -89,4 +87,4 @@ Symbols: ⌘ Command · ⌥ Option · ⇧ Shift · ⌃ Control
 
 ## Standard Mac shortcuts
 
-⌘, (Settings), ⌘Q (quit) and ⌘H (hide) work as in other Mac apps. FileCabinet uses a single window; use [tabs and dual pane](../browse/tabs-and-dual-pane.md) to work in several folders at once.
+⌘, (Settings), ⌘Q (quit) and ⌘H (hide) work as in other Mac apps. Scrinium uses a single window; use [tabs and dual pane](../browse/tabs-and-dual-pane.md) to work in several folders at once.
