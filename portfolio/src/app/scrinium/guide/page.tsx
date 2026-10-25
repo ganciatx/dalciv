@@ -40,9 +40,23 @@ function loadGuidePages(): GuidePage[] {
     .sort((a, b) => a.order - b.order);
 }
 
+/** Group consecutive pages that share a section, keeping their order */
+function groupBySection(pages: GuidePage[]): { section: string; pages: GuidePage[] }[] {
+  return pages.reduce<{ section: string; pages: GuidePage[] }[]>((groups, page) => {
+    const last = groups[groups.length - 1];
+    if (last && last.section === page.section) {
+      last.pages.push(page);
+    } else {
+      groups.push({ section: page.section, pages: [page] });
+    }
+    return groups;
+  }, []);
+}
+
 /** Scrinium user guide — wiki-style reference with a table of contents */
 export default function ScriniumGuidePage() {
   const pages = loadGuidePages();
+  const groups = groupBySection(pages);
 
   return (
     <section className="px-6 py-16">
@@ -51,18 +65,33 @@ export default function ScriniumGuidePage() {
           <p className="text-xs font-medium uppercase tracking-widest text-stone-400">
             On this page
           </p>
-          <ul className="mt-4 space-y-2 text-sm">
-            {pages.map((page) => (
-              <li key={page.slug}>
-                <a
-                  href={`#${page.slug}`}
-                  className="text-stone-600 transition-colors hover:text-stone-900"
-                >
-                  {page.title}
-                </a>
-              </li>
+          <div className="mt-4 space-y-3 text-sm">
+            {groups.map((group) => (
+              <details key={group.section} open className="group">
+                <summary className="flex cursor-pointer list-none items-center justify-between font-medium text-stone-900 [&::-webkit-details-marker]:hidden">
+                  {group.section}
+                  <span
+                    aria-hidden="true"
+                    className="text-stone-400 transition-transform group-open:rotate-90"
+                  >
+                    ›
+                  </span>
+                </summary>
+                <ul className="mt-2 space-y-2 border-l border-stone-200 pl-3">
+                  {group.pages.map((page) => (
+                    <li key={page.slug}>
+                      <a
+                        href={`#${page.slug}`}
+                        className="text-stone-600 transition-colors hover:text-stone-900"
+                      >
+                        {page.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </details>
             ))}
-          </ul>
+          </div>
         </nav>
 
         <article>
