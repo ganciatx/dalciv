@@ -13,24 +13,24 @@ const DOWNLOAD_FILE = "Scrinium-1.0-macOS-universal.zip";
 
 const features = [
   {
-    title: "Optimization Suite",
+    title: "Customizable per folder",
     description:
-      "Ten tools in one sidebar: startup profiler, launch predictor, RAM hog killer, battery health, idle reclaimer, shortcut coach, thermal watchdog, cache cleanup, bandwidth monitor, and energy impact triager.",
+      "Every view setting can be global, overridden on a folder, and inherited by subfolders.",
   },
   {
-    title: "Safer Uninstaller",
+    title: "Fast on huge folders",
     description:
-      "Lists leftover files after an app is removed. Short or generic name matches are never auto-checked for Trash, and lower-confidence rows are highlighted for review.",
+      "Listings stream in batches, and counts and sizes are calculated in the background.",
   },
   {
-    title: "Live Network & Port Tools",
+    title: "Safe by default",
     description:
-      "Scans that run system commands use reliable timeouts, so a stuck subprocess no longer hangs the scan.",
+      "Every rename is undoable. Deletes always go to the Trash; there is no permanent delete.",
   },
   {
-    title: "Local-Only Crash Reports",
+    title: "No lock-in",
     description:
-      "Optionally record crashes on your Mac. Export them as JSON when you choose. Nothing is uploaded to a third-party service.",
+      "Tags, descriptions and custom folder icons are stored on the files in standard macOS formats, so they survive if Scrinium is uninstalled. App-only settings never change file contents.",
   },
 ];
 
