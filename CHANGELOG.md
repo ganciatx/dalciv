@@ -18,6 +18,7 @@
 
 ### Added
 
+- **Scrinium product page** (`GET /scrinium`): product info, download, user manual, and release notes on the portfolio site.
 - **App portal** (`GET /`): DALCIV logo + enterprise-style app grid; Legistar scraper moved to **`/council-meetings`**.
 - **Command ops portal** (`GET /command`, `GET /api/command`): unlisted admin view — API usage, Socrata cache health, supervisor state, redacted env.
 - **Command — Police & Council APIs**: per-page dashboard endpoint catalog with hit counts; upstream Socrata/Nominatim call tracking.

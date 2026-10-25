@@ -37,6 +37,10 @@ def portfolio_apps() -> FileResponse:
     return FileResponse(_portfolio_file("apps.html"), media_type="text/html")
 
 
+def portfolio_scrinium() -> FileResponse:
+    return FileResponse(_portfolio_file("scrinium.html"), media_type="text/html")
+
+
 def portfolio_blog_index() -> FileResponse:
     return FileResponse(_portfolio_file("blog.html"), media_type="text/html")
 
