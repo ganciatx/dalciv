@@ -7,11 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function ScriniumGuidePage() {
-  return (
-    <section className="px-6 py-16">
-      <div className="mx-auto max-w-6xl">
-        <GuideList />
-      </div>
-    </section>
-  );
+  return <GuideList />;
 }

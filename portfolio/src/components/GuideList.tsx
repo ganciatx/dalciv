@@ -1,19 +1,39 @@
-"use client";
-
-import { BrowserRouter, Routes, Route, Link, useParams } from 'react-router-dom';
+import fs from "fs";
+import path from "path";
+import matter from "gray-matter";
+import Link from "next/link";
+import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
 import { useMemo, useState } from "react";
 import GuideViewer from './GuideViewer';
 
-const TOPICS = [
-  "install-and-first-launch",
-  "tour",
-  "search",
-  "views",
-  "tags",
-  "shortcuts",
-  "settings",
-  "faq",
-];
+interface GuideSummary {
+  slug: string;
+  title: string;
+  description: string;
+  section: string;
+  order: number;
+}
+
+function loadGuideSummaries(): GuideSummary[] {
+  const guideDir = path.join(process.cwd(), "content/scrinium-guide");
+
+  return fs
+    .readdirSync(guideDir)
+    .filter((file) => file.endsWith(".md"))
+    .map((file) => {
+      const fullPath = path.join(guideDir, file);
+      const { data } = matter(fs.readFileSync(fullPath, "utf-8"));
+
+      return {
+        slug: file.replace(/\.md$/, ""),
+        title: String(data.title ?? file.replace(/\.md$/, "")),
+        description: String(data.description ?? ""),
+        section: String(data.section ?? "General"),
+        order: Number(data.order ?? 0),
+      };
+    })
+    .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+}
 
 function GuidePage() {
   const { slug } = useParams();
@@ -34,6 +54,8 @@ export default function App() {
       })),
     []
   );
+
+  const guides = loadGuideSummaries();
 
   return (
     <BrowserRouter>
