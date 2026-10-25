@@ -2,7 +2,7 @@
 title: "Layout templates"
 description: "Save a look as a template and apply it automatically to matching folders, such as every folder that contains .git."
 section: Browse
-order: 7
+order: 6
 ---
 
 ## Create a template
