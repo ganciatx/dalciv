@@ -2,7 +2,7 @@
 title: "Saved filters"
 description: "Turn any search into a one-click sidebar item."
 section: Find
-order: 2
+order: 9
 ---
 
 # Saved filters
