@@ -2,7 +2,7 @@
 title: "Per-folder views"
 description: "Every folder remembers its view, sort, columns and panes. Set defaults for everything, override any folder, and let subfolders inherit."
 section: Browse
-order: 6
+order: 5
 ---
 
 Every view setting works at three levels:
