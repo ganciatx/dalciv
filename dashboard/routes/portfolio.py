@@ -14,6 +14,8 @@ from ..portfolio_site import (
     portfolio_enabled,
     portfolio_index,
     portfolio_root_asset,
+    portfolio_scrinium,
+    portfolio_scrinium_guide,
     portfolio_side_projects_redirect,
 )
 from ..site_chrome import template_context
@@ -52,6 +54,18 @@ def register(app: FastAPI, deps: RouteDeps) -> None:
     @app.get("/side-projects", include_in_schema=False)
     async def portfolio_side_projects_alias() -> RedirectResponse:
         return portfolio_side_projects_redirect()
+
+    @app.get("/scrinium", response_class=HTMLResponse)
+    async def portfolio_scrinium_page() -> FileResponse:
+        if not portfolio_enabled():
+            raise HTTPException(status_code=404, detail="Not found")
+        return portfolio_scrinium()
+
+    @app.get("/scrinium/guide", response_class=HTMLResponse)
+    async def portfolio_scrinium_guide_page() -> FileResponse:
+        if not portfolio_enabled():
+            raise HTTPException(status_code=404, detail="Not found")
+        return portfolio_scrinium_guide()
 
     @app.get("/blog", response_class=HTMLResponse)
     async def portfolio_blog_page() -> FileResponse:
