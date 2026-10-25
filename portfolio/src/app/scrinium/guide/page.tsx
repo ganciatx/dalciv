@@ -1,64 +1,49 @@
+import fs from "fs";
+import path from "path";
+import matter from "gray-matter";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { MarkdownContent } from "@/components/MarkdownContent";
 
 export const metadata: Metadata = {
   title: "Scrinium User Guide",
   description: "Step-by-step guide to installing, verifying, and setting up Scrinium for macOS.",
 };
 
-const guideSections = [
-  {
-    id: "install",
-    title: "Install",
-    paragraphs: [
-      "Download the universal zip, unzip it, and move the app into Applications.",
-      "Scrinium runs on macOS 14 or later, on both Apple Silicon and Intel Macs.",
-    ],
-  },
-  {
-    id: "verify-download",
-    title: "Verify the download",
-    paragraphs: [
-      "Each release publishes SHA256 checksums in SHA256SUMS.txt.",
-      "Compare the hash of the zip with the published value before you open it.",
-    ],
-  },
-  {
-    id: "full-disk-access",
-    title: "Check Full Disk Access",
-    paragraphs: [
-      "The FDA status indicator sits at the bottom-left of the tool sidebar.",
-      "Tools that read protected folders need Full Disk Access to show complete results.",
-    ],
-  },
-  {
-    id: "optimization-suite",
-    title: "Open the Optimization Suite",
-    paragraphs: [
-      "Pick any of the ten Optimization tools from the sidebar.",
-      "Use the Settings button in the bottom-left of the sidebar to adjust options for that suite.",
-    ],
-  },
-  {
-    id: "settings",
-    title: "Find settings",
-    paragraphs: [
-      "Every tool has a settings gear in the window toolbar.",
-      "Privacy & Security and Optimization also have a Settings button in the sidebar.",
-    ],
-  },
-  {
-    id: "crash-reports",
-    title: "Turn on crash reports",
-    paragraphs: [
-      "Crash reporting is off by default.",
-      "Enable it in Clipboard settings if you want crashes recorded locally on this Mac.",
-    ],
-  },
-];
+const GUIDE_DIR = path.join(process.cwd(), "content/scrinium-guide");
+
+interface GuidePage {
+  slug: string;
+  title: string;
+  description: string;
+  section: string;
+  order: number;
+  content: string;
+}
+
+/** Read guide markdown files, sorted by their frontmatter order */
+function loadGuidePages(): GuidePage[] {
+  return fs
+    .readdirSync(GUIDE_DIR)
+    .filter((file) => file.endsWith(".md"))
+    .map((file) => {
+      const { data, content } = matter(fs.readFileSync(path.join(GUIDE_DIR, file), "utf-8"));
+      return {
+        slug: file.replace(/\.md$/, ""),
+        title: data.title as string,
+        description: data.description as string,
+        section: data.section as string,
+        order: Number(data.order),
+        content: content.replace(/^# .*\n+/, ""),
+      };
+    })
+    .sort((a, b) => a.order - b.order);
+}
 
 /** Scrinium user guide — wiki-style reference with a table of contents */
 export default function ScriniumGuidePage() {
+  const pages = loadGuidePages();
+
   return (
     <section className="px-6 py-16">
       <div className="mx-auto grid max-w-5xl gap-12 lg:grid-cols-[200px_1fr]">
@@ -67,13 +52,13 @@ export default function ScriniumGuidePage() {
             On this page
           </p>
           <ul className="mt-4 space-y-2 text-sm">
-            {guideSections.map((section) => (
-              <li key={section.id}>
+            {pages.map((page) => (
+              <li key={page.slug}>
                 <a
-                  href={`#${section.id}`}
+                  href={`#${page.slug}`}
                   className="text-stone-600 transition-colors hover:text-stone-900"
                 >
-                  {section.title}
+                  {page.title}
                 </a>
               </li>
             ))}
@@ -91,23 +76,22 @@ export default function ScriniumGuidePage() {
           <h1 className="mt-4 text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl">
             User guide
           </h1>
-          <p className="mt-6 max-w-2xl text-lg text-stone-600">
-            The essentials for getting started with Scrinium, one topic per section.
-          </p>
 
-          {guideSections.map((section) => (
+          {pages.map((page) => (
             <section
-              key={section.id}
-              id={section.id}
+              key={page.slug}
+              id={page.slug}
               className="scroll-mt-24 mt-12 border-t border-stone-200 pt-10"
             >
-              <h2 className="text-2xl font-semibold tracking-tight text-stone-900">
-                {section.title}
+              <p className="text-xs font-medium uppercase tracking-widest text-stone-400">
+                {page.section}
+              </p>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight text-stone-900">
+                {page.title}
               </h2>
-              <div className="mt-4 space-y-4 text-base leading-relaxed text-stone-600">
-                {section.paragraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
-                ))}
+              <p className="mt-3 text-lg text-stone-600">{page.description}</p>
+              <div className="mt-8">
+                <MarkdownContent content={page.content} />
               </div>
             </section>
           ))}

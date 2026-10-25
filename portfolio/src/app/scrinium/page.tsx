@@ -214,8 +214,7 @@ export default function ScriniumPage() {
             description="The essentials for getting started with Scrinium."
           />
           <p className="max-w-2xl text-stone-600">
-            Install, verify the download, grant Full Disk Access, and find settings in the
-            step-by-step user guide.
+            Get set up on first launch and learn the window layout in the user guide.
           </p>
           <Link
             href="/scrinium/guide"
