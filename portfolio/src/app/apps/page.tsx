@@ -18,7 +18,7 @@ export default function AppsPage() {
         <SectionHeading
           label=""
           title="Side Projects"
-          description="Civic data tools and experiments hosted on this site. External apps open in a new tab."
+          description="Tools, games, and experiments built by ganciatx."
         />
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
