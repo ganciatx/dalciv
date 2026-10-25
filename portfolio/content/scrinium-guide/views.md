@@ -2,7 +2,7 @@
 title: "Views: list, columns, icons and gallery"
 description: "Choose the view that suits the folder, and change how items are sorted and shown."
 section: Browse
-order: 3
+order: 4
 ---
 
 Pick a view from the toolbar's view picker, or press:
