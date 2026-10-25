@@ -2,8 +2,8 @@
 title: "The Legibility Trap"
 excerpt: "I've searched high and low for the hottest beta access invites in tech to show you the dos and don'ts with early access onboarding."
 date: "2026-05-22"
-category: "Careers"
-emoji: "👀"
+category: "Career"
+emoji: ""
 ---
 
 Ninety-four percent. This is the percentage of businesses that implemented AI in some of their activities but failed to reap any benefit from this, according to a 2025 McKinsey survey. It is a staggering statistic. Millions of dollars invested in AI setups, years of hype, and the majority of organizations are effectively conducting expensive experiments of an unknown ROI. The critical question is not whether AI fails in those organizations but what exactly they are trying to optimize for.
