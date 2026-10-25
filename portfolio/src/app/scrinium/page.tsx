@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { SectionHeading } from "@/components/Services";
 
 export const metadata: Metadata = {
@@ -30,33 +31,6 @@ const features = [
     title: "Local-Only Crash Reports",
     description:
       "Optionally record crashes on your Mac. Export them as JSON when you choose. Nothing is uploaded to a third-party service.",
-  },
-];
-
-const manualSteps = [
-  {
-    title: "Install",
-    body: "Download the universal zip, unzip it, and move the app into Applications. It runs on macOS 14 or later, on both Apple Silicon and Intel Macs.",
-  },
-  {
-    title: "Verify the download",
-    body: "Each release publishes SHA256 checksums in SHA256SUMS.txt. Compare the hash of the zip with the published value before you open it.",
-  },
-  {
-    title: "Check Full Disk Access",
-    body: "The FDA status indicator sits at the bottom-left of the tool sidebar. Tools that read protected folders need Full Disk Access to show complete results.",
-  },
-  {
-    title: "Open the Optimization Suite",
-    body: "Pick any of the ten Optimization tools from the sidebar. Use the Settings button in the bottom-left of the sidebar to adjust options for that suite.",
-  },
-  {
-    title: "Find settings",
-    body: "Every tool has a settings gear in the window toolbar. Privacy & Security and Optimization also have a Settings button in the sidebar.",
-  },
-  {
-    title: "Turn on crash reports",
-    body: "Crash reporting is off by default. Enable it in Clipboard settings if you want crashes recorded locally on this Mac.",
   },
 ];
 
@@ -148,12 +122,12 @@ export default function ScriniumPage() {
             >
               Download for macOS
             </a>
-            <a
-              href="#manual"
+            <Link
+              href="/scrinium/guide"
               className="rounded-full border border-stone-300 px-6 py-3 text-sm font-medium text-stone-700 transition-colors hover:border-stone-400 hover:text-stone-900"
             >
-              Read the manual
-            </a>
+              Read the user guide
+            </Link>
           </div>
         </div>
       </section>
@@ -239,20 +213,16 @@ export default function ScriniumPage() {
             title="User manual"
             description="The essentials for getting started with Scrinium."
           />
-          <ol className="grid gap-6 sm:grid-cols-2">
-            {manualSteps.map((step, index) => (
-              <li
-                key={step.title}
-                className="rounded-2xl border border-stone-200 bg-[#FAFAF8] p-6"
-              >
-                <p className="text-xs font-medium uppercase tracking-wider text-stone-400">
-                  Step {index + 1}
-                </p>
-                <h3 className="mt-2 text-lg font-semibold text-stone-900">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-stone-600">{step.body}</p>
-              </li>
-            ))}
-          </ol>
+          <p className="max-w-2xl text-stone-600">
+            Install, verify the download, grant Full Disk Access, and find settings in the
+            step-by-step user guide.
+          </p>
+          <Link
+            href="/scrinium/guide"
+            className="mt-6 inline-block text-sm font-medium text-stone-900 underline underline-offset-4"
+          >
+            Open the user guide
+          </Link>
         </div>
       </section>
 
