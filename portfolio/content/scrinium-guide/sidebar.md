@@ -5,8 +5,6 @@ section: Browse
 order: 5
 ---
 
-# The sidebar
-
 ## Favorites
 
 Click a favorite to go there. To change the list:

@@ -5,8 +5,6 @@ section: Customize
 order: 8
 ---
 
-# Settings
-
 Open **Scrinium → Settings** (**⌘,**). There are six tabs.
 
 ## General

@@ -5,8 +5,6 @@ section: Customize
 order: 10
 ---
 
-# Use Scrinium for "Show in Finder"
-
 Many apps have a **Show in Finder** or **Reveal in Finder** command. By default these open Finder. You can have them open Scrinium instead.
 
 This is **off by default**.
