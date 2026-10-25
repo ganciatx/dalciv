@@ -2,7 +2,7 @@
 title: "The sidebar"
 description: "Add, remove and reorder favorites, and find drives, cloud storage and saved searches."
 section: Browse
-order: 5
+order: 3
 ---
 
 ## Favorites
