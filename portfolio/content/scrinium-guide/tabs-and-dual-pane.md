@@ -2,7 +2,7 @@
 title: "Tabs and dual pane"
 description: "Work in several folders at once with tabs, or split the window to copy and move between two folders."
 section: Browse
-order: 4
+order: 7
 ---
 
 ## Tabs
