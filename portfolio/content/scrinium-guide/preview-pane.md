@@ -2,7 +2,7 @@
 title: "Preview pane"
 description: "Preview PDFs, spreadsheets, code and Markdown without opening them."
 section: Tools
-order: 1
+order: 15
 ---
 
 # Preview pane
