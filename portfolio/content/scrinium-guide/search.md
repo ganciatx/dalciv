@@ -2,7 +2,7 @@
 title: "Search"
 description: "Search with operators like ext:, kind:, tag:, size: and modified:, in the current folder or across your Mac."
 section: Find
-order: 1
+order: 8
 ---
 
 # Search
