@@ -16,7 +16,7 @@ export function Header() {
           href="/"
           className="text-sm font-semibold tracking-tight text-stone-900 transition-colors hover:text-stone-600"
         >
-          {siteConfig.name.split(" ")[0]}
+          ganciatx
         </Link>
 
         <nav className="flex items-center gap-6">
