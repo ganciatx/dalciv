@@ -1,20 +1,20 @@
 ---
 title: "Settings"
-description: "A guide to every tab in FileCabinet's Settings window."
+description: "A guide to every tab in Scrinium's Settings window."
 section: Customize
 order: 8
 ---
 
 # Settings
 
-Open **FileCabinet → Settings** (**⌘,**). There are six tabs.
+Open **Scrinium → Settings** (**⌘,**). There are six tabs.
 
 ## General
 
 - **Default for all folders**: the view, sort order, and whether hidden items show. A folder can override these. See [Per-folder views](#per-folder-views).
 - **Counting and sizes**: folders to skip when counting inside another folder (default `node_modules`). See Counts and sizes.
 - **Preview pane**: whether audio and video play automatically when selected (on by default). See Preview pane.
-- **Show in Finder**: see [Use FileCabinet for "Show in Finder"](#default-viewer).
+- **Show in Finder**: see [Use Scrinium for "Show in Finder"](#default-viewer).
 
 ## Layouts
 
@@ -38,4 +38,4 @@ Every keyboard shortcut. See [Customize shortcuts](#shortcuts).
 
 ## Deletes always go to the Trash
 
-There's no setting for this because there's no permanent delete: moving to the Trash is the only way to remove items in FileCabinet.
+There's no setting for this because there's no permanent delete: moving to the Trash is the only way to remove items in Scrinium.

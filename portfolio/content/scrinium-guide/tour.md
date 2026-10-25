@@ -54,4 +54,4 @@ Everything in the toolbar and more is in the menus:
 - **Go**: back, forward, enclosing folder, home, refresh.
 - **Pane**: dual pane, switch pane, copy or move to the other pane, switch tabs.
 
-Open **FileCabinet → Settings** (⌘,) for settings.
+Open **Scrinium → Settings** (⌘,) for settings.

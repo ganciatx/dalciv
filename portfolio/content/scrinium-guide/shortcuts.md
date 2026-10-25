@@ -7,11 +7,11 @@ order: 9
 
 # Customize keyboard shortcuts
 
-Every action in FileCabinet has a shortcut, and you can change them all. See the full list.
+Every action in Scrinium has a shortcut, and you can change them all. See the full list.
 
 ## Change a shortcut
 
-1. Open **FileCabinet → Settings → Shortcuts**.
+1. Open **Scrinium → Settings → Shortcuts**.
 2. Click the shortcut next to an action. It changes to *Press keys…*
 3. Press the new combination.
 
@@ -25,7 +25,7 @@ A shortcut needs at least one of **⌘, ⌥ or ⌃**, or can be a function key s
 
 ## Conflicts
 
-If two actions share the same keys, an orange note appears under both ("Also used by…"). A warning also appears for keys macOS reserves, such as ⌘Q. FileCabinet still assigns them, so you decide, but only one action will respond.
+If two actions share the same keys, an orange note appears under both ("Also used by…"). A warning also appears for keys macOS reserves, such as ⌘Q. Scrinium still assigns them, so you decide, but only one action will respond.
 
 ## Reset
 

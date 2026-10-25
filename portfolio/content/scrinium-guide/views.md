@@ -50,4 +50,4 @@ Hidden files (names starting with a dot, and items macOS marks hidden) are off b
 - **Open:** double-click, or right-click → **Open**. Folders open in the same tab; files open in their default app.
 - **Copy and paste:** ⌘C, then ⌘V in the destination. Use **⌥⌘V** to *move* instead of copy.
 - **New items:** right-click empty space for **New Folder**, **New Text File** or **New Markdown File**. New items are named by your naming rule.
-- **Delete:** ⌘⌫ moves to the **Trash**. FileCabinet has no permanent delete.
+- **Delete:** ⌘⌫ moves to the **Trash**. Scrinium has no permanent delete.

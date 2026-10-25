@@ -34,7 +34,7 @@ Press **⌥⌘D** (or click the dual-pane button) to split the window into two p
 | **Move** selected items to the other pane's folder | **F6** (Pane menu → *Move to Other Pane*) |
 | **Drag** an item from one pane to the other | Drag and drop |
 
-When you drag, FileCabinet follows Finder's rules: items **move** if both folders are on the same disk, and **copy** if they're on different disks. Hold **⌥ (Option)** while dropping to always copy.
+When you drag, Scrinium follows Finder's rules: items **move** if both folders are on the same disk, and **copy** if they're on different disks. Hold **⌥ (Option)** while dropping to always copy.
 
 > **Note:** Dragging moves or copies only the item you grab, even if several are selected. To act on several at once, select them and use F5/F6 or copy and paste.
 

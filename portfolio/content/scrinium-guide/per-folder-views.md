@@ -25,7 +25,7 @@ Every view setting works at three levels:
 
 ## It saves as you go
 
-Change any of these while you're in a folder and FileCabinet remembers it for that folder. There's no Save button.
+Change any of these while you're in a folder and Scrinium remembers it for that folder. There's no Save button.
 
 Subfolders follow the nearest folder above them that has its own settings. A subfolder with its own settings uses those instead.
 
@@ -57,7 +57,7 @@ Click the sliders icon in the toolbar:
 
 ## Change the global default
 
-Either set up a folder the way you want and choose **Use These Settings for All Folders**, or open **FileCabinet → Settings → General** and choose the default view, sort and hidden-items setting.
+Either set up a folder the way you want and choose **Use These Settings for All Folders**, or open **Scrinium → Settings → General** and choose the default view, sort and hidden-items setting.
 
 ## Settings follow the folder
 

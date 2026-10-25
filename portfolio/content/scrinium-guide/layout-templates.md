@@ -15,7 +15,7 @@ A layout template is a saved set of view settings with a name. Rules apply a tem
 2. Click the sliders icon → **Save View as Layout Template…**
 3. Name it and click **Save**.
 
-You can edit or delete templates later in **FileCabinet → Settings → Layouts**. Expand a template to change its view, sort, hidden items, dual pane, preview pane and folder-size settings.
+You can edit or delete templates later in **Scrinium → Settings → Layouts**. Expand a template to change its view, sort, hidden items, dual pane, preview pane and folder-size settings.
 
 ## Apply a template by rule
 
