@@ -129,3 +129,12 @@ apps:
   - Utility
   featured: true
   external: true
+- slug: scrinium
+  name: Scrinium
+  description: A file explorer for macOS that makes folder sizes, sorting, and big projects easier to manage than Finder.
+  url: /scrinium
+  emoji: 🗂️
+  tags:
+  - Utility
+  - macOS
+  featured: false
