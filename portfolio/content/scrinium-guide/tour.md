@@ -5,8 +5,6 @@ section: Getting started
 order: 2
 ---
 
-# A tour of the window
-
 ## Sidebar
 
 The left column holds:
