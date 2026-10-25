@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import Link from "next/link";
-import GuideViewer from "./GuideViewer";
+import { MarkdownContent } from "@/components/MarkdownContent";
 
 const SECTION_ORDER = [
   "Getting started",
@@ -50,6 +50,13 @@ function loadGuidePages(): GuidePage[] {
     .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
 }
 
+function loadGuideContent(slug: string) {
+  const fullPath = path.join(process.cwd(), "content/scrinium-guide", `${slug}.md`);
+  const { data, content } = matter(fs.readFileSync(fullPath, "utf-8"));
+
+  return { title: String(data.title ?? slug), content };
+}
+
 function groupBySection(pages: GuidePage[]) {
   const groups = new Map<string, GuidePage[]>();
 
@@ -71,6 +78,7 @@ export default function GuideList() {
   const pages = loadGuidePages();
   const groups = groupBySection(pages);
   const defaultSlug = pages[0]?.slug ?? "install-and-first-launch";
+  const defaultGuide = loadGuideContent(defaultSlug);
 
   return (
     <section className="px-6 py-16">
@@ -109,7 +117,14 @@ export default function GuideList() {
           </p>
 
           <div className="mt-10 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-6">
-            <GuideViewer fileName={defaultSlug} />
+            <article>
+              <h1 className="text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
+                {defaultGuide.title}
+              </h1>
+              <div className="mt-8">
+                <MarkdownContent content={defaultGuide.content} />
+              </div>
+            </article>
           </div>
 
           <div className="mt-8 flex justify-end">

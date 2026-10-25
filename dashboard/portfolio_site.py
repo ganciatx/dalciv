@@ -59,6 +59,16 @@ def portfolio_blog_post(slug: str) -> FileResponse:
     )
 
 
+def portfolio_scrinium_guide_article(slug: str) -> FileResponse:
+    safe = slug.strip("/")
+    if not safe or "/" in safe or ".." in safe:
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(
+        _portfolio_file("scrinium", "guide", f"{safe}.html"),
+        media_type="text/html",
+    )
+
+
 def portfolio_side_projects_redirect() -> RedirectResponse:
     return RedirectResponse(url="/apps", status_code=308)
 

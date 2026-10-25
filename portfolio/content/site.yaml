@@ -85,7 +85,7 @@ apps:
   emoji: ⏱️
   tags:
   - Utility
-  featured: true
+  featured: false
   image: /apps/timer.png
 - slug: city-budget
   name: City Budget Explorer
@@ -116,7 +116,7 @@ apps:
   tags:
   - Game
   - Scoring
-  featured: false
+  featured: true
   external: true
 - slug: problem-frame
   name: Problem Frame
@@ -129,13 +129,3 @@ apps:
   - Utility
   featured: true
   external: true
-- slug: scrinium
-  name: Scrinium
-  description: A file explorer for macOS that makes folder sizes, sorting, and big projects easier to manage than Finder.
-  url: /scrinium
-  emoji: 
-  tags:
-  - Utility
-  - macOS
-  featured: true
-  image: /apps/Scrinium.png
