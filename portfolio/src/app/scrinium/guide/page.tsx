@@ -40,7 +40,20 @@ function loadGuidePages(): GuidePage[] {
     .sort((a, b) => a.order - b.order);
 }
 
-/** Group consecutive pages that share a section, keeping their order */
+function groupBySection(pages: GuidePage[]): { section: string; pages: GuidePage[] }[] {
+  const groups = new Map<string, GuidePage[]>();
+  for (const page of pages) {
+    const list = groups.get(page.section);
+    if (list) {
+      list.push(page);
+    } else {
+      groups.set(page.section, [page]);
+    }
+  }
+  return Array.from(groups, ([section, pages]) => ({ section, pages}));
+}
+
+/** Group consecutive pages that share a section, keeping their order 
 function groupBySection(pages: GuidePage[]): { section: string; pages: GuidePage[] }[] {
   return pages.reduce<{ section: string; pages: GuidePage[] }[]>((groups, page) => {
     const last = groups[groups.length - 1];
@@ -51,7 +64,7 @@ function groupBySection(pages: GuidePage[]): { section: string; pages: GuidePage
     }
     return groups;
   }, []);
-}
+}*/
 
 /** Scrinium user guide — wiki-style reference with a table of contents */
 export default function ScriniumGuidePage() {
