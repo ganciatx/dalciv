@@ -12,6 +12,24 @@ export const metadata: Metadata = {
 
 const GUIDE_DIR = path.join(process.cwd(), "content/scrinium-guide");
 
+/** Display order for guide sections; unlisted sections go last, alphabetically */
+const SECTION_ORDER = [
+  "Getting Started",
+  "Find",
+  "Search",
+  "Browse",
+  "Organize",
+  "Customize",
+  "Rename",
+  "Tools",
+  "Reference",
+];
+
+function sectionRank(section: string): number {
+  const index = SECTION_ORDER.indexOf(section);
+  return index === -1 ? SECTION_ORDER.length : index;
+}
+
 interface GuidePage {
   slug: string;
   title: string;
@@ -50,7 +68,9 @@ function groupBySection(pages: GuidePage[]): { section: string; pages: GuidePage
       groups.set(page.section, [page]);
     }
   }
-  return Array.from(groups, ([section, pages]) => ({ section, pages}));
+  return Array.from(groups, ([section, pages]) => ({ section, pages})).sort(
+    (a, b) => sectionRank(a.section) - sectionRank(b.section) || a.section.localeCompare(b.section)
+  );
 }
 
 /** Group consecutive pages that share a section, keeping their order 
